@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
+  fetchMyIssuedBooks,
+  fetchMyChildrenBooks,
+  fetchMyLibraryFines,
   fetchBooks,
   fetchBook,
   createBook,
@@ -27,6 +30,11 @@ import type {
 
 export const libraryKeys = {
   all: ['library'] as const,
+  // User-scoped
+  myBooks: () => [...libraryKeys.all, 'my-books'] as const,
+  myChildrenBooks: () => [...libraryKeys.all, 'my-children-books'] as const,
+  myFines: () => [...libraryKeys.all, 'my-fines'] as const,
+  // Books
   books: () => [...libraryKeys.all, 'books'] as const,
   bookList: (filters: BookFilters) => [...libraryKeys.books(), 'list', filters] as const,
   bookDetail: (id: string) => [...libraryKeys.books(), 'detail', id] as const,
@@ -36,6 +44,29 @@ export const libraryKeys = {
   fineList: (filters: FineFilters) => [...libraryKeys.fines(), 'list', filters] as const,
   stats: () => [...libraryKeys.all, 'stats'] as const,
   students: (search?: string) => [...libraryKeys.all, 'students', search] as const,
+}
+
+// ==================== USER-SCOPED HOOKS ====================
+
+export function useMyIssuedBooks() {
+  return useQuery({
+    queryKey: libraryKeys.myBooks(),
+    queryFn: fetchMyIssuedBooks,
+  })
+}
+
+export function useMyChildrenBooks() {
+  return useQuery({
+    queryKey: libraryKeys.myChildrenBooks(),
+    queryFn: fetchMyChildrenBooks,
+  })
+}
+
+export function useMyLibraryFines() {
+  return useQuery({
+    queryKey: libraryKeys.myFines(),
+    queryFn: fetchMyLibraryFines,
+  })
 }
 
 // ==================== BOOKS HOOKS ====================

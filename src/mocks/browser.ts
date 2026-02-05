@@ -6,7 +6,16 @@ import { dashboardStats, feeCollectionData, attendanceData, announcements, upcom
 import { admissionsHandlers } from './handlers/admissions.handlers'
 import { staffHandlers } from './handlers/staff.handlers'
 import { libraryHandlers } from './handlers/library.handlers'
+import { financeHandlers } from './handlers/finance.handlers'
+import { settingsHandlers } from './handlers/settings.handlers'
+import { integrationsHandlers } from './handlers/integrations.handlers'
+import { examsHandlers } from './handlers/exams.handlers'
+import { attendanceHandlers } from './handlers/attendance.handlers'
 import { applications } from './data/admissions.data'
+import { getUserContext, isParent } from './utils/auth-context'
+import { studentFees } from './data/finance.data'
+import { issuedBooks } from './data/library.data'
+import { generateStudentAttendanceView } from './data/attendance.data'
 
 const handlers = [
   // Dashboard
@@ -48,6 +57,63 @@ const handlers = [
   http.get('/api/dashboard/quick-stats', async () => {
     await delay(200)
     return HttpResponse.json({ data: quickStats })
+  }),
+
+  // ==================== USER-SCOPED ====================
+
+  // Get parent's children with aggregated stats
+  http.get('/api/users/my-children', async ({ request }) => {
+    await delay(300)
+
+    const context = getUserContext(request)
+
+    if (!context || !isParent(context)) {
+      return HttpResponse.json({ error: 'Unauthorized - Parent access required' }, { status: 403 })
+    }
+
+    if (!context.childIds || context.childIds.length === 0) {
+      return HttpResponse.json({ error: 'No children linked to account' }, { status: 404 })
+    }
+
+    // Build children data with aggregated stats
+    const children = context.childIds.map((childId) => {
+      // Find student in students array or generate mock data
+      const student = students.find((s) => s.id === childId)
+
+      // Get attendance data
+      const attendanceData = generateStudentAttendanceView(childId)
+
+      // Get fees data
+      const fees = studentFees.filter((sf) => sf.studentId === childId)
+      const totalFees = fees.reduce((sum, f) => sum + f.totalAmount, 0)
+      const totalPaid = fees.reduce((sum, f) => sum + f.paidAmount, 0)
+      const totalDiscount = fees.reduce((sum, f) => sum + f.discountAmount, 0)
+      const pendingFees = totalFees - totalPaid - totalDiscount
+
+      // Get library books count
+      const libraryBooks = issuedBooks.filter(
+        (ib) => ib.studentId === childId && ib.status !== 'returned'
+      ).length
+
+      return {
+        id: childId,
+        name: student?.name || `Student ${childId}`,
+        class: student?.class || 'Class 10',
+        section: student?.section || 'A',
+        rollNumber: student?.rollNumber || 1,
+        avatar: student?.photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${childId}`,
+        attendance: {
+          percentage: attendanceData.summary.attendancePercentage,
+          presentDays: attendanceData.summary.presentDays,
+          absentDays: attendanceData.summary.absentDays,
+          totalDays: attendanceData.summary.totalDays,
+        },
+        pendingFees,
+        libraryBooks,
+      }
+    })
+
+    return HttpResponse.json({ data: children })
   }),
 
   // Students
@@ -114,16 +180,19 @@ const handlers = [
   // Create student (used by enrollment)
   http.post('/api/students', async ({ request }) => {
     await delay(400)
-    const body = await request.json() as Partial<Student>
+    const body = await request.json() as Partial<Student> & { firstName?: string; lastName?: string }
 
     const now = new Date()
     const admissionYear = now.getFullYear()
     const count = students.length + 1
 
+    // Support both name and firstName/lastName patterns
+    const name = body.name || (body.firstName && body.lastName ? `${body.firstName} ${body.lastName}` : '')
+
     const newStudent: Student = {
       id: Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
       admissionNumber: `ADM${admissionYear}${String(count).padStart(4, '0')}`,
-      name: body.name || '',
+      name,
       email: body.email || '',
       phone: body.phone || '',
       dateOfBirth: body.dateOfBirth || '',
@@ -133,7 +202,7 @@ const handlers = [
       section: body.section || 'A',
       rollNumber: body.rollNumber || 1,
       admissionDate: now.toISOString(),
-      photoUrl: body.photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${body.name?.replace(/\s/g, '')}`,
+      photoUrl: body.photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name.replace(/\s/g, '')}`,
       address: body.address || { street: '', city: '', state: '', pincode: '' },
       parent: body.parent || { fatherName: '', motherName: '', guardianPhone: '', guardianEmail: '', occupation: '' },
       status: 'active',
@@ -142,6 +211,52 @@ const handlers = [
     students.unshift(newStudent)
 
     return HttpResponse.json({ data: newStudent }, { status: 201 })
+  }),
+
+  // Update student
+  http.put('/api/students/:id', async ({ params, request }) => {
+    await delay(300)
+    const studentIndex = students.findIndex((s) => s.id === params.id)
+
+    if (studentIndex === -1) {
+      return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+
+    const body = await request.json() as Partial<Student> & { firstName?: string; lastName?: string }
+    const existingStudent = students[studentIndex]
+
+    // Support both name and firstName/lastName patterns
+    let name = existingStudent.name
+    if (body.name) {
+      name = body.name
+    } else if (body.firstName && body.lastName) {
+      name = `${body.firstName} ${body.lastName}`
+    }
+
+    const updatedStudent: Student = {
+      ...existingStudent,
+      ...body,
+      name,
+      photoUrl: body.photoUrl || `https://api.dicebear.com/7.x/avataaars/svg?seed=${name.replace(/\s/g, '')}`,
+    }
+
+    students[studentIndex] = updatedStudent
+
+    return HttpResponse.json({ data: updatedStudent })
+  }),
+
+  // Delete student
+  http.delete('/api/students/:id', async ({ params }) => {
+    await delay(300)
+    const studentIndex = students.findIndex((s) => s.id === params.id)
+
+    if (studentIndex === -1) {
+      return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+
+    students.splice(studentIndex, 1)
+
+    return HttpResponse.json({ success: true })
   }),
 
   // Enroll student from application
@@ -303,4 +418,4 @@ const handlers = [
   }),
 ]
 
-export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers)
+export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers)

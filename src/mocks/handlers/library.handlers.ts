@@ -6,6 +6,7 @@ import {
   getLibraryStats,
   getAvailableStudents,
 } from '../data/library.data'
+import { getUserContext, isStudent, isParent } from '../utils/auth-context'
 import type {
   Book,
   IssuedBook,
@@ -22,6 +23,128 @@ function generateId(): string {
 }
 
 export const libraryHandlers = [
+  // ==================== USER-SCOPED HANDLERS ====================
+
+  // Get student's own issued books
+  http.get('/api/library/my-books', async ({ request }) => {
+    await delay(300)
+
+    const context = getUserContext(request)
+
+    if (!context || !isStudent(context) || !context.studentId) {
+      return HttpResponse.json({ error: 'Unauthorized - Student access required' }, { status: 403 })
+    }
+
+    // Get active issued books for this student
+    const today = new Date()
+    let myBooks = issuedBooks.filter(
+      (ib) => ib.studentId === context.studentId && ib.status !== 'returned'
+    )
+
+    // Update overdue status
+    myBooks = myBooks.map((ib) => {
+      if (ib.status === 'issued' && new Date(ib.dueDate) < today) {
+        return { ...ib, status: 'overdue' as const }
+      }
+      return ib
+    })
+
+    return HttpResponse.json({ data: myBooks })
+  }),
+
+  // Get parent's children issued books
+  http.get('/api/library/my-children-books', async ({ request }) => {
+    await delay(300)
+
+    const context = getUserContext(request)
+
+    if (!context || !isParent(context)) {
+      return HttpResponse.json({ error: 'Unauthorized - Parent access required' }, { status: 403 })
+    }
+
+    if (!context.childIds || context.childIds.length === 0) {
+      return HttpResponse.json({ error: 'No children linked to account' }, { status: 404 })
+    }
+
+    const today = new Date()
+
+    // Group books by child
+    const childrenBooks = context.childIds.map((childId) => {
+      let childBooks = issuedBooks.filter(
+        (ib) => ib.studentId === childId && ib.status !== 'returned'
+      )
+
+      // Update overdue status
+      childBooks = childBooks.map((ib) => {
+        if (ib.status === 'issued' && new Date(ib.dueDate) < today) {
+          return { ...ib, status: 'overdue' as const }
+        }
+        return ib
+      })
+
+      // Get student info from first book or use default
+      const studentName = childBooks[0]?.studentName || `Student ${childId}`
+      const studentClass = childBooks[0]?.studentClass || ''
+      const studentSection = childBooks[0]?.studentSection || ''
+
+      return {
+        studentId: childId,
+        studentName,
+        studentClass,
+        studentSection,
+        books: childBooks,
+      }
+    })
+
+    return HttpResponse.json({ data: childrenBooks })
+  }),
+
+  // Get student/parent library fines
+  http.get('/api/library/my-fines', async ({ request }) => {
+    await delay(300)
+
+    const context = getUserContext(request)
+
+    if (!context) {
+      return HttpResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    let studentIds: string[] = []
+
+    if (isStudent(context) && context.studentId) {
+      studentIds = [context.studentId]
+    } else if (isParent(context) && context.childIds) {
+      studentIds = context.childIds
+    } else {
+      return HttpResponse.json({ error: 'Unauthorized - Student or Parent access required' }, { status: 403 })
+    }
+
+    const userFines = fines.filter((f) => studentIds.includes(f.studentId))
+
+    // Sort by createdAt descending
+    userFines.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    // Calculate summary
+    const totalFines = userFines.reduce((sum, f) => sum + f.amount, 0)
+    const pendingFines = userFines
+      .filter((f) => f.status === 'pending')
+      .reduce((sum, f) => sum + f.amount, 0)
+    const paidFines = userFines
+      .filter((f) => f.status === 'paid')
+      .reduce((sum, f) => sum + f.amount, 0)
+
+    return HttpResponse.json({
+      data: {
+        fines: userFines,
+        summary: {
+          totalFines,
+          pendingFines,
+          paidFines,
+        },
+      },
+    })
+  }),
+
   // ==================== BOOK HANDLERS ====================
 
   // Get all books with pagination and filters
@@ -321,6 +444,7 @@ export const libraryHandlers = [
         studentId: issuedBook.studentId,
         studentName: issuedBook.studentName,
         studentClass: issuedBook.studentClass,
+        studentSection: issuedBook.studentSection,
         overdueDays,
         amount: fineAmount,
         status: 'pending',

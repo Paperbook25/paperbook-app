@@ -1,3 +1,4 @@
+import { apiGet } from '@/lib/api-client'
 import type {
   Book,
   BookFilters,
@@ -15,6 +16,27 @@ import type {
 
 const API_BASE = '/api/library'
 
+// ==================== USER-SCOPED TYPES ====================
+
+export interface ChildBooksData {
+  studentId: string
+  studentName: string
+  studentClass: string
+  studentSection: string
+  books: IssuedBook[]
+}
+
+export interface FinesSummary {
+  totalFines: number
+  pendingFines: number
+  paidFines: number
+}
+
+export interface MyFinesResponse {
+  fines: Fine[]
+  summary: FinesSummary
+}
+
 // ==================== PAGINATION RESPONSE ====================
 
 export interface PaginatedResponse<T> {
@@ -25,6 +47,20 @@ export interface PaginatedResponse<T> {
     total: number
     totalPages: number
   }
+}
+
+// ==================== USER-SCOPED ENDPOINTS ====================
+
+export async function fetchMyIssuedBooks(): Promise<{ data: IssuedBook[] }> {
+  return apiGet(`${API_BASE}/my-books`)
+}
+
+export async function fetchMyChildrenBooks(): Promise<{ data: ChildBooksData[] }> {
+  return apiGet(`${API_BASE}/my-children-books`)
+}
+
+export async function fetchMyLibraryFines(): Promise<{ data: MyFinesResponse }> {
+  return apiGet(`${API_BASE}/my-fines`)
 }
 
 // ==================== BOOKS CRUD ====================
