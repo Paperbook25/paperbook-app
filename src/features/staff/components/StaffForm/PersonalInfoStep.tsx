@@ -1,6 +1,7 @@
 import type { UseFormReturn } from 'react-hook-form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ImageUpload } from '@/components/ui/image-upload'
 import {
   Select,
   SelectContent,
@@ -29,6 +30,29 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
         <h3 className="text-lg font-medium">Personal Information</h3>
         <p className="text-sm text-muted-foreground">Enter the staff member's personal details</p>
       </div>
+
+      {/* Photo Upload */}
+      <FormField
+        control={form.control}
+        name="photoUrl"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Staff Photo</FormLabel>
+            <FormControl>
+              <div className="max-w-[200px]">
+                <ImageUpload
+                  value={field.value}
+                  onChange={field.onChange}
+                  maxSizeMB={2}
+                  aspectRatio={1}
+                  placeholder="Upload Photo"
+                />
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       <div className="grid md:grid-cols-2 gap-4">
         <FormField

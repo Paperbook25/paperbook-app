@@ -7,11 +7,28 @@ import {
   leaveRequests,
   generateStudentAttendanceView,
   generateId,
+  generatePeriodDefinitions,
+  generatePeriodAttendance,
+  generateStudentPeriodSummary,
+  attendanceThreshold,
+  attendanceAlerts,
+  latePolicy,
+  lateRecords,
+  generateLatePatterns,
+  notificationConfigs,
+  absenceNotifications,
+  generateNotificationStats,
+  biometricDevices,
+  biometricSyncLogs,
 } from '../data/attendance.data'
 import { getUserContext, isParent } from '../utils/auth-context'
 import type {
   AttendanceStatus,
   LeaveStatus,
+  PeriodNumber,
+  BiometricDeviceType,
+  NotificationChannel,
+  NotificationEventType,
 } from '@/features/attendance/types/attendance.types'
 
 export const attendanceHandlers = [
@@ -354,5 +371,311 @@ export const attendanceHandlers = [
     const studentLeaves = leaveRequests.filter((l) => l.studentId === studentId)
 
     return HttpResponse.json({ data: studentLeaves })
+  }),
+
+  // ==================== PERIOD-WISE ATTENDANCE ====================
+
+  // Get period definitions for a class
+  http.get('/api/attendance/periods/definitions', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const className = url.searchParams.get('className') || 'Class 10'
+    const section = url.searchParams.get('section') || 'A'
+
+    const periods = generatePeriodDefinitions(className, section)
+    return HttpResponse.json({ data: periods })
+  }),
+
+  // Get period attendance for a date/class/section/period
+  http.get('/api/attendance/periods', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
+    const className = url.searchParams.get('className') || 'Class 10'
+    const section = url.searchParams.get('section') || 'A'
+    const period = parseInt(url.searchParams.get('period') || '1') as PeriodNumber
+
+    const periods = generatePeriodDefinitions(className, section)
+    const records = generatePeriodAttendance(date, className, section, period)
+
+    return HttpResponse.json({
+      data: {
+        date,
+        className,
+        section,
+        periods,
+        records,
+      },
+    })
+  }),
+
+  // Mark period attendance
+  http.post('/api/attendance/periods', async ({ request }) => {
+    await delay(400)
+    const body = (await request.json()) as {
+      date: string
+      className: string
+      section: string
+      period: PeriodNumber
+      subject: string
+      records: { studentId: string; status: AttendanceStatus }[]
+    }
+
+    return HttpResponse.json({
+      success: true,
+      markedCount: body.records.length,
+    })
+  }),
+
+  // Get student period-wise summary
+  http.get('/api/attendance/periods/summary', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const className = url.searchParams.get('className') || 'Class 10'
+    const section = url.searchParams.get('section') || 'A'
+
+    const summaries = generateStudentPeriodSummary(className, section)
+    return HttpResponse.json({ data: summaries })
+  }),
+
+  // ==================== SHORTAGE ALERTS ====================
+
+  // Get threshold config
+  http.get('/api/attendance/thresholds', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: attendanceThreshold })
+  }),
+
+  // Update threshold config
+  http.put('/api/attendance/thresholds', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as Partial<typeof attendanceThreshold>
+    Object.assign(attendanceThreshold, body)
+    return HttpResponse.json({ data: attendanceThreshold })
+  }),
+
+  // Get active alerts
+  http.get('/api/attendance/alerts', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const severity = url.searchParams.get('severity')
+    const type = url.searchParams.get('type')
+
+    let filtered = [...attendanceAlerts]
+    if (severity) filtered = filtered.filter((a) => a.severity === severity)
+    if (type) filtered = filtered.filter((a) => a.type === type)
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Acknowledge an alert
+  http.post('/api/attendance/alerts/:id/acknowledge', async ({ params }) => {
+    await delay(200)
+    const { id } = params
+    const alert = attendanceAlerts.find((a) => a.id === id)
+    if (!alert) {
+      return HttpResponse.json({ error: 'Alert not found' }, { status: 404 })
+    }
+    alert.acknowledgedAt = new Date().toISOString()
+    alert.acknowledgedBy = 'Current User'
+    return HttpResponse.json({ data: alert })
+  }),
+
+  // ==================== LATE DETECTION ====================
+
+  // Get late policy
+  http.get('/api/attendance/late-policy', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: latePolicy })
+  }),
+
+  // Update late policy
+  http.put('/api/attendance/late-policy', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as Partial<typeof latePolicy>
+    Object.assign(latePolicy, body)
+    return HttpResponse.json({ data: latePolicy })
+  }),
+
+  // Get late records
+  http.get('/api/attendance/late-records', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const className = url.searchParams.get('className')
+    const date = url.searchParams.get('date')
+
+    let filtered = [...lateRecords]
+    if (className) filtered = filtered.filter((r) => r.className === className)
+    if (date) filtered = filtered.filter((r) => r.date === date)
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get habitual latecomers / late patterns
+  http.get('/api/attendance/late-patterns', async () => {
+    await delay(400)
+    const patterns = generateLatePatterns()
+    return HttpResponse.json({ data: patterns })
+  }),
+
+  // ==================== ABSENCE NOTIFICATIONS ====================
+
+  // Get notification configs
+  http.get('/api/attendance/notifications/config', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: notificationConfigs })
+  }),
+
+  // Update notification config
+  http.put('/api/attendance/notifications/config/:channel', async ({ params, request }) => {
+    await delay(300)
+    const { channel } = params
+    const body = (await request.json()) as {
+      enabled: boolean
+      events: NotificationEventType[]
+      timing: 'immediate' | 'daily_digest'
+    }
+
+    const config = notificationConfigs.find((c) => c.channel === channel)
+    if (!config) {
+      return HttpResponse.json({ error: 'Config not found' }, { status: 404 })
+    }
+
+    config.enabled = body.enabled
+    config.events = body.events
+    config.timing = body.timing
+
+    return HttpResponse.json({ data: config })
+  }),
+
+  // Get notification history
+  http.get('/api/attendance/notifications/history', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const channel = url.searchParams.get('channel')
+    const eventType = url.searchParams.get('eventType')
+
+    let filtered = [...absenceNotifications]
+    if (channel) filtered = filtered.filter((n) => n.channel === channel)
+    if (eventType) filtered = filtered.filter((n) => n.eventType === eventType)
+
+    // Sort by sentAt descending
+    filtered.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get notification stats
+  http.get('/api/attendance/notifications/stats', async () => {
+    await delay(200)
+    const stats = generateNotificationStats()
+    return HttpResponse.json({ data: stats })
+  }),
+
+  // Send test notification
+  http.post('/api/attendance/notifications/test', async ({ request }) => {
+    await delay(1000)
+    const body = (await request.json()) as { channel: NotificationChannel; recipient: string }
+
+    return HttpResponse.json({
+      data: {
+        id: generateId(),
+        channel: body.channel,
+        recipient: body.recipient,
+        status: 'sent',
+        sentAt: new Date().toISOString(),
+      },
+    })
+  }),
+
+  // ==================== BIOMETRIC DEVICES ====================
+
+  // Get all devices
+  http.get('/api/biometric/devices', async () => {
+    await delay(300)
+    return HttpResponse.json({ data: biometricDevices })
+  }),
+
+  // Register a new device
+  http.post('/api/biometric/devices', async ({ request }) => {
+    await delay(500)
+    const body = (await request.json()) as {
+      name: string
+      type: BiometricDeviceType
+      location: string
+      model: string
+      serialNumber: string
+      ipAddress: string
+    }
+
+    const newDevice = {
+      id: generateId(),
+      ...body,
+      status: 'inactive' as const,
+      lastSyncAt: undefined,
+      installedAt: new Date().toISOString().split('T')[0],
+      enrolledStudents: 0,
+      totalCapacity: 500,
+    }
+
+    biometricDevices.push(newDevice)
+    return HttpResponse.json({ data: newDevice }, { status: 201 })
+  }),
+
+  // Update device status
+  http.put('/api/biometric/devices/:id', async ({ params, request }) => {
+    await delay(300)
+    const { id } = params
+    const body = (await request.json()) as Partial<typeof biometricDevices[0]>
+
+    const device = biometricDevices.find((d) => d.id === id)
+    if (!device) {
+      return HttpResponse.json({ error: 'Device not found' }, { status: 404 })
+    }
+
+    Object.assign(device, body)
+    return HttpResponse.json({ data: device })
+  }),
+
+  // Get sync logs
+  http.get('/api/biometric/sync-logs', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const deviceId = url.searchParams.get('deviceId')
+
+    let filtered = [...biometricSyncLogs]
+    if (deviceId) filtered = filtered.filter((l) => l.deviceId === deviceId)
+
+    filtered.sort((a, b) => new Date(b.syncedAt).getTime() - new Date(a.syncedAt).getTime())
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Trigger sync for a device
+  http.post('/api/biometric/devices/:id/sync', async ({ params }) => {
+    await delay(2000)
+    const { id } = params
+
+    const device = biometricDevices.find((d) => d.id === id)
+    if (!device) {
+      return HttpResponse.json({ error: 'Device not found' }, { status: 404 })
+    }
+
+    device.lastSyncAt = new Date().toISOString()
+
+    const newLog = {
+      id: generateId(),
+      deviceId: device.id,
+      deviceName: device.name,
+      syncedAt: new Date().toISOString(),
+      recordsProcessed: faker.number.int({ min: 50, max: 300 }),
+      recordsFailed: 0,
+      status: 'success' as const,
+      duration: faker.number.int({ min: 10, max: 60 }),
+    }
+
+    biometricSyncLogs.unshift(newLog)
+
+    return HttpResponse.json({ data: newLog })
   }),
 ]

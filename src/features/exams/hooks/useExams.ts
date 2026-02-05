@@ -21,6 +21,16 @@ import {
   createGradeScale,
   updateGradeScale,
   deleteGradeScale,
+  fetchExamTimetable,
+  createExamSlot,
+  fetchClassAnalytics,
+  fetchStudentProgress,
+  fetchCoScholasticRecords,
+  submitCoScholastic,
+  fetchQuestionPapers,
+  fetchQuestionPaper,
+  createQuestionPaper,
+  deleteQuestionPaper,
 } from '../api/exams.api'
 import type {
   CreateExamRequest,
@@ -30,6 +40,9 @@ import type {
   GenerateReportCardsRequest,
   CreateGradeScaleRequest,
   UpdateGradeScaleRequest,
+  CreateExamSlotRequest,
+  SubmitCoScholasticRequest,
+  CreateQuestionPaperRequest,
 } from '../types/exams.types'
 
 // ==================== QUERY KEYS ====================
@@ -66,6 +79,27 @@ export const examKeys = {
   // Grade Scales
   gradeScales: () => [...examKeys.all, 'grade-scales'] as const,
   gradeScale: (id: string) => [...examKeys.gradeScales(), id] as const,
+
+  // Timetable
+  timetable: (examId: string) => [...examKeys.all, 'timetable', examId] as const,
+
+  // Analytics
+  analytics: (examId: string, className?: string, section?: string) =>
+    [...examKeys.all, 'analytics', examId, className, section] as const,
+
+  // Progress
+  progress: (studentId: string) => [...examKeys.all, 'progress', studentId] as const,
+
+  // Co-Scholastic
+  coScholastic: () => [...examKeys.all, 'co-scholastic'] as const,
+  coScholasticList: (filters: Record<string, unknown>) =>
+    [...examKeys.coScholastic(), 'list', filters] as const,
+
+  // Question Papers
+  questionPapers: () => [...examKeys.all, 'question-papers'] as const,
+  questionPaperList: (filters: Record<string, unknown>) =>
+    [...examKeys.questionPapers(), 'list', filters] as const,
+  questionPaper: (id: string) => [...examKeys.questionPapers(), 'detail', id] as const,
 }
 
 // ==================== USER-SCOPED HOOKS ====================
@@ -275,6 +309,107 @@ export function useDeleteGradeScale() {
     mutationFn: (id: string) => deleteGradeScale(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: examKeys.gradeScales() })
+    },
+  })
+}
+
+// ==================== TIMETABLE HOOKS ====================
+
+export function useExamTimetable(examId: string) {
+  return useQuery({
+    queryKey: examKeys.timetable(examId),
+    queryFn: () => fetchExamTimetable(examId),
+    enabled: !!examId,
+  })
+}
+
+export function useCreateExamSlot() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ examId, data }: { examId: string; data: CreateExamSlotRequest }) =>
+      createExamSlot(examId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: examKeys.timetable(variables.examId) })
+    },
+  })
+}
+
+// ==================== ANALYTICS HOOKS ====================
+
+export function useClassAnalytics(examId: string, className?: string, section?: string) {
+  return useQuery({
+    queryKey: examKeys.analytics(examId, className, section),
+    queryFn: () => fetchClassAnalytics(examId, className, section),
+    enabled: !!examId,
+  })
+}
+
+// ==================== PROGRESS HOOKS ====================
+
+export function useStudentProgress(studentId: string) {
+  return useQuery({
+    queryKey: examKeys.progress(studentId),
+    queryFn: () => fetchStudentProgress(studentId),
+    enabled: !!studentId,
+  })
+}
+
+// ==================== CO-SCHOLASTIC HOOKS ====================
+
+export function useCoScholasticRecords(
+  filters: { studentId?: string; term?: string; area?: string; page?: number; limit?: number } = {}
+) {
+  return useQuery({
+    queryKey: examKeys.coScholasticList(filters),
+    queryFn: () => fetchCoScholasticRecords(filters),
+  })
+}
+
+export function useSubmitCoScholastic() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: SubmitCoScholasticRequest) => submitCoScholastic(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: examKeys.coScholastic() })
+    },
+  })
+}
+
+// ==================== QUESTION PAPER HOOKS ====================
+
+export function useQuestionPapers(
+  filters: { examId?: string; subjectId?: string; className?: string } = {}
+) {
+  return useQuery({
+    queryKey: examKeys.questionPaperList(filters),
+    queryFn: () => fetchQuestionPapers(filters),
+  })
+}
+
+export function useQuestionPaper(id: string) {
+  return useQuery({
+    queryKey: examKeys.questionPaper(id),
+    queryFn: () => fetchQuestionPaper(id),
+    enabled: !!id,
+  })
+}
+
+export function useCreateQuestionPaper() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateQuestionPaperRequest) => createQuestionPaper(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: examKeys.questionPapers() })
+    },
+  })
+}
+
+export function useDeleteQuestionPaper() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteQuestionPaper(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: examKeys.questionPapers() })
     },
   })
 }

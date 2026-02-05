@@ -7,6 +7,7 @@ export const staffFormSchema = z.object({
   phone: z.string().min(10, 'Please enter a valid phone number'),
   dateOfBirth: z.string().min(1, 'Date of birth is required'),
   gender: z.enum(['male', 'female'], { required_error: 'Please select a gender' }),
+  photoUrl: z.string().optional(),
 
   // Address
   address: z.object({
@@ -58,6 +59,7 @@ export const defaultFormValues: StaffFormData = {
   phone: '',
   dateOfBirth: '',
   gender: 'male',
+  photoUrl: '',
   address: {
     street: '',
     city: '',

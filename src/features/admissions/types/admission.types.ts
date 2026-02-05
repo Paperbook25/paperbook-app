@@ -7,6 +7,7 @@ export type ApplicationStatus =
   | 'entrance_exam'
   | 'interview'
   | 'approved'
+  | 'waitlisted'
   | 'rejected'
   | 'enrolled'
   | 'withdrawn'
@@ -99,6 +100,18 @@ export interface Application {
 
   // Enrollment reference (only set when status is 'enrolled')
   enrolledStudentId?: string
+
+  // Source tracking
+  source?: 'website' | 'referral' | 'advertisement' | 'walk_in' | 'social_media' | 'other'
+  referredBy?: string
+
+  // Payment tracking
+  admissionFeeStatus?: 'pending' | 'partial' | 'paid' | 'waived'
+  admissionFeeAmount?: number
+  admissionFeePaid?: number
+
+  // Waitlist
+  waitlistPosition?: number
 
   // Metadata
   createdAt: string
@@ -205,7 +218,7 @@ export const APPLICATION_STATUSES: StatusConfig[] = [
     color: 'text-indigo-700',
     bgColor: 'bg-indigo-100',
     description: 'Scheduled for interview',
-    allowedTransitions: ['approved', 'rejected', 'withdrawn'],
+    allowedTransitions: ['approved', 'waitlisted', 'rejected', 'withdrawn'],
   },
   {
     value: 'approved',
@@ -214,6 +227,14 @@ export const APPLICATION_STATUSES: StatusConfig[] = [
     bgColor: 'bg-green-100',
     description: 'Application approved',
     allowedTransitions: ['enrolled', 'withdrawn'],
+  },
+  {
+    value: 'waitlisted',
+    label: 'Waitlisted',
+    color: 'text-amber-700',
+    bgColor: 'bg-amber-100',
+    description: 'Added to waitlist',
+    allowedTransitions: ['approved', 'rejected', 'withdrawn'],
   },
   {
     value: 'rejected',
@@ -277,4 +298,186 @@ export function getStatusConfig(status: ApplicationStatus): StatusConfig {
 export function canTransitionTo(currentStatus: ApplicationStatus, targetStatus: ApplicationStatus): boolean {
   const config = getStatusConfig(currentStatus)
   return config.allowedTransitions.includes(targetStatus)
+}
+
+// ==================== WAITLIST TYPES ====================
+
+export interface WaitlistEntry {
+  id: string
+  applicationId: string
+  studentName: string
+  applyingForClass: string
+  position: number
+  addedAt: string
+  previousMarks: number
+  entranceExamScore?: number
+  status: 'waiting' | 'offered' | 'expired'
+  offeredAt?: string
+  expiresAt?: string
+}
+
+export interface ClassCapacity {
+  class: string
+  section: string
+  totalSeats: number
+  filledSeats: number
+  availableSeats: number
+  waitlistCount: number
+}
+
+// ==================== ENTRANCE TEST TYPES ====================
+
+export interface EntranceExamSchedule {
+  id: string
+  class: string
+  examDate: string
+  examTime: string
+  venue: string
+  duration: number // in minutes
+  totalMarks: number
+  passingMarks: number
+  subjects: string[]
+  registeredCount: number
+  completedCount: number
+  status: 'upcoming' | 'in_progress' | 'completed' | 'cancelled'
+}
+
+export interface ExamResult {
+  applicationId: string
+  studentName: string
+  examScheduleId: string
+  marksObtained: number
+  totalMarks: number
+  percentage: number
+  grade: string
+  subjectWiseMarks: { subject: string; marks: number; total: number }[]
+  result: 'pass' | 'fail'
+  rank?: number
+}
+
+export interface ScheduleExamRequest {
+  class: string
+  examDate: string
+  examTime: string
+  venue: string
+  duration: number
+  totalMarks: number
+  passingMarks: number
+  subjects: string[]
+}
+
+export interface RecordExamScoreRequest {
+  applicationId: string
+  marksObtained: number
+  subjectWiseMarks: { subject: string; marks: number; total: number }[]
+}
+
+// ==================== COMMUNICATION TYPES ====================
+
+export type CommunicationType = 'email' | 'sms' | 'whatsapp'
+export type CommunicationTrigger =
+  | 'application_received'
+  | 'status_change'
+  | 'exam_scheduled'
+  | 'interview_scheduled'
+  | 'approved'
+  | 'rejected'
+  | 'waitlisted'
+  | 'payment_due'
+  | 'custom'
+
+export interface CommunicationLog {
+  id: string
+  applicationId: string
+  studentName: string
+  type: CommunicationType
+  trigger: CommunicationTrigger
+  recipient: string
+  subject: string
+  message: string
+  sentAt: string
+  status: 'sent' | 'delivered' | 'failed' | 'pending'
+  sentBy: string
+}
+
+export interface CommunicationTemplate {
+  id: string
+  name: string
+  trigger: CommunicationTrigger
+  type: CommunicationType
+  subject: string
+  body: string
+  isActive: boolean
+  variables: string[] // e.g., {{studentName}}, {{status}}
+}
+
+export interface SendCommunicationRequest {
+  applicationIds: string[]
+  templateId?: string
+  type: CommunicationType
+  subject: string
+  message: string
+}
+
+// ==================== ADMISSION FEE TYPES ====================
+
+export interface AdmissionFee {
+  id: string
+  class: string
+  feeType: string
+  amount: number
+  isRequired: boolean
+}
+
+export interface AdmissionPayment {
+  id: string
+  applicationId: string
+  studentName: string
+  class: string
+  totalAmount: number
+  paidAmount: number
+  status: 'pending' | 'partial' | 'paid' | 'waived'
+  paymentDate?: string
+  paymentMethod?: string
+  transactionId?: string
+  receiptNumber?: string
+  feeBreakdown: { feeType: string; amount: number; paid: boolean }[]
+  generatedAt: string
+  dueDate: string
+}
+
+export interface RecordPaymentRequest {
+  applicationId: string
+  amount: number
+  paymentMethod: string
+  transactionId?: string
+}
+
+// ==================== ANALYTICS TYPES ====================
+
+export interface AdmissionAnalytics {
+  conversionFunnel: { stage: string; count: number; percentage: number }[]
+  monthlyTrend: { month: string; applications: number; approvals: number; rejections: number }[]
+  classDistribution: { class: string; applications: number; approved: number; enrolled: number }[]
+  sourceDistribution: { source: string; count: number; percentage: number }[]
+  avgProcessingDays: number
+  approvalRate: number
+  rejectionRate: number
+  withdrawalRate: number
+  avgExamScore: number
+  topPerformers: { name: string; class: string; score: number }[]
+}
+
+// ==================== COMMUNICATION TRIGGER LABELS ====================
+
+export const COMMUNICATION_TRIGGER_LABELS: Record<CommunicationTrigger, string> = {
+  application_received: 'Application Received',
+  status_change: 'Status Change',
+  exam_scheduled: 'Exam Scheduled',
+  interview_scheduled: 'Interview Scheduled',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  waitlisted: 'Waitlisted',
+  payment_due: 'Payment Due',
+  custom: 'Custom Message',
 }

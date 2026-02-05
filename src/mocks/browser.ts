@@ -2,7 +2,8 @@ import { setupWorker } from 'msw/browser'
 import { http, HttpResponse, delay } from 'msw'
 import { students, type Student } from './data/students.data'
 import { staff } from './data/staff.data'
-import { dashboardStats, feeCollectionData, attendanceData, announcements, upcomingEvents, recentActivities, quickStats, classWiseStudents } from './data/dashboard.data'
+import { dashboardStats, feeCollectionData, attendanceData, announcements, upcomingEvents, recentActivities, quickStats, classWiseStudents, teacherSchedule, teacherStats, teacherClasses, teacherPendingTasks } from './data/dashboard.data'
+import { faker } from '@faker-js/faker'
 import { admissionsHandlers } from './handlers/admissions.handlers'
 import { staffHandlers } from './handlers/staff.handlers'
 import { libraryHandlers } from './handlers/library.handlers'
@@ -11,11 +12,88 @@ import { settingsHandlers } from './handlers/settings.handlers'
 import { integrationsHandlers } from './handlers/integrations.handlers'
 import { examsHandlers } from './handlers/exams.handlers'
 import { attendanceHandlers } from './handlers/attendance.handlers'
+import { studentsHandlers } from './handlers/students.handlers'
+import { transportHandlers } from './handlers/transport.handlers'
+import { lmsHandlers } from './handlers/lms.handlers'
 import { applications } from './data/admissions.data'
 import { getUserContext, isParent } from './utils/auth-context'
 import { studentFees } from './data/finance.data'
 import { issuedBooks } from './data/library.data'
 import { generateStudentAttendanceView } from './data/attendance.data'
+
+const appNotifications = [
+  {
+    id: 'n1',
+    title: 'New Admission Application',
+    message: 'Arjun Patel has submitted an admission application for Class 6.',
+    type: 'admission' as const,
+    read: false,
+    createdAt: faker.date.recent({ days: 0.05 }).toISOString(),
+    actionUrl: '/admissions',
+  },
+  {
+    id: 'n2',
+    title: 'Fee Payment Received',
+    message: '₹25,000 received from Sneha Reddy (Class 8-B) for Term 2 fees.',
+    type: 'fee' as const,
+    read: false,
+    createdAt: faker.date.recent({ days: 0.1 }).toISOString(),
+    actionUrl: '/finance/collection',
+  },
+  {
+    id: 'n3',
+    title: 'Attendance Alert',
+    message: 'Rahul Kumar (Class 10-A) attendance dropped below 75%. Current: 72%.',
+    type: 'attendance' as const,
+    read: false,
+    createdAt: faker.date.recent({ days: 0.2 }).toISOString(),
+    actionUrl: '/attendance/alerts',
+  },
+  {
+    id: 'n4',
+    title: 'Overdue Library Book',
+    message: '"Advanced Mathematics" is overdue by 3 days. Borrower: Priya Singh.',
+    type: 'library' as const,
+    read: false,
+    createdAt: faker.date.recent({ days: 0.5 }).toISOString(),
+    actionUrl: '/library/notifications',
+  },
+  {
+    id: 'n5',
+    title: 'Staff Leave Request',
+    message: 'Amit Kumar (Mathematics Teacher) requested leave for 2 days starting Dec 18.',
+    type: 'alert' as const,
+    read: true,
+    createdAt: faker.date.recent({ days: 0.8 }).toISOString(),
+    actionUrl: '/staff/leave',
+  },
+  {
+    id: 'n6',
+    title: 'Upcoming PTM',
+    message: 'Parent-Teacher Meeting scheduled for Class 10 & 12 on Saturday, 10 AM.',
+    type: 'event' as const,
+    read: true,
+    createdAt: faker.date.recent({ days: 1 }).toISOString(),
+    actionUrl: '/settings?tab=calendar',
+  },
+  {
+    id: 'n7',
+    title: 'Exam Results Published',
+    message: 'Unit Test 3 results for Class 9-A have been published by Mrs. Sharma.',
+    type: 'message' as const,
+    read: true,
+    createdAt: faker.date.recent({ days: 1.5 }).toISOString(),
+    actionUrl: '/exams/analytics',
+  },
+  {
+    id: 'n8',
+    title: 'System Update',
+    message: 'New features added: Academic Calendar and Email Templates in Settings.',
+    type: 'system' as const,
+    read: true,
+    createdAt: faker.date.recent({ days: 2 }).toISOString(),
+  },
+]
 
 const handlers = [
   // Dashboard
@@ -57,6 +135,46 @@ const handlers = [
   http.get('/api/dashboard/quick-stats', async () => {
     await delay(200)
     return HttpResponse.json({ data: quickStats })
+  }),
+
+  // Teacher Dashboard
+  http.get('/api/dashboard/teacher-stats', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: teacherStats })
+  }),
+
+  http.get('/api/dashboard/teacher-schedule', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: teacherSchedule })
+  }),
+
+  http.get('/api/dashboard/teacher-classes', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: teacherClasses })
+  }),
+
+  http.get('/api/dashboard/teacher-tasks', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: teacherPendingTasks })
+  }),
+
+  // ==================== NOTIFICATION CENTER ====================
+  http.get('/api/notifications', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: appNotifications })
+  }),
+
+  http.patch('/api/notifications/:id/read', async ({ params }) => {
+    await delay(100)
+    const notification = appNotifications.find((n) => n.id === params.id)
+    if (notification) notification.read = true
+    return HttpResponse.json({ success: true })
+  }),
+
+  http.patch('/api/notifications/mark-all-read', async () => {
+    await delay(100)
+    appNotifications.forEach((n) => (n.read = true))
+    return HttpResponse.json({ success: true })
   }),
 
   // ==================== USER-SCOPED ====================
@@ -418,4 +536,4 @@ const handlers = [
   }),
 ]
 
-export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers)
+export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers, ...studentsHandlers, ...transportHandlers, ...lmsHandlers)

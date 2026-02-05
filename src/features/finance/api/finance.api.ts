@@ -30,6 +30,20 @@ import type {
   DueReport,
   FinancialSummary,
   FinanceStats,
+  InstallmentPlan,
+  CreateInstallmentPlanRequest,
+  DiscountRule,
+  CreateDiscountRuleRequest,
+  AppliedDiscount,
+  ConcessionRequest,
+  CreateConcessionRequest,
+  ReminderEscalationConfig,
+  UpdateEscalationConfigRequest,
+  ReminderLog,
+  OnlinePaymentConfig,
+  OnlinePaymentOrder,
+  CreatePaymentOrderRequest,
+  ParentFeeDashboard,
 } from '../types/finance.types'
 
 // ==================== USER-SCOPED TYPES ====================
@@ -509,6 +523,293 @@ export async function fetchFinanceStats(): Promise<{ data: FinanceStats }> {
   const response = await fetch(`${API_BASE}/stats`)
   if (!response.ok) {
     throw new Error('Failed to fetch finance stats')
+  }
+  return response.json()
+}
+
+// ==================== INSTALLMENT PLANS ====================
+
+export async function fetchInstallmentPlans(
+  academicYear?: string
+): Promise<{ data: InstallmentPlan[] }> {
+  const params = new URLSearchParams()
+  if (academicYear) params.set('academicYear', academicYear)
+
+  const response = await fetch(`${API_BASE}/installment-plans?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch installment plans')
+  }
+  return response.json()
+}
+
+export async function fetchInstallmentPlan(id: string): Promise<{ data: InstallmentPlan }> {
+  const response = await fetch(`${API_BASE}/installment-plans/${id}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch installment plan')
+  }
+  return response.json()
+}
+
+export async function createInstallmentPlan(
+  data: CreateInstallmentPlanRequest
+): Promise<{ data: InstallmentPlan }> {
+  const response = await fetch(`${API_BASE}/installment-plans`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to create installment plan')
+  }
+  return response.json()
+}
+
+export async function toggleInstallmentPlan(id: string): Promise<{ data: InstallmentPlan }> {
+  const response = await fetch(`${API_BASE}/installment-plans/${id}/toggle`, {
+    method: 'PATCH',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to toggle installment plan')
+  }
+  return response.json()
+}
+
+export async function deleteInstallmentPlan(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE}/installment-plans/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to delete installment plan')
+  }
+  return response.json()
+}
+
+// ==================== DISCOUNT RULES ====================
+
+export async function fetchDiscountRules(): Promise<{ data: DiscountRule[] }> {
+  const response = await fetch(`${API_BASE}/discount-rules`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch discount rules')
+  }
+  return response.json()
+}
+
+export async function createDiscountRule(
+  data: CreateDiscountRuleRequest
+): Promise<{ data: DiscountRule }> {
+  const response = await fetch(`${API_BASE}/discount-rules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to create discount rule')
+  }
+  return response.json()
+}
+
+export async function updateDiscountRule(
+  id: string,
+  data: Partial<CreateDiscountRuleRequest>
+): Promise<{ data: DiscountRule }> {
+  const response = await fetch(`${API_BASE}/discount-rules/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to update discount rule')
+  }
+  return response.json()
+}
+
+export async function toggleDiscountRule(id: string): Promise<{ data: DiscountRule }> {
+  const response = await fetch(`${API_BASE}/discount-rules/${id}/toggle`, {
+    method: 'PATCH',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to toggle discount rule')
+  }
+  return response.json()
+}
+
+export async function deleteDiscountRule(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE}/discount-rules/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to delete discount rule')
+  }
+  return response.json()
+}
+
+export async function fetchAppliedDiscounts(
+  filters: { studentId?: string; ruleId?: string } = {}
+): Promise<{ data: AppliedDiscount[] }> {
+  const params = new URLSearchParams()
+  if (filters.studentId) params.set('studentId', filters.studentId)
+  if (filters.ruleId) params.set('ruleId', filters.ruleId)
+
+  const response = await fetch(`${API_BASE}/applied-discounts?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch applied discounts')
+  }
+  return response.json()
+}
+
+// ==================== CONCESSION REQUESTS ====================
+
+export async function fetchConcessionRequests(
+  status?: string
+): Promise<{ data: ConcessionRequest[] }> {
+  const params = new URLSearchParams()
+  if (status && status !== 'all') params.set('status', status)
+
+  const response = await fetch(`${API_BASE}/concessions?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch concession requests')
+  }
+  return response.json()
+}
+
+export async function createConcessionRequest(
+  data: CreateConcessionRequest
+): Promise<{ data: ConcessionRequest }> {
+  const response = await fetch(`${API_BASE}/concessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to create concession request')
+  }
+  return response.json()
+}
+
+export async function approveConcession(id: string): Promise<{ data: ConcessionRequest }> {
+  const response = await fetch(`${API_BASE}/concessions/${id}/approve`, {
+    method: 'PATCH',
+  })
+  if (!response.ok) {
+    throw new Error('Failed to approve concession')
+  }
+  return response.json()
+}
+
+export async function rejectConcession(
+  id: string,
+  reason: string
+): Promise<{ data: ConcessionRequest }> {
+  const response = await fetch(`${API_BASE}/concessions/${id}/reject`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to reject concession')
+  }
+  return response.json()
+}
+
+// ==================== ESCALATION CONFIG ====================
+
+export async function fetchEscalationConfig(): Promise<{ data: ReminderEscalationConfig }> {
+  const response = await fetch(`${API_BASE}/escalation-config`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch escalation config')
+  }
+  return response.json()
+}
+
+export async function updateEscalationConfig(
+  data: UpdateEscalationConfigRequest
+): Promise<{ data: ReminderEscalationConfig }> {
+  const response = await fetch(`${API_BASE}/escalation-config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to update escalation config')
+  }
+  return response.json()
+}
+
+export async function fetchReminderLogs(
+  filters: { channel?: string; status?: string; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<ReminderLog>> {
+  const params = new URLSearchParams()
+  if (filters.channel && filters.channel !== 'all') params.set('channel', filters.channel)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  const response = await fetch(`${API_BASE}/reminder-logs?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch reminder logs')
+  }
+  return response.json()
+}
+
+// ==================== ONLINE PAYMENT ====================
+
+export async function fetchOnlinePaymentConfig(): Promise<{ data: OnlinePaymentConfig }> {
+  const response = await fetch(`${API_BASE}/online-payment/config`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch online payment config')
+  }
+  return response.json()
+}
+
+export async function updateOnlinePaymentConfig(
+  data: Partial<OnlinePaymentConfig>
+): Promise<{ data: OnlinePaymentConfig }> {
+  const response = await fetch(`${API_BASE}/online-payment/config`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to update online payment config')
+  }
+  return response.json()
+}
+
+export async function fetchOnlinePaymentOrders(
+  filters: { status?: string; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<OnlinePaymentOrder>> {
+  const params = new URLSearchParams()
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  const response = await fetch(`${API_BASE}/online-payment/orders?${params.toString()}`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch online payment orders')
+  }
+  return response.json()
+}
+
+export async function createPaymentOrder(
+  data: CreatePaymentOrderRequest
+): Promise<{ data: OnlinePaymentOrder }> {
+  const response = await fetch(`${API_BASE}/online-payment/orders`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) {
+    throw new Error('Failed to create payment order')
+  }
+  return response.json()
+}
+
+// ==================== PARENT DASHBOARD ====================
+
+export async function fetchParentFeeDashboard(): Promise<{ data: ParentFeeDashboard }> {
+  const response = await fetch(`${API_BASE}/parent-dashboard`)
+  if (!response.ok) {
+    throw new Error('Failed to fetch parent fee dashboard')
   }
   return response.json()
 }

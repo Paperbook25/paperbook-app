@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Filter, Download, Upload, MoreHorizontal, Eye, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Search, Download, Upload, MoreHorizontal, Eye, Pencil, Trash2, ArrowUpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
@@ -30,7 +30,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { cn, getInitials, formatDate } from '@/lib/utils'
+import { BulkImportDialog } from '../components/BulkImportDialog'
+import { ExportDialog } from '../components/ExportDialog'
+import { PromotionDialog } from '../components/PromotionDialog'
+import { getInitials, formatDate } from '@/lib/utils'
 
 const CLASSES = ['All Classes', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12']
 const SECTIONS = ['All Sections', 'A', 'B', 'C', 'D']
@@ -43,6 +46,9 @@ export function StudentsListPage() {
   const [sectionFilter, setSectionFilter] = useState('All Sections')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [page, setPage] = useState(1)
+  const [importOpen, setImportOpen] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
+  const [promotionOpen, setPromotionOpen] = useState(false)
   const limit = 10
 
   const { data, isLoading } = useQuery({
@@ -88,11 +94,15 @@ export function StudentsListPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Students' }]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setPromotionOpen(true)}>
+              <ArrowUpCircle className="h-4 w-4 mr-2" />
+              Promote
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
               Import
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setExportOpen(true)}>
               <Download className="h-4 w-4 mr-2" />
               Export
             </Button>
@@ -308,6 +318,11 @@ export function StudentsListPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <BulkImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <PromotionDialog open={promotionOpen} onOpenChange={setPromotionOpen} />
     </div>
   )
 }

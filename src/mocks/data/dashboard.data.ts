@@ -145,3 +145,44 @@ export const quickStats = {
   overdueBooks: 12,
   upcomingExams: 3,
 }
+
+// ==================== TEACHER DASHBOARD ====================
+
+export const teacherSchedule = [
+  { period: 1, time: '08:30 - 09:15', subject: 'Mathematics', class: 'Class 10-A', room: 'Room 201', type: 'lecture' as const },
+  { period: 2, time: '09:15 - 10:00', subject: 'Mathematics', class: 'Class 10-B', room: 'Room 202', type: 'lecture' as const },
+  { period: 3, time: '10:15 - 11:00', subject: 'Mathematics', class: 'Class 9-A', room: 'Room 105', type: 'lecture' as const },
+  { period: 4, time: '11:00 - 11:45', subject: 'Free Period', class: '-', room: '-', type: 'free' as const },
+  { period: 5, time: '12:30 - 01:15', subject: 'Mathematics', class: 'Class 9-B', room: 'Room 106', type: 'lecture' as const },
+  { period: 6, time: '01:15 - 02:00', subject: 'Mathematics', class: 'Class 8-A', room: 'Room 301', type: 'lecture' as const },
+  { period: 7, time: '02:15 - 03:00', subject: 'Extra Class', class: 'Class 10-A', room: 'Room 201', type: 'extra' as const },
+  { period: 8, time: '03:00 - 03:45', subject: 'Duty', class: 'Library Duty', room: 'Library', type: 'duty' as const },
+]
+
+export const teacherStats = {
+  totalClasses: 6,
+  classesToday: 6,
+  attendanceMarked: 3,
+  attendancePending: 3,
+  leaveBalance: 8,
+  averageClassStrength: 38,
+  pendingMarksEntry: 2,
+  upcomingPTMs: 1,
+}
+
+export const teacherClasses = [
+  { class: 'Class 10-A', subject: 'Mathematics', students: 42, attendanceToday: 'marked', presentToday: 39, absentToday: 3 },
+  { class: 'Class 10-B', subject: 'Mathematics', students: 40, attendanceToday: 'marked', presentToday: 37, absentToday: 3 },
+  { class: 'Class 9-A', subject: 'Mathematics', students: 38, attendanceToday: 'marked', presentToday: 35, absentToday: 3 },
+  { class: 'Class 9-B', subject: 'Mathematics', students: 36, attendanceToday: 'pending', presentToday: 0, absentToday: 0 },
+  { class: 'Class 8-A', subject: 'Mathematics', students: 40, attendanceToday: 'pending', presentToday: 0, absentToday: 0 },
+  { class: 'Class 8-B', subject: 'Mathematics', students: 35, attendanceToday: 'pending', presentToday: 0, absentToday: 0 },
+]
+
+export const teacherPendingTasks = [
+  { id: 't1', task: 'Enter marks for Class 10-A Unit Test 3', type: 'marks', dueDate: faker.date.soon({ days: 2 }).toISOString(), priority: 'high' as const },
+  { id: 't2', task: 'Enter marks for Class 9-B Half Yearly', type: 'marks', dueDate: faker.date.soon({ days: 5 }).toISOString(), priority: 'high' as const },
+  { id: 't3', task: 'Submit Class 10-B term report', type: 'report', dueDate: faker.date.soon({ days: 7 }).toISOString(), priority: 'medium' as const },
+  { id: 't4', task: 'Review Class 9-A homework submissions', type: 'homework', dueDate: faker.date.soon({ days: 1 }).toISOString(), priority: 'medium' as const },
+  { id: 't5', task: 'Prepare question paper for Class 8 Final Exam', type: 'exam', dueDate: faker.date.soon({ days: 14 }).toISOString(), priority: 'low' as const },
+]

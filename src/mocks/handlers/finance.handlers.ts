@@ -14,6 +14,15 @@ import {
   getDueReport,
   getFinancialSummary,
   getStudentsForFeeCollection,
+  installmentPlans,
+  discountRules,
+  appliedDiscounts,
+  concessionRequests,
+  escalationConfig,
+  reminderLogs,
+  onlinePaymentConfig,
+  onlinePaymentOrders,
+  getParentFeeDashboard,
 } from '../data/finance.data'
 import { getUserContext, isStudent, isParent } from '../utils/auth-context'
 import type {
@@ -35,6 +44,17 @@ import type {
   ApproveExpenseRequest,
   RejectExpenseRequest,
   MarkExpensePaidRequest,
+  CreateInstallmentPlanRequest,
+  CreateDiscountRuleRequest,
+  DiscountRule,
+  CreateConcessionRequest,
+  UpdateConcessionRequest,
+  ConcessionRequest,
+  UpdateEscalationConfigRequest,
+  CreatePaymentOrderRequest,
+  OnlinePaymentOrder,
+  InstallmentPlan,
+  Installment,
 } from '@/features/finance/types/finance.types'
 
 // Helper to generate IDs
@@ -1022,5 +1042,422 @@ export const financeHandlers = [
     }
 
     return HttpResponse.json({ data: students.slice(0, 50) })
+  }),
+
+  // ==================== INSTALLMENT PLAN HANDLERS ====================
+
+  // Get installment plans
+  http.get('/api/finance/installment-plans', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const academicYear = url.searchParams.get('academicYear')
+
+    let filtered = [...installmentPlans]
+    if (academicYear) {
+      filtered = filtered.filter(p => p.academicYear === academicYear)
+    }
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get single installment plan
+  http.get('/api/finance/installment-plans/:id', async ({ params }) => {
+    await delay(200)
+    const plan = installmentPlans.find(p => p.id === params.id)
+    if (!plan) {
+      return HttpResponse.json({ error: 'Installment plan not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: plan })
+  }),
+
+  // Create installment plan
+  http.post('/api/finance/installment-plans', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as CreateInstallmentPlanRequest
+
+    const structure = feeStructures.find(fs => fs.id === body.feeStructureId)
+    if (!structure) {
+      return HttpResponse.json({ error: 'Fee structure not found' }, { status: 404 })
+    }
+
+    const installmentAmount = Math.round(structure.amount / body.numberOfInstallments)
+    const installments: Installment[] = body.installmentDates.map((date, i) => ({
+      id: `inst_${generateId()}_${i}`,
+      installmentNumber: i + 1,
+      amount: installmentAmount,
+      dueDate: date,
+      status: 'pending' as const,
+      paidAmount: 0,
+    }))
+
+    const newPlan: InstallmentPlan = {
+      id: generateId(),
+      name: body.name,
+      feeStructureId: body.feeStructureId,
+      feeTypeName: structure.feeTypeName,
+      totalAmount: structure.amount,
+      numberOfInstallments: body.numberOfInstallments,
+      installments,
+      isActive: true,
+      academicYear: structure.academicYear,
+      applicableClasses: structure.applicableClasses,
+      createdAt: new Date().toISOString(),
+    }
+
+    installmentPlans.unshift(newPlan)
+    return HttpResponse.json({ data: newPlan }, { status: 201 })
+  }),
+
+  // Toggle installment plan active status
+  http.patch('/api/finance/installment-plans/:id/toggle', async ({ params }) => {
+    await delay(200)
+    const plan = installmentPlans.find(p => p.id === params.id)
+    if (!plan) {
+      return HttpResponse.json({ error: 'Installment plan not found' }, { status: 404 })
+    }
+    plan.isActive = !plan.isActive
+    return HttpResponse.json({ data: plan })
+  }),
+
+  // Delete installment plan
+  http.delete('/api/finance/installment-plans/:id', async ({ params }) => {
+    await delay(200)
+    const idx = installmentPlans.findIndex(p => p.id === params.id)
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Installment plan not found' }, { status: 404 })
+    }
+    installmentPlans.splice(idx, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
+  // ==================== DISCOUNT RULE HANDLERS ====================
+
+  // Get discount rules
+  http.get('/api/finance/discount-rules', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: discountRules })
+  }),
+
+  // Get single discount rule
+  http.get('/api/finance/discount-rules/:id', async ({ params }) => {
+    await delay(200)
+    const rule = discountRules.find(r => r.id === params.id)
+    if (!rule) {
+      return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: rule })
+  }),
+
+  // Create discount rule
+  http.post('/api/finance/discount-rules', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as CreateDiscountRuleRequest
+
+    const newRule: DiscountRule = {
+      id: generateId(),
+      ...body,
+      isActive: true,
+      academicYear: '2024-25',
+      createdAt: new Date().toISOString(),
+    }
+
+    discountRules.unshift(newRule)
+    return HttpResponse.json({ data: newRule }, { status: 201 })
+  }),
+
+  // Update discount rule
+  http.put('/api/finance/discount-rules/:id', async ({ params, request }) => {
+    await delay(300)
+    const idx = discountRules.findIndex(r => r.id === params.id)
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
+    }
+
+    const body = (await request.json()) as Partial<CreateDiscountRuleRequest>
+    discountRules[idx] = { ...discountRules[idx], ...body }
+    return HttpResponse.json({ data: discountRules[idx] })
+  }),
+
+  // Toggle discount rule active
+  http.patch('/api/finance/discount-rules/:id/toggle', async ({ params }) => {
+    await delay(200)
+    const rule = discountRules.find(r => r.id === params.id)
+    if (!rule) {
+      return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
+    }
+    rule.isActive = !rule.isActive
+    return HttpResponse.json({ data: rule })
+  }),
+
+  // Delete discount rule
+  http.delete('/api/finance/discount-rules/:id', async ({ params }) => {
+    await delay(200)
+    const idx = discountRules.findIndex(r => r.id === params.id)
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
+    }
+    discountRules.splice(idx, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
+  // Get applied discounts
+  http.get('/api/finance/applied-discounts', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const studentId = url.searchParams.get('studentId')
+    const ruleId = url.searchParams.get('ruleId')
+
+    let filtered = [...appliedDiscounts]
+    if (studentId) filtered = filtered.filter(d => d.studentId === studentId)
+    if (ruleId) filtered = filtered.filter(d => d.discountRuleId === ruleId)
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // ==================== CONCESSION REQUEST HANDLERS ====================
+
+  // Get concession requests
+  http.get('/api/finance/concessions', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+
+    let filtered = [...concessionRequests]
+    if (status && status !== 'all') {
+      filtered = filtered.filter(c => c.status === status)
+    }
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get single concession request
+  http.get('/api/finance/concessions/:id', async ({ params }) => {
+    await delay(200)
+    const req = concessionRequests.find(c => c.id === params.id)
+    if (!req) {
+      return HttpResponse.json({ error: 'Concession request not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: req })
+  }),
+
+  // Create concession request
+  http.post('/api/finance/concessions', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as CreateConcessionRequest
+
+    const student = studentFees.find(sf => sf.studentId === body.studentId)
+
+    const newConcession: ConcessionRequest = {
+      id: generateId(),
+      studentId: body.studentId,
+      studentName: student?.studentName || 'Unknown Student',
+      studentClass: student?.studentClass || '',
+      section: student?.studentSection || '',
+      admissionNumber: student?.admissionNumber || '',
+      parentName: 'Parent',
+      feeTypes: body.feeTypes,
+      concessionType: body.concessionType,
+      concessionValue: body.concessionValue,
+      reason: body.reason,
+      status: 'pending',
+      requestedBy: 'Current User',
+      requestedAt: new Date().toISOString(),
+      validFrom: body.validFrom,
+      validTo: body.validTo,
+      totalConcessionAmount: body.concessionValue,
+    }
+
+    concessionRequests.unshift(newConcession)
+    return HttpResponse.json({ data: newConcession }, { status: 201 })
+  }),
+
+  // Approve concession request
+  http.patch('/api/finance/concessions/:id/approve', async ({ params }) => {
+    await delay(300)
+    const idx = concessionRequests.findIndex(c => c.id === params.id)
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Concession request not found' }, { status: 404 })
+    }
+    if (concessionRequests[idx].status !== 'pending') {
+      return HttpResponse.json({ error: 'Concession is not pending' }, { status: 400 })
+    }
+
+    concessionRequests[idx] = {
+      ...concessionRequests[idx],
+      status: 'approved',
+      approvedBy: 'Current User',
+      approvedAt: new Date().toISOString(),
+    }
+
+    return HttpResponse.json({ data: concessionRequests[idx] })
+  }),
+
+  // Reject concession request
+  http.patch('/api/finance/concessions/:id/reject', async ({ params, request }) => {
+    await delay(300)
+    const idx = concessionRequests.findIndex(c => c.id === params.id)
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Concession request not found' }, { status: 404 })
+    }
+    if (concessionRequests[idx].status !== 'pending') {
+      return HttpResponse.json({ error: 'Concession is not pending' }, { status: 400 })
+    }
+
+    const body = (await request.json()) as { reason: string }
+
+    concessionRequests[idx] = {
+      ...concessionRequests[idx],
+      status: 'rejected',
+      rejectedBy: 'Current User',
+      rejectedAt: new Date().toISOString(),
+      rejectionReason: body.reason,
+    }
+
+    return HttpResponse.json({ data: concessionRequests[idx] })
+  }),
+
+  // ==================== ESCALATION CONFIG HANDLERS ====================
+
+  // Get escalation config
+  http.get('/api/finance/escalation-config', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: escalationConfig })
+  }),
+
+  // Update escalation config
+  http.put('/api/finance/escalation-config', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as UpdateEscalationConfigRequest
+
+    escalationConfig.enabled = body.enabled
+    escalationConfig.rules = body.rules.map((rule, i) => ({
+      ...rule,
+      id: `esc_${String(i + 1).padStart(3, '0')}`,
+    }))
+
+    return HttpResponse.json({ data: escalationConfig })
+  }),
+
+  // Get reminder logs
+  http.get('/api/finance/reminder-logs', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const channel = url.searchParams.get('channel')
+    const status = url.searchParams.get('status')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '20')
+
+    let filtered = [...reminderLogs]
+    if (channel && channel !== 'all') {
+      filtered = filtered.filter(l => l.channel === channel)
+    }
+    if (status && status !== 'all') {
+      filtered = filtered.filter(l => l.status === status)
+    }
+
+    filtered.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+    const paginatedData = filtered.slice(startIndex, startIndex + limit)
+
+    return HttpResponse.json({
+      data: paginatedData,
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // ==================== ONLINE PAYMENT HANDLERS ====================
+
+  // Get online payment config
+  http.get('/api/finance/online-payment/config', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: onlinePaymentConfig })
+  }),
+
+  // Update online payment config
+  http.put('/api/finance/online-payment/config', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as Partial<typeof onlinePaymentConfig>
+    Object.assign(onlinePaymentConfig, body)
+    return HttpResponse.json({ data: onlinePaymentConfig })
+  }),
+
+  // Get online payment orders
+  http.get('/api/finance/online-payment/orders', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '10')
+
+    let filtered = [...onlinePaymentOrders]
+    if (status && status !== 'all') {
+      filtered = filtered.filter(o => o.status === status)
+    }
+
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+    const paginatedData = filtered.slice(startIndex, startIndex + limit)
+
+    return HttpResponse.json({
+      data: paginatedData,
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // Create payment order (generate payment link)
+  http.post('/api/finance/online-payment/orders', async ({ request }) => {
+    await delay(400)
+    const body = (await request.json()) as CreatePaymentOrderRequest
+
+    const student = studentFees.find(sf => sf.studentId === body.studentId)
+    const totalAmount = body.feeIds.reduce((sum, feeId) => {
+      const fee = studentFees.find(sf => sf.id === feeId)
+      return sum + (fee ? fee.totalAmount - fee.discountAmount - fee.paidAmount : 0)
+    }, 0)
+
+    const newOrder: OnlinePaymentOrder = {
+      id: generateId(),
+      orderId: `order_${generateId()}`,
+      studentId: body.studentId,
+      studentName: student?.studentName || 'Unknown',
+      amount: totalAmount,
+      feeIds: body.feeIds,
+      gateway: body.gateway || 'razorpay',
+      status: 'created',
+      paymentLink: `https://rzp.io/i/${generateId().slice(0, 8)}`,
+      createdAt: new Date().toISOString(),
+    }
+
+    onlinePaymentOrders.unshift(newOrder)
+    return HttpResponse.json({ data: newOrder }, { status: 201 })
+  }),
+
+  // ==================== PARENT FEE DASHBOARD ====================
+
+  // Get parent fee dashboard
+  http.get('/api/finance/parent-dashboard', async ({ request }) => {
+    await delay(300)
+
+    const context = getUserContext(request)
+    let childIds: string[] = []
+
+    if (context && isParent(context) && context.childIds) {
+      childIds = context.childIds
+    } else {
+      // For testing / admin viewing parent dashboard, use first 2 students
+      const activeStudentIds = studentFees
+        .map(sf => sf.studentId)
+        .filter((v, i, a) => a.indexOf(v) === i)
+        .slice(0, 2)
+      childIds = activeStudentIds
+    }
+
+    return HttpResponse.json({ data: getParentFeeDashboard(childIds) })
   }),
 ]

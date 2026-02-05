@@ -38,6 +38,9 @@ import { AttendanceCalendar } from '../components/AttendanceCalendar'
 import { LeaveBalanceCard } from '../components/LeaveBalanceCard'
 import { LeaveRequestForm } from '../components/LeaveRequestForm'
 import { SalarySlipView } from '../components/SalarySlipView'
+import { TimetableView } from '../components/TimetableView'
+import { PerformanceReviewCard } from '../components/PerformanceReviewCard'
+import { ProfessionalDevCard } from '../components/ProfessionalDevCard'
 import { LEAVE_TYPE_LABELS, type LeaveStatus, type LeaveType } from '../types/staff.types'
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
@@ -235,12 +238,20 @@ export function StaffDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="timetable">Timetable</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="leave">Leave</TabsTrigger>
           <TabsTrigger value="salary">Salary</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="development">Development</TabsTrigger>
         </TabsList>
+
+        {/* Timetable Tab */}
+        <TabsContent value="timetable" className="space-y-4">
+          <TimetableView staffId={id!} />
+        </TabsContent>
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
@@ -465,6 +476,16 @@ export function StaffDetailPage() {
               </CardContent>
             </Card>
           )}
+        </TabsContent>
+
+        {/* Performance Tab */}
+        <TabsContent value="performance" className="space-y-4">
+          <PerformanceReviewCard staffId={id!} />
+        </TabsContent>
+
+        {/* Development Tab */}
+        <TabsContent value="development" className="space-y-4">
+          <ProfessionalDevCard staffId={id!} />
         </TabsContent>
       </Tabs>
 

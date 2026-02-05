@@ -12,6 +12,20 @@ import {
   scheduleInterview,
   scheduleEntranceExam,
   deleteApplication,
+  fetchWaitlist,
+  fetchClassCapacity,
+  fetchExamSchedules,
+  createExamSchedule,
+  fetchExamResults,
+  recordExamScore,
+  fetchCommunicationLogs,
+  fetchCommunicationTemplates,
+  sendCommunication,
+  fetchAdmissionPayments,
+  fetchApplicationPayment,
+  recordPayment,
+  fetchAdmissionAnalytics,
+  submitPublicApplication,
 } from '../api/admissions.api'
 import type {
   ApplicationFilters,
@@ -20,6 +34,10 @@ import type {
   UpdateStatusRequest,
   AddDocumentRequest,
   AddNoteRequest,
+  ScheduleExamRequest,
+  RecordExamScoreRequest,
+  SendCommunicationRequest,
+  RecordPaymentRequest,
 } from '../types/admission.types'
 
 // Query keys
@@ -31,6 +49,15 @@ export const admissionsKeys = {
   details: () => [...admissionsKeys.all, 'detail'] as const,
   detail: (id: string) => [...admissionsKeys.details(), id] as const,
   stats: () => [...admissionsKeys.all, 'stats'] as const,
+  waitlist: (cls?: string) => [...admissionsKeys.all, 'waitlist', cls] as const,
+  classCapacity: () => [...admissionsKeys.all, 'class-capacity'] as const,
+  examSchedules: () => [...admissionsKeys.all, 'exam-schedules'] as const,
+  examResults: (filters?: { class?: string; scheduleId?: string }) => [...admissionsKeys.all, 'exam-results', filters] as const,
+  communications: (filters?: { applicationId?: string; type?: string }) => [...admissionsKeys.all, 'communications', filters] as const,
+  communicationTemplates: () => [...admissionsKeys.all, 'communication-templates'] as const,
+  payments: (status?: string) => [...admissionsKeys.all, 'payments', status] as const,
+  applicationPayment: (id: string) => [...admissionsKeys.all, 'payment', id] as const,
+  analytics: () => [...admissionsKeys.all, 'analytics'] as const,
 }
 
 // Fetch applications list with filters
@@ -182,5 +209,135 @@ export function useDeleteApplication() {
       queryClient.invalidateQueries({ queryKey: admissionsKeys.lists() })
       queryClient.invalidateQueries({ queryKey: admissionsKeys.stats() })
     },
+  })
+}
+
+// ==================== WAITLIST HOOKS ====================
+
+export function useWaitlist(cls?: string) {
+  return useQuery({
+    queryKey: admissionsKeys.waitlist(cls),
+    queryFn: () => fetchWaitlist(cls),
+  })
+}
+
+export function useClassCapacity() {
+  return useQuery({
+    queryKey: admissionsKeys.classCapacity(),
+    queryFn: fetchClassCapacity,
+  })
+}
+
+// ==================== ENTRANCE EXAM HOOKS ====================
+
+export function useExamSchedules() {
+  return useQuery({
+    queryKey: admissionsKeys.examSchedules(),
+    queryFn: fetchExamSchedules,
+  })
+}
+
+export function useCreateExamSchedule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: ScheduleExamRequest) => createExamSchedule(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.examSchedules() })
+    },
+  })
+}
+
+export function useExamResults(filters?: { class?: string; scheduleId?: string }) {
+  return useQuery({
+    queryKey: admissionsKeys.examResults(filters),
+    queryFn: () => fetchExamResults(filters),
+  })
+}
+
+export function useRecordExamScore() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ applicationId, data }: { applicationId: string; data: Omit<RecordExamScoreRequest, 'applicationId'> }) =>
+      recordExamScore(applicationId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.detail(variables.applicationId) })
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.examResults() })
+    },
+  })
+}
+
+// ==================== COMMUNICATION HOOKS ====================
+
+export function useCommunicationLogs(filters?: { applicationId?: string; type?: string }) {
+  return useQuery({
+    queryKey: admissionsKeys.communications(filters),
+    queryFn: () => fetchCommunicationLogs(filters),
+  })
+}
+
+export function useCommunicationTemplates() {
+  return useQuery({
+    queryKey: admissionsKeys.communicationTemplates(),
+    queryFn: fetchCommunicationTemplates,
+  })
+}
+
+export function useSendCommunication() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: SendCommunicationRequest) => sendCommunication(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.communications() })
+    },
+  })
+}
+
+// ==================== PAYMENT HOOKS ====================
+
+export function useAdmissionPayments(status?: string) {
+  return useQuery({
+    queryKey: admissionsKeys.payments(status),
+    queryFn: () => fetchAdmissionPayments(status),
+  })
+}
+
+export function useApplicationPayment(applicationId: string) {
+  return useQuery({
+    queryKey: admissionsKeys.applicationPayment(applicationId),
+    queryFn: () => fetchApplicationPayment(applicationId),
+    enabled: !!applicationId,
+  })
+}
+
+export function useRecordPayment() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: RecordPaymentRequest) => recordPayment(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.applicationPayment(variables.applicationId) })
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.payments() })
+      queryClient.invalidateQueries({ queryKey: admissionsKeys.detail(variables.applicationId) })
+    },
+  })
+}
+
+// ==================== ANALYTICS HOOKS ====================
+
+export function useAdmissionAnalytics() {
+  return useQuery({
+    queryKey: admissionsKeys.analytics(),
+    queryFn: fetchAdmissionAnalytics,
+  })
+}
+
+// ==================== PUBLIC HOOKS ====================
+
+export function useSubmitPublicApplication() {
+  return useMutation({
+    mutationFn: (data: CreateApplicationRequest & { source?: string }) => submitPublicApplication(data),
   })
 }

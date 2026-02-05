@@ -19,6 +19,22 @@ import {
   fetchSalarySlips,
   processMonthlySalary,
   markSalaryPaid,
+  fetchStaffTimetable,
+  fetchClassTimetable,
+  createTimetableEntry,
+  deleteTimetableEntry,
+  fetchSubstitutions,
+  createSubstitution,
+  updateSubstitutionStatus,
+  fetchPerformanceReviews,
+  fetchStaffPerformanceReviews,
+  createPerformanceReview,
+  acknowledgeReview,
+  fetchStaffPD,
+  fetchAllPD,
+  createPD,
+  updatePD,
+  deletePD,
 } from '../api/staff.api'
 import type {
   StaffFilters,
@@ -28,6 +44,11 @@ import type {
   CreateLeaveRequest,
   ProcessSalaryRequest,
   SalaryStructure,
+  TimetableEntry,
+  CreateSubstitutionRequest,
+  CreatePerformanceReview,
+  CreatePDRequest,
+  ProfessionalDevelopment,
 } from '../types/staff.types'
 
 // ==================== QUERY KEYS ====================
@@ -53,6 +74,16 @@ export const staffKeys = {
   salary: () => [...staffKeys.all, 'salary'] as const,
   salaryStructure: (staffId: string) => [...staffKeys.salary(), 'structure', staffId] as const,
   salarySlips: (staffId: string) => [...staffKeys.salary(), 'slips', staffId] as const,
+  timetable: () => [...staffKeys.all, 'timetable'] as const,
+  staffTimetable: (staffId: string) => [...staffKeys.timetable(), 'staff', staffId] as const,
+  classTimetable: (cls: string, section: string) => [...staffKeys.timetable(), 'class', cls, section] as const,
+  substitutions: (filters?: { date?: string; status?: string }) => [...staffKeys.all, 'substitutions', filters] as const,
+  performanceReviews: (filters?: { staffId?: string; period?: string; year?: number }) =>
+    [...staffKeys.all, 'performance-reviews', filters] as const,
+  staffPerformanceReviews: (staffId: string) => [...staffKeys.all, 'performance-reviews', 'staff', staffId] as const,
+  professionalDev: () => [...staffKeys.all, 'professional-development'] as const,
+  staffPD: (staffId: string) => [...staffKeys.professionalDev(), 'staff', staffId] as const,
+  allPD: (filters?: { type?: string; status?: string }) => [...staffKeys.professionalDev(), 'all', filters] as const,
 }
 
 // ==================== STAFF CRUD HOOKS ====================
@@ -248,6 +279,168 @@ export function useMarkSalaryPaid() {
     mutationFn: (slipId: string) => markSalaryPaid(slipId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: staffKeys.salary() })
+    },
+  })
+}
+
+// ==================== TIMETABLE HOOKS ====================
+
+export function useStaffTimetable(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.staffTimetable(staffId),
+    queryFn: () => fetchStaffTimetable(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useClassTimetable(cls: string, section: string) {
+  return useQuery({
+    queryKey: staffKeys.classTimetable(cls, section),
+    queryFn: () => fetchClassTimetable(cls, section),
+    enabled: !!cls && !!section,
+  })
+}
+
+export function useCreateTimetableEntry() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: Omit<TimetableEntry, 'id' | 'staffName'>) => createTimetableEntry(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.timetable() })
+    },
+  })
+}
+
+export function useDeleteTimetableEntry() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteTimetableEntry(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.timetable() })
+    },
+  })
+}
+
+// ==================== SUBSTITUTION HOOKS ====================
+
+export function useSubstitutions(filters?: { date?: string; status?: string }) {
+  return useQuery({
+    queryKey: staffKeys.substitutions(filters),
+    queryFn: () => fetchSubstitutions(filters),
+  })
+}
+
+export function useCreateSubstitution() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreateSubstitutionRequest) => createSubstitution(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.substitutions() })
+    },
+  })
+}
+
+export function useUpdateSubstitutionStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => updateSubstitutionStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.substitutions() })
+    },
+  })
+}
+
+// ==================== PERFORMANCE REVIEW HOOKS ====================
+
+export function usePerformanceReviews(filters?: { staffId?: string; period?: string; year?: number }) {
+  return useQuery({
+    queryKey: staffKeys.performanceReviews(filters),
+    queryFn: () => fetchPerformanceReviews(filters),
+  })
+}
+
+export function useStaffPerformanceReviews(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.staffPerformanceReviews(staffId),
+    queryFn: () => fetchStaffPerformanceReviews(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreatePerformanceReview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreatePerformanceReview) => createPerformanceReview(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.performanceReviews() })
+    },
+  })
+}
+
+export function useAcknowledgeReview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => acknowledgeReview(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.performanceReviews() })
+    },
+  })
+}
+
+// ==================== PROFESSIONAL DEVELOPMENT HOOKS ====================
+
+export function useStaffPD(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.staffPD(staffId),
+    queryFn: () => fetchStaffPD(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useAllPD(filters?: { type?: string; status?: string }) {
+  return useQuery({
+    queryKey: staffKeys.allPD(filters),
+    queryFn: () => fetchAllPD(filters),
+  })
+}
+
+export function useCreatePD() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ staffId, data }: { staffId: string; data: Omit<CreatePDRequest, 'staffId'> }) =>
+      createPD(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.staffPD(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.allPD() })
+    },
+  })
+}
+
+export function useUpdatePD() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<ProfessionalDevelopment> }) => updatePD(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.professionalDev() })
+    },
+  })
+}
+
+export function useDeletePD() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deletePD(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.professionalDev() })
     },
   })
 }

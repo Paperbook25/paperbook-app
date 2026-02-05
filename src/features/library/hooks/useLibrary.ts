@@ -15,6 +15,19 @@ import {
   updateFine,
   fetchLibraryStats,
   fetchAvailableStudents,
+  fetchReservations,
+  createReservation,
+  cancelReservation,
+  fetchReadingHistory,
+  fetchStudentReadingReport,
+  fetchBookRecommendations,
+  fetchDigitalBooks,
+  recordDigitalAccess,
+  fetchOverdueNotifications,
+  fetchNotificationConfig,
+  updateNotificationConfig,
+  sendOverdueNotification,
+  scanBarcode,
 } from '../api/library.api'
 import type {
   BookFilters,
@@ -24,6 +37,9 @@ import type {
   IssueBookRequest,
   FineFilters,
   UpdateFineRequest,
+  CreateReservationRequest,
+  DigitalBookFilters,
+  NotificationConfig,
 } from '../types/library.types'
 
 // ==================== QUERY KEYS ====================
@@ -44,6 +60,19 @@ export const libraryKeys = {
   fineList: (filters: FineFilters) => [...libraryKeys.fines(), 'list', filters] as const,
   stats: () => [...libraryKeys.all, 'stats'] as const,
   students: (search?: string) => [...libraryKeys.all, 'students', search] as const,
+  // New keys
+  reservations: () => [...libraryKeys.all, 'reservations'] as const,
+  reservationList: (filters: Record<string, unknown>) => [...libraryKeys.reservations(), 'list', filters] as const,
+  readingHistory: () => [...libraryKeys.all, 'reading-history'] as const,
+  readingHistoryList: (filters: Record<string, unknown>) => [...libraryKeys.readingHistory(), 'list', filters] as const,
+  readingReport: (studentId: string) => [...libraryKeys.all, 'reading-report', studentId] as const,
+  recommendations: (studentId: string) => [...libraryKeys.all, 'recommendations', studentId] as const,
+  digitalBooks: () => [...libraryKeys.all, 'digital'] as const,
+  digitalBookList: (filters: DigitalBookFilters) => [...libraryKeys.digitalBooks(), 'list', filters] as const,
+  notifications: () => [...libraryKeys.all, 'notifications'] as const,
+  notificationList: (filters: Record<string, unknown>) => [...libraryKeys.notifications(), 'list', filters] as const,
+  notificationConfig: () => [...libraryKeys.all, 'notification-config'] as const,
+  barcodeScan: (isbn: string) => [...libraryKeys.all, 'scan', isbn] as const,
 }
 
 // ==================== USER-SCOPED HOOKS ====================
@@ -193,5 +222,126 @@ export function useAvailableStudents(search?: string) {
   return useQuery({
     queryKey: libraryKeys.students(search),
     queryFn: () => fetchAvailableStudents(search),
+  })
+}
+
+// ==================== RESERVATION HOOKS ====================
+
+export function useReservations(filters: { search?: string; status?: string; page?: number; limit?: number } = {}) {
+  return useQuery({
+    queryKey: libraryKeys.reservationList(filters),
+    queryFn: () => fetchReservations(filters),
+  })
+}
+
+export function useCreateReservation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: CreateReservationRequest) => createReservation(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.reservations() })
+      queryClient.invalidateQueries({ queryKey: libraryKeys.books() })
+    },
+  })
+}
+
+export function useCancelReservation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => cancelReservation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.reservations() })
+    },
+  })
+}
+
+// ==================== READING HISTORY HOOKS ====================
+
+export function useReadingHistory(filters: { studentId?: string; category?: string; page?: number; limit?: number } = {}) {
+  return useQuery({
+    queryKey: libraryKeys.readingHistoryList(filters),
+    queryFn: () => fetchReadingHistory(filters),
+  })
+}
+
+export function useStudentReadingReport(studentId: string) {
+  return useQuery({
+    queryKey: libraryKeys.readingReport(studentId),
+    queryFn: () => fetchStudentReadingReport(studentId),
+    enabled: !!studentId,
+  })
+}
+
+export function useBookRecommendations(studentId: string) {
+  return useQuery({
+    queryKey: libraryKeys.recommendations(studentId),
+    queryFn: () => fetchBookRecommendations(studentId),
+    enabled: !!studentId,
+  })
+}
+
+// ==================== DIGITAL LIBRARY HOOKS ====================
+
+export function useDigitalBooks(filters: DigitalBookFilters = {}) {
+  return useQuery({
+    queryKey: libraryKeys.digitalBookList(filters),
+    queryFn: () => fetchDigitalBooks(filters),
+  })
+}
+
+export function useRecordDigitalAccess() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => recordDigitalAccess(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.digitalBooks() })
+    },
+  })
+}
+
+// ==================== NOTIFICATION HOOKS ====================
+
+export function useOverdueNotifications(filters: { channel?: string; status?: string; page?: number; limit?: number } = {}) {
+  return useQuery({
+    queryKey: libraryKeys.notificationList(filters),
+    queryFn: () => fetchOverdueNotifications(filters),
+  })
+}
+
+export function useNotificationConfig() {
+  return useQuery({
+    queryKey: libraryKeys.notificationConfig(),
+    queryFn: fetchNotificationConfig,
+  })
+}
+
+export function useUpdateNotificationConfig() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (data: Partial<NotificationConfig>) => updateNotificationConfig(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.notificationConfig() })
+    },
+  })
+}
+
+export function useSendOverdueNotification() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ issuedBookId, channel }: { issuedBookId: string; channel: string }) =>
+      sendOverdueNotification(issuedBookId, channel),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.notifications() })
+    },
+  })
+}
+
+// ==================== BARCODE HOOKS ====================
+
+export function useBarcodeScan(isbn: string) {
+  return useQuery({
+    queryKey: libraryKeys.barcodeScan(isbn),
+    queryFn: () => scanBarcode(isbn),
+    enabled: !!isbn && isbn.length >= 10,
   })
 }

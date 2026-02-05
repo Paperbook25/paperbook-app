@@ -7,6 +7,13 @@ export interface User {
   role: Role
   avatar?: string
   phone?: string
+  // Student-specific fields
+  studentId?: string
+  class?: string
+  section?: string
+  rollNumber?: number
+  // Parent-specific fields
+  childIds?: string[]
 }
 
 export interface PaginatedResponse<T> {

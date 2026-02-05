@@ -33,6 +33,28 @@ import {
   fetchDueReport,
   fetchFinancialSummary,
   fetchFinanceStats,
+  fetchInstallmentPlans,
+  createInstallmentPlan,
+  toggleInstallmentPlan,
+  deleteInstallmentPlan,
+  fetchDiscountRules,
+  createDiscountRule,
+  updateDiscountRule,
+  toggleDiscountRule,
+  deleteDiscountRule,
+  fetchAppliedDiscounts,
+  fetchConcessionRequests,
+  createConcessionRequest,
+  approveConcession,
+  rejectConcession,
+  fetchEscalationConfig,
+  updateEscalationConfig,
+  fetchReminderLogs,
+  fetchOnlinePaymentConfig,
+  updateOnlinePaymentConfig,
+  fetchOnlinePaymentOrders,
+  createPaymentOrder,
+  fetchParentFeeDashboard,
 } from '../api/finance.api'
 import type {
   CreateFeeTypeRequest,
@@ -52,6 +74,12 @@ import type {
   RejectExpenseRequest,
   MarkExpensePaidRequest,
   LedgerFilters,
+  CreateInstallmentPlanRequest,
+  CreateDiscountRuleRequest,
+  CreateConcessionRequest,
+  UpdateEscalationConfigRequest,
+  OnlinePaymentConfig,
+  CreatePaymentOrderRequest,
 } from '../types/finance.types'
 
 // ==================== QUERY KEYS ====================
@@ -114,6 +142,36 @@ export const financeKeys = {
 
   // Stats
   stats: () => [...financeKeys.all, 'stats'] as const,
+
+  // Installment Plans
+  installmentPlans: () => [...financeKeys.all, 'installment-plans'] as const,
+  installmentPlansList: (academicYear?: string) =>
+    [...financeKeys.installmentPlans(), academicYear] as const,
+
+  // Discount Rules
+  discountRules: () => [...financeKeys.all, 'discount-rules'] as const,
+  appliedDiscounts: (filters?: { studentId?: string; ruleId?: string }) =>
+    [...financeKeys.all, 'applied-discounts', filters] as const,
+
+  // Concession Requests
+  concessions: () => [...financeKeys.all, 'concessions'] as const,
+  concessionsList: (status?: string) =>
+    [...financeKeys.concessions(), status] as const,
+
+  // Escalation Config
+  escalationConfig: () => [...financeKeys.all, 'escalation-config'] as const,
+  reminderLogs: () => [...financeKeys.all, 'reminder-logs'] as const,
+  reminderLogsList: (filters?: { channel?: string; status?: string }) =>
+    [...financeKeys.reminderLogs(), filters] as const,
+
+  // Online Payment
+  onlinePaymentConfig: () => [...financeKeys.all, 'online-payment-config'] as const,
+  onlinePaymentOrders: () => [...financeKeys.all, 'online-payment-orders'] as const,
+  onlinePaymentOrdersList: (filters?: { status?: string }) =>
+    [...financeKeys.onlinePaymentOrders(), filters] as const,
+
+  // Parent Dashboard
+  parentDashboard: () => [...financeKeys.all, 'parent-dashboard'] as const,
 }
 
 // ==================== USER-SCOPED HOOKS ====================
@@ -447,5 +505,230 @@ export function useFinanceStats() {
   return useQuery({
     queryKey: financeKeys.stats(),
     queryFn: fetchFinanceStats,
+  })
+}
+
+// ==================== INSTALLMENT PLAN HOOKS ====================
+
+export function useInstallmentPlans(academicYear?: string) {
+  return useQuery({
+    queryKey: financeKeys.installmentPlansList(academicYear),
+    queryFn: () => fetchInstallmentPlans(academicYear),
+  })
+}
+
+export function useCreateInstallmentPlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreateInstallmentPlanRequest) => createInstallmentPlan(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.installmentPlans() })
+    },
+  })
+}
+
+export function useToggleInstallmentPlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => toggleInstallmentPlan(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.installmentPlans() })
+    },
+  })
+}
+
+export function useDeleteInstallmentPlan() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteInstallmentPlan(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.installmentPlans() })
+    },
+  })
+}
+
+// ==================== DISCOUNT RULE HOOKS ====================
+
+export function useDiscountRules() {
+  return useQuery({
+    queryKey: financeKeys.discountRules(),
+    queryFn: fetchDiscountRules,
+  })
+}
+
+export function useCreateDiscountRule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreateDiscountRuleRequest) => createDiscountRule(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.discountRules() })
+    },
+  })
+}
+
+export function useUpdateDiscountRule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreateDiscountRuleRequest> }) =>
+      updateDiscountRule(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.discountRules() })
+    },
+  })
+}
+
+export function useToggleDiscountRule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => toggleDiscountRule(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.discountRules() })
+    },
+  })
+}
+
+export function useDeleteDiscountRule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteDiscountRule(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.discountRules() })
+    },
+  })
+}
+
+export function useAppliedDiscounts(filters: { studentId?: string; ruleId?: string } = {}) {
+  return useQuery({
+    queryKey: financeKeys.appliedDiscounts(filters),
+    queryFn: () => fetchAppliedDiscounts(filters),
+  })
+}
+
+// ==================== CONCESSION HOOKS ====================
+
+export function useConcessionRequests(status?: string) {
+  return useQuery({
+    queryKey: financeKeys.concessionsList(status),
+    queryFn: () => fetchConcessionRequests(status),
+  })
+}
+
+export function useCreateConcession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreateConcessionRequest) => createConcessionRequest(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.concessions() })
+    },
+  })
+}
+
+export function useApproveConcession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => approveConcession(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.concessions() })
+      queryClient.invalidateQueries({ queryKey: financeKeys.studentFees() })
+    },
+  })
+}
+
+export function useRejectConcession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      rejectConcession(id, reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.concessions() })
+    },
+  })
+}
+
+// ==================== ESCALATION HOOKS ====================
+
+export function useEscalationConfig() {
+  return useQuery({
+    queryKey: financeKeys.escalationConfig(),
+    queryFn: fetchEscalationConfig,
+  })
+}
+
+export function useUpdateEscalationConfig() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: UpdateEscalationConfigRequest) => updateEscalationConfig(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.escalationConfig() })
+    },
+  })
+}
+
+export function useReminderLogs(
+  filters: { channel?: string; status?: string; page?: number; limit?: number } = {}
+) {
+  return useQuery({
+    queryKey: financeKeys.reminderLogsList(filters),
+    queryFn: () => fetchReminderLogs(filters),
+  })
+}
+
+// ==================== ONLINE PAYMENT HOOKS ====================
+
+export function useOnlinePaymentConfig() {
+  return useQuery({
+    queryKey: financeKeys.onlinePaymentConfig(),
+    queryFn: fetchOnlinePaymentConfig,
+  })
+}
+
+export function useUpdateOnlinePaymentConfig() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: Partial<OnlinePaymentConfig>) => updateOnlinePaymentConfig(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.onlinePaymentConfig() })
+    },
+  })
+}
+
+export function useOnlinePaymentOrders(
+  filters: { status?: string; page?: number; limit?: number } = {}
+) {
+  return useQuery({
+    queryKey: financeKeys.onlinePaymentOrdersList(filters),
+    queryFn: () => fetchOnlinePaymentOrders(filters),
+  })
+}
+
+export function useCreatePaymentOrder() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: CreatePaymentOrderRequest) => createPaymentOrder(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.onlinePaymentOrders() })
+    },
+  })
+}
+
+// ==================== PARENT DASHBOARD HOOKS ====================
+
+export function useParentFeeDashboard() {
+  return useQuery({
+    queryKey: financeKeys.parentDashboard(),
+    queryFn: fetchParentFeeDashboard,
   })
 }

@@ -99,6 +99,7 @@ export interface Fine {
   studentId: string
   studentName: string
   studentClass: string
+  studentSection: string
   overdueDays: number
   amount: number // Rs 5 per day
   status: FineStatus
@@ -141,6 +142,168 @@ export interface StudentForLibrary {
   section: string
   rollNumber: string
   admissionNumber: string
+}
+
+// ==================== RESERVATION TYPES ====================
+
+export type ReservationStatus = 'active' | 'fulfilled' | 'cancelled' | 'expired'
+
+export interface BookReservation {
+  id: string
+  bookId: string
+  bookTitle: string
+  bookIsbn: string
+  studentId: string
+  studentName: string
+  studentClass: string
+  studentSection: string
+  reservedAt: string
+  expiresAt: string
+  status: ReservationStatus
+  queuePosition: number
+  fulfilledAt?: string
+  cancelledAt?: string
+}
+
+export interface CreateReservationRequest {
+  bookId: string
+  studentId: string
+}
+
+export const RESERVATION_STATUS_LABELS: Record<ReservationStatus, string> = {
+  active: 'Active',
+  fulfilled: 'Fulfilled',
+  cancelled: 'Cancelled',
+  expired: 'Expired',
+}
+
+// ==================== READING HISTORY TYPES ====================
+
+export interface ReadingRecord {
+  id: string
+  studentId: string
+  studentName: string
+  studentClass: string
+  studentSection: string
+  bookId: string
+  bookTitle: string
+  bookAuthor: string
+  bookCategory: BookCategory
+  issueDate: string
+  returnDate: string
+  daysToRead: number
+  rating?: number // 1-5 star rating by student
+}
+
+export interface StudentReadingReport {
+  studentId: string
+  studentName: string
+  studentClass: string
+  studentSection: string
+  totalBooksRead: number
+  averageDaysToRead: number
+  averageRating: number
+  favoriteCategory: BookCategory
+  categoryBreakdown: { category: BookCategory; count: number }[]
+  monthlyBreakdown: { month: string; count: number }[]
+  recentBooks: ReadingRecord[]
+}
+
+export interface BookRecommendation {
+  bookId: string
+  bookTitle: string
+  bookAuthor: string
+  bookCategory: BookCategory
+  coverUrl: string
+  reason: string
+  matchScore: number // 0-100
+}
+
+// ==================== DIGITAL LIBRARY TYPES ====================
+
+export type DigitalFormat = 'pdf' | 'epub' | 'audiobook'
+
+export interface DigitalBook {
+  id: string
+  bookId?: string // linked physical book, if any
+  title: string
+  author: string
+  category: BookCategory
+  format: DigitalFormat
+  fileSize: string
+  coverUrl: string
+  description: string
+  totalAccesses: number
+  addedAt: string
+  downloadUrl: string
+}
+
+export interface DigitalBookFilters {
+  search?: string
+  category?: BookCategory | 'all'
+  format?: DigitalFormat | 'all'
+  page?: number
+  limit?: number
+}
+
+export const DIGITAL_FORMAT_LABELS: Record<DigitalFormat, string> = {
+  pdf: 'PDF',
+  epub: 'ePub',
+  audiobook: 'Audiobook',
+}
+
+// ==================== OVERDUE NOTIFICATION TYPES ====================
+
+export type NotificationChannel = 'sms' | 'email' | 'whatsapp' | 'in_app'
+export type NotificationStatus = 'sent' | 'delivered' | 'failed' | 'pending'
+
+export interface OverdueNotification {
+  id: string
+  studentId: string
+  studentName: string
+  studentClass: string
+  parentName: string
+  parentPhone: string
+  parentEmail: string
+  bookTitle: string
+  dueDate: string
+  overdueDays: number
+  fineAmount: number
+  channel: NotificationChannel
+  status: NotificationStatus
+  sentAt: string
+  message: string
+}
+
+export interface NotificationConfig {
+  autoSendEnabled: boolean
+  channels: NotificationChannel[]
+  sendAfterDays: number
+  repeatEveryDays: number
+  maxReminders: number
+  messageTemplate: string
+}
+
+export const NOTIFICATION_CHANNEL_LABELS: Record<NotificationChannel, string> = {
+  sms: 'SMS',
+  email: 'Email',
+  whatsapp: 'WhatsApp',
+  in_app: 'In-App',
+}
+
+export const NOTIFICATION_STATUS_LABELS: Record<NotificationStatus, string> = {
+  sent: 'Sent',
+  delivered: 'Delivered',
+  failed: 'Failed',
+  pending: 'Pending',
+}
+
+// ==================== BARCODE/QR TYPES ====================
+
+export interface BarcodeScanResult {
+  isbn: string
+  book: Book | null
+  found: boolean
 }
 
 // ==================== CONSTANTS ====================

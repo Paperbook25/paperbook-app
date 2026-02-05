@@ -13,12 +13,42 @@ import {
   createLeaveRequest,
   updateLeaveRequest,
   fetchStudentLeaves,
+  fetchPeriodDefinitions,
+  fetchPeriodAttendance,
+  markPeriodAttendance,
+  fetchStudentPeriodSummary,
+  fetchAttendanceThresholds,
+  updateAttendanceThresholds,
+  fetchAttendanceAlerts,
+  acknowledgeAlert,
+  fetchLatePolicy,
+  updateLatePolicy,
+  fetchLateRecords,
+  fetchLatePatterns,
+  fetchNotificationConfig,
+  updateNotificationConfig,
+  fetchNotificationHistory,
+  fetchNotificationStats,
+  sendTestNotification,
+  fetchBiometricDevices,
+  registerBiometricDevice,
+  updateBiometricDevice,
+  fetchBiometricSyncLogs,
+  triggerBiometricSync,
 } from '../api/attendance.api'
 import type {
   MarkAttendanceRequest,
   AttendanceFilters,
   LeaveRequestCreate,
   LeaveRequestUpdate,
+  PeriodNumber,
+  MarkPeriodAttendanceRequest,
+  UpdateThresholdRequest,
+  UpdateLatePolicyRequest,
+  UpdateNotificationConfigRequest,
+  NotificationChannel,
+  RegisterDeviceRequest,
+  BiometricDevice,
 } from '../types/attendance.types'
 
 // ==================== QUERY KEYS ====================
@@ -55,6 +85,36 @@ export const attendanceKeys = {
     [...attendanceKeys.all, 'leaves', filters] as const,
   studentLeaves: (studentId: string) =>
     [...attendanceKeys.all, 'student-leaves', studentId] as const,
+
+  // Period-wise
+  periodDefinitions: (className: string, section: string) =>
+    [...attendanceKeys.all, 'period-definitions', className, section] as const,
+  periodAttendance: (date: string, className: string, section: string, period: PeriodNumber) =>
+    [...attendanceKeys.all, 'period', date, className, section, period] as const,
+  periodSummary: (className: string, section: string) =>
+    [...attendanceKeys.all, 'period-summary', className, section] as const,
+
+  // Shortage alerts
+  thresholds: () => [...attendanceKeys.all, 'thresholds'] as const,
+  alerts: (filters?: { severity?: string; type?: string }) =>
+    [...attendanceKeys.all, 'alerts', filters] as const,
+
+  // Late detection
+  latePolicy: () => [...attendanceKeys.all, 'late-policy'] as const,
+  lateRecords: (filters?: { className?: string; date?: string }) =>
+    [...attendanceKeys.all, 'late-records', filters] as const,
+  latePatterns: () => [...attendanceKeys.all, 'late-patterns'] as const,
+
+  // Notifications
+  notificationConfig: () => [...attendanceKeys.all, 'notification-config'] as const,
+  notificationHistory: (filters?: { channel?: string; eventType?: string }) =>
+    [...attendanceKeys.all, 'notification-history', filters] as const,
+  notificationStats: () => [...attendanceKeys.all, 'notification-stats'] as const,
+
+  // Biometric
+  biometricDevices: () => [...attendanceKeys.all, 'biometric-devices'] as const,
+  biometricSyncLogs: (deviceId?: string) =>
+    [...attendanceKeys.all, 'biometric-sync-logs', deviceId] as const,
 }
 
 // ==================== ATTENDANCE HOOKS ====================
@@ -200,5 +260,212 @@ export function useStudentLeaves(studentId: string) {
     queryKey: attendanceKeys.studentLeaves(studentId),
     queryFn: () => fetchStudentLeaves(studentId),
     enabled: !!studentId,
+  })
+}
+
+// ==================== PERIOD-WISE ATTENDANCE HOOKS ====================
+
+export function usePeriodDefinitions(className: string, section: string) {
+  return useQuery({
+    queryKey: attendanceKeys.periodDefinitions(className, section),
+    queryFn: () => fetchPeriodDefinitions(className, section),
+    enabled: !!className && !!section,
+  })
+}
+
+export function usePeriodAttendance(
+  date: string,
+  className: string,
+  section: string,
+  period: PeriodNumber
+) {
+  return useQuery({
+    queryKey: attendanceKeys.periodAttendance(date, className, section, period),
+    queryFn: () => fetchPeriodAttendance(date, className, section, period),
+    enabled: !!date && !!className && !!section && !!period,
+  })
+}
+
+export function useMarkPeriodAttendance() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: MarkPeriodAttendanceRequest) => markPeriodAttendance(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance', 'period'] })
+    },
+  })
+}
+
+export function useStudentPeriodSummary(className: string, section: string) {
+  return useQuery({
+    queryKey: attendanceKeys.periodSummary(className, section),
+    queryFn: () => fetchStudentPeriodSummary(className, section),
+    enabled: !!className && !!section,
+  })
+}
+
+// ==================== SHORTAGE ALERTS HOOKS ====================
+
+export function useAttendanceThresholds() {
+  return useQuery({
+    queryKey: attendanceKeys.thresholds(),
+    queryFn: fetchAttendanceThresholds,
+  })
+}
+
+export function useUpdateAttendanceThresholds() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: UpdateThresholdRequest) => updateAttendanceThresholds(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.thresholds() })
+    },
+  })
+}
+
+export function useAttendanceAlerts(filters?: { severity?: string; type?: string }) {
+  return useQuery({
+    queryKey: attendanceKeys.alerts(filters),
+    queryFn: () => fetchAttendanceAlerts(filters),
+  })
+}
+
+export function useAcknowledgeAlert() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => acknowledgeAlert(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance', 'alerts'] })
+    },
+  })
+}
+
+// ==================== LATE DETECTION HOOKS ====================
+
+export function useLatePolicy() {
+  return useQuery({
+    queryKey: attendanceKeys.latePolicy(),
+    queryFn: fetchLatePolicy,
+  })
+}
+
+export function useUpdateLatePolicy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: UpdateLatePolicyRequest) => updateLatePolicy(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.latePolicy() })
+    },
+  })
+}
+
+export function useLateRecords(filters?: { className?: string; date?: string }) {
+  return useQuery({
+    queryKey: attendanceKeys.lateRecords(filters),
+    queryFn: () => fetchLateRecords(filters),
+  })
+}
+
+export function useLatePatterns() {
+  return useQuery({
+    queryKey: attendanceKeys.latePatterns(),
+    queryFn: fetchLatePatterns,
+  })
+}
+
+// ==================== NOTIFICATION HOOKS ====================
+
+export function useNotificationConfig() {
+  return useQuery({
+    queryKey: attendanceKeys.notificationConfig(),
+    queryFn: fetchNotificationConfig,
+  })
+}
+
+export function useUpdateNotificationConfig() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ channel, data }: { channel: NotificationChannel; data: UpdateNotificationConfigRequest }) =>
+      updateNotificationConfig(channel, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.notificationConfig() })
+    },
+  })
+}
+
+export function useNotificationHistory(filters?: { channel?: string; eventType?: string }) {
+  return useQuery({
+    queryKey: attendanceKeys.notificationHistory(filters),
+    queryFn: () => fetchNotificationHistory(filters),
+  })
+}
+
+export function useNotificationStats() {
+  return useQuery({
+    queryKey: attendanceKeys.notificationStats(),
+    queryFn: fetchNotificationStats,
+  })
+}
+
+export function useSendTestNotification() {
+  return useMutation({
+    mutationFn: ({ channel, recipient }: { channel: NotificationChannel; recipient: string }) =>
+      sendTestNotification(channel, recipient),
+  })
+}
+
+// ==================== BIOMETRIC DEVICE HOOKS ====================
+
+export function useBiometricDevices() {
+  return useQuery({
+    queryKey: attendanceKeys.biometricDevices(),
+    queryFn: fetchBiometricDevices,
+  })
+}
+
+export function useRegisterBiometricDevice() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: RegisterDeviceRequest) => registerBiometricDevice(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.biometricDevices() })
+    },
+  })
+}
+
+export function useUpdateBiometricDevice() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<BiometricDevice> }) =>
+      updateBiometricDevice(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.biometricDevices() })
+    },
+  })
+}
+
+export function useBiometricSyncLogs(deviceId?: string) {
+  return useQuery({
+    queryKey: attendanceKeys.biometricSyncLogs(deviceId),
+    queryFn: () => fetchBiometricSyncLogs(deviceId),
+  })
+}
+
+export function useTriggerBiometricSync() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (deviceId: string) => triggerBiometricSync(deviceId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['attendance', 'biometric-devices'] })
+      queryClient.invalidateQueries({ queryKey: ['attendance', 'biometric-sync-logs'] })
+    },
   })
 }

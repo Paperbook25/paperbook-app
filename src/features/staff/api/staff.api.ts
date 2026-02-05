@@ -13,6 +13,15 @@ import type {
   SalaryStructure,
   SalarySlip,
   ProcessSalaryRequest,
+  StaffTimetable,
+  ClassTimetable,
+  TimetableEntry,
+  Substitution,
+  CreateSubstitutionRequest,
+  PerformanceReview,
+  CreatePerformanceReview,
+  ProfessionalDevelopment,
+  CreatePDRequest,
 } from '../types/staff.types'
 
 const API_BASE = '/api/staff'
@@ -257,5 +266,159 @@ export async function markSalaryPaid(slipId: string): Promise<{ data: SalarySlip
   if (!response.ok) {
     throw new Error('Failed to mark salary as paid')
   }
+  return response.json()
+}
+
+// ==================== TIMETABLE ====================
+
+export async function fetchStaffTimetable(staffId: string): Promise<StaffTimetable> {
+  const response = await fetch(`${API_BASE}/${staffId}/timetable`)
+  if (!response.ok) throw new Error('Failed to fetch timetable')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchClassTimetable(cls: string, section: string): Promise<ClassTimetable> {
+  const response = await fetch(`/api/timetable/class?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`)
+  if (!response.ok) throw new Error('Failed to fetch class timetable')
+  const json = await response.json()
+  return json.data
+}
+
+export async function createTimetableEntry(data: Omit<TimetableEntry, 'id' | 'staffName'>): Promise<TimetableEntry> {
+  const response = await fetch('/api/timetable', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create timetable entry')
+  const json = await response.json()
+  return json.data
+}
+
+export async function deleteTimetableEntry(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`/api/timetable/${id}`, { method: 'DELETE' })
+  if (!response.ok) throw new Error('Failed to delete timetable entry')
+  return response.json()
+}
+
+// ==================== SUBSTITUTIONS ====================
+
+export async function fetchSubstitutions(filters?: { date?: string; status?: string }): Promise<Substitution[]> {
+  const params = new URLSearchParams()
+  if (filters?.date) params.set('date', filters.date)
+  if (filters?.status) params.set('status', filters.status)
+  const response = await fetch(`${API_BASE}/substitutions?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch substitutions')
+  const json = await response.json()
+  return json.data
+}
+
+export async function createSubstitution(data: CreateSubstitutionRequest): Promise<Substitution> {
+  const response = await fetch(`${API_BASE}/substitutions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create substitution')
+  const json = await response.json()
+  return json.data
+}
+
+export async function updateSubstitutionStatus(id: string, status: string): Promise<Substitution> {
+  const response = await fetch(`${API_BASE}/substitutions/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  })
+  if (!response.ok) throw new Error('Failed to update substitution')
+  const json = await response.json()
+  return json.data
+}
+
+// ==================== PERFORMANCE REVIEWS ====================
+
+export async function fetchPerformanceReviews(filters?: { staffId?: string; period?: string; year?: number }): Promise<PerformanceReview[]> {
+  const params = new URLSearchParams()
+  if (filters?.staffId) params.set('staffId', filters.staffId)
+  if (filters?.period) params.set('period', filters.period)
+  if (filters?.year) params.set('year', String(filters.year))
+  const response = await fetch(`${API_BASE}/performance-reviews?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch performance reviews')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchStaffPerformanceReviews(staffId: string): Promise<PerformanceReview[]> {
+  const response = await fetch(`${API_BASE}/${staffId}/performance-reviews`)
+  if (!response.ok) throw new Error('Failed to fetch staff performance reviews')
+  const json = await response.json()
+  return json.data
+}
+
+export async function createPerformanceReview(data: CreatePerformanceReview): Promise<PerformanceReview> {
+  const response = await fetch(`${API_BASE}/performance-reviews`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create performance review')
+  const json = await response.json()
+  return json.data
+}
+
+export async function acknowledgeReview(id: string): Promise<PerformanceReview> {
+  const response = await fetch(`${API_BASE}/performance-reviews/${id}/acknowledge`, {
+    method: 'PATCH',
+  })
+  if (!response.ok) throw new Error('Failed to acknowledge review')
+  const json = await response.json()
+  return json.data
+}
+
+// ==================== PROFESSIONAL DEVELOPMENT ====================
+
+export async function fetchStaffPD(staffId: string): Promise<ProfessionalDevelopment[]> {
+  const response = await fetch(`${API_BASE}/${staffId}/professional-development`)
+  if (!response.ok) throw new Error('Failed to fetch professional development records')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchAllPD(filters?: { type?: string; status?: string }): Promise<ProfessionalDevelopment[]> {
+  const params = new URLSearchParams()
+  if (filters?.type) params.set('type', filters.type)
+  if (filters?.status) params.set('status', filters.status)
+  const response = await fetch(`${API_BASE}/professional-development?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch professional development records')
+  const json = await response.json()
+  return json.data
+}
+
+export async function createPD(staffId: string, data: Omit<CreatePDRequest, 'staffId'>): Promise<ProfessionalDevelopment> {
+  const response = await fetch(`${API_BASE}/${staffId}/professional-development`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create professional development record')
+  const json = await response.json()
+  return json.data
+}
+
+export async function updatePD(id: string, data: Partial<ProfessionalDevelopment>): Promise<ProfessionalDevelopment> {
+  const response = await fetch(`${API_BASE}/professional-development/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to update professional development record')
+  const json = await response.json()
+  return json.data
+}
+
+export async function deletePD(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE}/professional-development/${id}`, { method: 'DELETE' })
+  if (!response.ok) throw new Error('Failed to delete professional development record')
   return response.json()
 }

@@ -8,6 +8,11 @@ import {
   generateId,
   generateMockStudents,
   generateReportCard,
+  examTimetables,
+  generateClassAnalytics,
+  generateStudentProgress,
+  coScholasticRecords,
+  questionPapers,
 } from '../data/exams.data'
 import { getUserContext, isStudent, isParent } from '../utils/auth-context'
 import type {
@@ -20,6 +25,12 @@ import type {
   UpdateGradeScaleRequest,
   StudentMark,
   Subject,
+  ExamSlot,
+  CreateExamSlotRequest,
+  CoScholasticRecord,
+  SubmitCoScholasticRequest,
+  QuestionPaper,
+  CreateQuestionPaperRequest,
 } from '@/features/exams/types/exams.types'
 
 export const examsHandlers = [
@@ -585,6 +596,219 @@ export const examsHandlers = [
     }
 
     gradeScales.splice(index, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
+  // ==================== EXAM TIMETABLE ====================
+
+  // Get exam timetable
+  http.get('/api/exams/:examId/timetable', async ({ params }) => {
+    await delay(300)
+    const examId = params.examId as string
+    const exam = exams.find((e) => e.id === examId)
+    const slots = examTimetables[examId] || []
+
+    return HttpResponse.json({
+      data: {
+        examId,
+        examName: exam?.name || 'Unknown Exam',
+        slots,
+      },
+    })
+  }),
+
+  // Create exam timetable slot
+  http.post('/api/exams/:examId/timetable', async ({ params, request }) => {
+    await delay(300)
+    const examId = params.examId as string
+    const body = (await request.json()) as CreateExamSlotRequest
+    const exam = exams.find((e) => e.id === examId)
+    const subject = exam?.subjects.find((s) => s.id === body.subjectId)
+
+    const newSlot: ExamSlot = {
+      id: generateId('slot'),
+      examId,
+      subjectId: body.subjectId,
+      subjectName: subject?.name || '',
+      subjectCode: subject?.code || '',
+      date: body.date,
+      startTime: body.startTime,
+      endTime: body.endTime,
+      room: body.room,
+      invigilator: body.invigilator,
+      applicableClasses: body.applicableClasses,
+    }
+
+    if (!examTimetables[examId]) {
+      examTimetables[examId] = []
+    }
+    examTimetables[examId].push(newSlot)
+
+    return HttpResponse.json({ data: newSlot }, { status: 201 })
+  }),
+
+  // ==================== CLASS ANALYTICS ====================
+
+  // Get class analytics for an exam
+  http.get('/api/exams/:examId/analytics', async ({ params, request }) => {
+    await delay(300)
+    const examId = params.examId as string
+    const url = new URL(request.url)
+    const className = url.searchParams.get('class') || 'Class 10'
+    const section = url.searchParams.get('section') || 'A'
+
+    return HttpResponse.json({ data: generateClassAnalytics(examId, className, section) })
+  }),
+
+  // ==================== STUDENT PROGRESS ====================
+
+  // Get student progress
+  http.get('/api/students/:studentId/progress', async ({ params }) => {
+    await delay(300)
+    const studentId = params.studentId as string
+    const progress = generateStudentProgress(studentId)
+
+    if (!progress) {
+      return HttpResponse.json({ error: 'Student progress not found' }, { status: 404 })
+    }
+
+    return HttpResponse.json({ data: progress })
+  }),
+
+  // ==================== CO-SCHOLASTIC ====================
+
+  // Get co-scholastic records
+  http.get('/api/exams/co-scholastic', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const studentId = url.searchParams.get('studentId')
+    const term = url.searchParams.get('term')
+    const area = url.searchParams.get('area')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '10')
+
+    let filtered = [...coScholasticRecords]
+
+    if (studentId) {
+      filtered = filtered.filter((r) => r.studentId === studentId)
+    }
+    if (term) {
+      filtered = filtered.filter((r) => r.term === term)
+    }
+    if (area) {
+      filtered = filtered.filter((r) => r.area === area)
+    }
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+    const paginated = filtered.slice(startIndex, startIndex + limit)
+
+    return HttpResponse.json({
+      data: paginated,
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // Submit co-scholastic records
+  http.post('/api/exams/co-scholastic', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as SubmitCoScholasticRequest
+
+    const newRecords: CoScholasticRecord[] = body.records.map((record) => {
+      const newRecord: CoScholasticRecord = {
+        id: generateId('csr'),
+        studentId: body.studentId,
+        studentName: '',
+        studentClass: '',
+        studentSection: '',
+        academicYear: '2024-25',
+        term: body.term,
+        area: record.area,
+        grade: record.grade,
+        remarks: record.remarks,
+        assessedBy: 'Current User',
+        assessedAt: new Date().toISOString(),
+      }
+      coScholasticRecords.push(newRecord)
+      return newRecord
+    })
+
+    return HttpResponse.json({ data: newRecords }, { status: 201 })
+  }),
+
+  // ==================== QUESTION PAPERS ====================
+
+  // Get question papers
+  http.get('/api/exams/question-papers', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const examId = url.searchParams.get('examId')
+    const subjectId = url.searchParams.get('subjectId')
+    const className = url.searchParams.get('className')
+
+    let filtered = [...questionPapers]
+
+    if (examId) {
+      filtered = filtered.filter((qp) => qp.examId === examId)
+    }
+    if (subjectId) {
+      filtered = filtered.filter((qp) => qp.subjectId === subjectId)
+    }
+    if (className) {
+      filtered = filtered.filter((qp) => qp.className === className)
+    }
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get single question paper
+  http.get('/api/exams/question-papers/:id', async ({ params }) => {
+    await delay(300)
+    const paper = questionPapers.find((qp) => qp.id === params.id)
+    if (!paper) {
+      return HttpResponse.json({ error: 'Question paper not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: paper })
+  }),
+
+  // Create question paper
+  http.post('/api/exams/question-papers', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as CreateQuestionPaperRequest
+    const exam = body.examId ? exams.find((e) => e.id === body.examId) : undefined
+
+    const newPaper: QuestionPaper = {
+      id: generateId('qp'),
+      examId: body.examId,
+      examName: exam?.name,
+      subjectId: body.subjectId,
+      subjectName: body.subjectName,
+      subjectCode: body.subjectCode,
+      className: body.className,
+      academicYear: body.academicYear,
+      term: body.term,
+      totalMarks: body.totalMarks,
+      duration: body.duration,
+      difficulty: body.difficulty,
+      sections: body.sections,
+      createdBy: 'Current User',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    questionPapers.push(newPaper)
+    return HttpResponse.json({ data: newPaper }, { status: 201 })
+  }),
+
+  // Delete question paper
+  http.delete('/api/exams/question-papers/:id', async ({ params }) => {
+    await delay(300)
+    const index = questionPapers.findIndex((qp) => qp.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Question paper not found' }, { status: 404 })
+    }
+    questionPapers.splice(index, 1)
     return HttpResponse.json({ success: true })
   }),
 ]

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -13,6 +14,11 @@ import {
   ClipboardCheck,
   Pencil,
   MessageSquare,
+  IndianRupee,
+  Heart,
+  Users,
+  CreditCard as IdCard,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -23,6 +29,12 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { CollectFeeDialog } from '../components/CollectFeeDialog'
+import { StudentTimeline } from '../components/StudentTimeline'
+import { DocumentVault } from '../components/DocumentVault'
+import { HealthRecordCard } from '../components/HealthRecordCard'
+import { SiblingCard } from '../components/SiblingCard'
+import { IDCardPreview } from '../components/IDCardPreview'
 import { cn, getInitials, formatDate, formatCurrency } from '@/lib/utils'
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
@@ -40,6 +52,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
 export function StudentDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [collectFeeOpen, setCollectFeeOpen] = useState(false)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['student', id],
@@ -91,6 +104,10 @@ export function StudentDetailPage() {
         ]}
         actions={
           <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCollectFeeOpen(true)}>
+              <IndianRupee className="h-4 w-4 mr-2" />
+              Collect Fee
+            </Button>
             <Button variant="outline" size="sm">
               <MessageSquare className="h-4 w-4 mr-2" />
               Message Parent
@@ -150,12 +167,16 @@ export function StudentDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="academic">Academic</TabsTrigger>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="fees">Fees</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="health">Health</TabsTrigger>
+          <TabsTrigger value="siblings">Siblings</TabsTrigger>
+          <TabsTrigger value="idcard">ID Card</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -191,6 +212,10 @@ export function StudentDetailPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="timeline" className="space-y-4">
+          <StudentTimeline studentId={id!} />
         </TabsContent>
 
         <TabsContent value="academic" className="space-y-4">
@@ -292,27 +317,34 @@ export function StudentDetailPage() {
         </TabsContent>
 
         <TabsContent value="documents" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Documents</CardTitle>
-              <CardDescription>Student documents and certificates</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {['Birth Certificate', 'Aadhar Card', 'Previous TC', 'Photo', 'Address Proof'].map((doc) => (
-                  <div key={doc} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <FileText className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="text-sm font-medium">{doc}</p>
-                      <p className="text-xs text-muted-foreground">Uploaded</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <DocumentVault studentId={id!} />
+        </TabsContent>
+
+        <TabsContent value="health" className="space-y-4">
+          <HealthRecordCard studentId={id!} />
+        </TabsContent>
+
+        <TabsContent value="siblings" className="space-y-4">
+          <SiblingCard studentId={id!} />
+        </TabsContent>
+
+        <TabsContent value="idcard" className="space-y-4">
+          <IDCardPreview studentId={id!} />
         </TabsContent>
       </Tabs>
+
+      {/* Collect Fee Dialog */}
+      <CollectFeeDialog
+        open={collectFeeOpen}
+        onOpenChange={setCollectFeeOpen}
+        student={{
+          id: student.id,
+          name: student.name,
+          className: student.class,
+          section: student.section,
+          admissionNumber: student.admissionNumber,
+        }}
+      />
     </div>
   )
 }

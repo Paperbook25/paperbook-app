@@ -3,8 +3,15 @@ import {
   books,
   issuedBooks,
   fines,
+  reservations,
+  readingHistory,
+  digitalBooks,
+  overdueNotifications,
+  notificationConfig,
   getLibraryStats,
   getAvailableStudents,
+  getStudentReadingReport,
+  getBookRecommendations,
 } from '../data/library.data'
 import { getUserContext, isStudent, isParent } from '../utils/auth-context'
 import type {
@@ -15,6 +22,11 @@ import type {
   UpdateBookRequest,
   IssueBookRequest,
   UpdateFineRequest,
+  CreateReservationRequest,
+  BookReservation,
+  DigitalBook,
+  OverdueNotification,
+  NotificationConfig,
 } from '@/features/library/types/library.types'
 
 // Helper to generate IDs
@@ -582,5 +594,311 @@ export const libraryHandlers = [
 
     // Limit to first 50 results for performance
     return HttpResponse.json({ data: students.slice(0, 50) })
+  }),
+
+  // ==================== RESERVATION HANDLERS ====================
+
+  // Get all reservations
+  http.get('/api/library/reservations', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    const search = url.searchParams.get('search')?.toLowerCase() || ''
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '10')
+
+    let filtered = [...reservations]
+
+    if (search) {
+      filtered = filtered.filter(
+        (r) =>
+          r.bookTitle.toLowerCase().includes(search) ||
+          r.studentName.toLowerCase().includes(search)
+      )
+    }
+
+    if (status && status !== 'all') {
+      filtered = filtered.filter((r) => r.status === status)
+    }
+
+    filtered.sort((a, b) => new Date(b.reservedAt).getTime() - new Date(a.reservedAt).getTime())
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+
+    return HttpResponse.json({
+      data: filtered.slice(startIndex, startIndex + limit),
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // Create reservation
+  http.post('/api/library/reservations', async ({ request }) => {
+    await delay(400)
+    const body = (await request.json()) as CreateReservationRequest
+
+    const book = books.find((b) => b.id === body.bookId)
+    if (!book) {
+      return HttpResponse.json({ error: 'Book not found' }, { status: 404 })
+    }
+
+    const studentsList = getAvailableStudents()
+    const student = studentsList.find((s) => s.id === body.studentId)
+    if (!student) {
+      return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+
+    // Check if already reserved
+    const alreadyReserved = reservations.some(
+      (r) => r.bookId === body.bookId && r.studentId === body.studentId && r.status === 'active'
+    )
+    if (alreadyReserved) {
+      return HttpResponse.json({ error: 'Student already has an active reservation for this book' }, { status: 400 })
+    }
+
+    // Calculate queue position
+    const activeQueue = reservations.filter((r) => r.bookId === body.bookId && r.status === 'active')
+
+    const now = new Date()
+    const expiresAt = new Date(now)
+    expiresAt.setDate(expiresAt.getDate() + 7)
+
+    const newReservation: BookReservation = {
+      id: generateId(),
+      bookId: book.id,
+      bookTitle: book.title,
+      bookIsbn: book.isbn,
+      studentId: student.id,
+      studentName: student.name,
+      studentClass: student.className,
+      studentSection: student.section,
+      reservedAt: now.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      status: 'active',
+      queuePosition: activeQueue.length + 1,
+    }
+
+    reservations.unshift(newReservation)
+    return HttpResponse.json({ data: newReservation }, { status: 201 })
+  }),
+
+  // Cancel reservation
+  http.patch('/api/library/reservations/:id/cancel', async ({ params }) => {
+    await delay(300)
+    const idx = reservations.findIndex((r) => r.id === params.id)
+
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Reservation not found' }, { status: 404 })
+    }
+
+    if (reservations[idx].status !== 'active') {
+      return HttpResponse.json({ error: 'Can only cancel active reservations' }, { status: 400 })
+    }
+
+    reservations[idx] = {
+      ...reservations[idx],
+      status: 'cancelled',
+      cancelledAt: new Date().toISOString(),
+    }
+
+    return HttpResponse.json({ data: reservations[idx] })
+  }),
+
+  // ==================== READING HISTORY & RECOMMENDATIONS ====================
+
+  // Get reading history (paginated)
+  http.get('/api/library/reading-history', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const studentId = url.searchParams.get('studentId')
+    const category = url.searchParams.get('category')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '20')
+
+    let filtered = [...readingHistory]
+
+    if (studentId) {
+      filtered = filtered.filter((r) => r.studentId === studentId)
+    }
+    if (category && category !== 'all') {
+      filtered = filtered.filter((r) => r.bookCategory === category)
+    }
+
+    filtered.sort((a, b) => new Date(b.returnDate).getTime() - new Date(a.returnDate).getTime())
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+
+    return HttpResponse.json({
+      data: filtered.slice(startIndex, startIndex + limit),
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // Get student reading report
+  http.get('/api/library/reading-report/:studentId', async ({ params }) => {
+    await delay(300)
+    const report = getStudentReadingReport(params.studentId as string)
+
+    if (!report) {
+      return HttpResponse.json({ error: 'No reading history found' }, { status: 404 })
+    }
+
+    return HttpResponse.json({ data: report })
+  }),
+
+  // Get book recommendations for student
+  http.get('/api/library/recommendations/:studentId', async ({ params }) => {
+    await delay(300)
+    const recommendations = getBookRecommendations(params.studentId as string)
+    return HttpResponse.json({ data: recommendations })
+  }),
+
+  // ==================== DIGITAL LIBRARY HANDLERS ====================
+
+  // Get digital books
+  http.get('/api/library/digital', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const search = url.searchParams.get('search')?.toLowerCase() || ''
+    const category = url.searchParams.get('category')
+    const format = url.searchParams.get('format')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '12')
+
+    let filtered = [...digitalBooks]
+
+    if (search) {
+      filtered = filtered.filter(
+        (b) =>
+          b.title.toLowerCase().includes(search) ||
+          b.author.toLowerCase().includes(search)
+      )
+    }
+    if (category && category !== 'all') {
+      filtered = filtered.filter((b) => b.category === category)
+    }
+    if (format && format !== 'all') {
+      filtered = filtered.filter((b) => b.format === format)
+    }
+
+    filtered.sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+
+    return HttpResponse.json({
+      data: filtered.slice(startIndex, startIndex + limit),
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // Record digital book access
+  http.post('/api/library/digital/:id/access', async ({ params }) => {
+    await delay(200)
+    const idx = digitalBooks.findIndex((b) => b.id === params.id)
+    if (idx === -1) {
+      return HttpResponse.json({ error: 'Digital book not found' }, { status: 404 })
+    }
+    digitalBooks[idx].totalAccesses++
+    return HttpResponse.json({ data: digitalBooks[idx] })
+  }),
+
+  // ==================== OVERDUE NOTIFICATION HANDLERS ====================
+
+  // Get overdue notifications
+  http.get('/api/library/notifications', async ({ request }) => {
+    await delay(300)
+    const url = new URL(request.url)
+    const channel = url.searchParams.get('channel')
+    const status = url.searchParams.get('status')
+    const page = parseInt(url.searchParams.get('page') || '1')
+    const limit = parseInt(url.searchParams.get('limit') || '20')
+
+    let filtered = [...overdueNotifications]
+
+    if (channel && channel !== 'all') {
+      filtered = filtered.filter((n) => n.channel === channel)
+    }
+    if (status && status !== 'all') {
+      filtered = filtered.filter((n) => n.status === status)
+    }
+
+    filtered.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime())
+
+    const total = filtered.length
+    const totalPages = Math.ceil(total / limit)
+    const startIndex = (page - 1) * limit
+
+    return HttpResponse.json({
+      data: filtered.slice(startIndex, startIndex + limit),
+      pagination: { page, limit, total, totalPages },
+    })
+  }),
+
+  // Get notification config
+  http.get('/api/library/notifications/config', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: notificationConfig })
+  }),
+
+  // Update notification config
+  http.put('/api/library/notifications/config', async ({ request }) => {
+    await delay(300)
+    const body = (await request.json()) as Partial<NotificationConfig>
+    Object.assign(notificationConfig, body)
+    return HttpResponse.json({ data: notificationConfig })
+  }),
+
+  // Send manual notification
+  http.post('/api/library/notifications/send', async ({ request }) => {
+    await delay(500)
+    const body = (await request.json()) as { issuedBookId: string; channel: string }
+
+    const issuedBook = issuedBooks.find((ib) => ib.id === body.issuedBookId)
+    if (!issuedBook) {
+      return HttpResponse.json({ error: 'Issued book not found' }, { status: 404 })
+    }
+
+    const notification: OverdueNotification = {
+      id: generateId(),
+      studentId: issuedBook.studentId,
+      studentName: issuedBook.studentName,
+      studentClass: issuedBook.studentClass,
+      parentName: 'Parent',
+      parentPhone: '+91-9876543210',
+      parentEmail: 'parent@example.com',
+      bookTitle: issuedBook.bookTitle,
+      dueDate: issuedBook.dueDate,
+      overdueDays: Math.max(1, Math.floor((Date.now() - new Date(issuedBook.dueDate).getTime()) / (1000 * 60 * 60 * 24))),
+      fineAmount: Math.max(1, Math.floor((Date.now() - new Date(issuedBook.dueDate).getTime()) / (1000 * 60 * 60 * 24))) * 5,
+      channel: body.channel as OverdueNotification['channel'],
+      status: 'sent',
+      sentAt: new Date().toISOString(),
+      message: `Overdue reminder for "${issuedBook.bookTitle}"`,
+    }
+
+    overdueNotifications.unshift(notification)
+    return HttpResponse.json({ data: notification }, { status: 201 })
+  }),
+
+  // ==================== BARCODE/QR HANDLERS ====================
+
+  // Lookup book by ISBN (barcode scan simulation)
+  http.get('/api/library/scan/:isbn', async ({ params }) => {
+    await delay(200)
+    const isbn = params.isbn as string
+    const book = books.find((b) => b.isbn === isbn)
+
+    return HttpResponse.json({
+      data: {
+        isbn,
+        book: book || null,
+        found: !!book,
+      },
+    })
   }),
 ]

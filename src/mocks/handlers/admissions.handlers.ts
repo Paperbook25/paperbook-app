@@ -1,10 +1,23 @@
 import { http, HttpResponse, delay } from 'msw'
-import { applications, filterApplications, applicationStats } from '../data/admissions.data'
+import {
+  applications,
+  filterApplications,
+  applicationStats,
+  waitlistEntries,
+  classCapacities,
+  examSchedules,
+  examResults,
+  communicationLogs,
+  communicationTemplates,
+  admissionPayments,
+  generateAnalytics,
+} from '../data/admissions.data'
 import type {
   Application,
   ApplicationDocument,
   ApplicationNote,
   ApplicationStatus,
+  CommunicationType,
   CreateApplicationRequest,
   StatusChange,
   UpdateApplicationRequest,
@@ -353,5 +366,231 @@ export const admissionsHandlers = [
     applications.splice(applicationIndex, 1)
 
     return HttpResponse.json({ success: true })
+  }),
+
+  // ==================== WAITLIST HANDLERS ====================
+
+  http.get('/api/admissions/waitlist', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const cls = url.searchParams.get('class')
+    let entries = [...waitlistEntries]
+    if (cls) {
+      entries = entries.filter((e) => e.applyingForClass === cls)
+    }
+    entries.sort((a, b) => a.position - b.position)
+    return HttpResponse.json({ data: entries })
+  }),
+
+  http.get('/api/admissions/class-capacity', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: classCapacities })
+  }),
+
+  // ==================== ENTRANCE EXAM HANDLERS ====================
+
+  http.get('/api/admissions/exam-schedules', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: examSchedules })
+  }),
+
+  http.post('/api/admissions/exam-schedules', async ({ request }) => {
+    await delay(400)
+    const body = (await request.json()) as Record<string, unknown>
+    const newSchedule = {
+      id: generateId(),
+      ...body,
+      registeredCount: 0,
+      completedCount: 0,
+      status: 'upcoming',
+    }
+    examSchedules.push(newSchedule as typeof examSchedules[0])
+    return HttpResponse.json({ data: newSchedule }, { status: 201 })
+  }),
+
+  http.get('/api/admissions/exam-results', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const cls = url.searchParams.get('class')
+    const scheduleId = url.searchParams.get('scheduleId')
+    let results = [...examResults]
+    if (cls) {
+      results = results.filter((r) => {
+        const app = applications.find((a) => a.id === r.applicationId)
+        return app?.applyingForClass === cls
+      })
+    }
+    if (scheduleId) {
+      results = results.filter((r) => r.examScheduleId === scheduleId)
+    }
+    results.sort((a, b) => b.percentage - a.percentage)
+    return HttpResponse.json({ data: results })
+  }),
+
+  http.post('/api/admissions/:id/exam-score', async ({ params, request }) => {
+    await delay(300)
+    const applicationIndex = applications.findIndex((a) => a.id === params.id)
+    if (applicationIndex === -1) {
+      return HttpResponse.json({ error: 'Application not found' }, { status: 404 })
+    }
+    const body = (await request.json()) as { marksObtained: number; subjectWiseMarks: { subject: string; marks: number; total: number }[] }
+    const app = applications[applicationIndex]
+    app.entranceExamScore = body.marksObtained
+    app.updatedAt = new Date().toISOString()
+    return HttpResponse.json({ data: app })
+  }),
+
+  // ==================== COMMUNICATION HANDLERS ====================
+
+  http.get('/api/admissions/communications', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const applicationId = url.searchParams.get('applicationId')
+    const type = url.searchParams.get('type')
+    let logs = [...communicationLogs]
+    if (applicationId) {
+      logs = logs.filter((l) => l.applicationId === applicationId)
+    }
+    if (type) {
+      logs = logs.filter((l) => l.type === type)
+    }
+    return HttpResponse.json({ data: logs })
+  }),
+
+  http.get('/api/admissions/communication-templates', async () => {
+    await delay(200)
+    return HttpResponse.json({ data: communicationTemplates })
+  }),
+
+  http.post('/api/admissions/send-communication', async ({ request }) => {
+    await delay(500)
+    const body = (await request.json()) as { applicationIds: string[]; type: string; subject: string; message: string }
+    const newLogs = body.applicationIds.map((appId) => {
+      const app = applications.find((a) => a.id === appId)
+      return {
+        id: generateId(),
+        applicationId: appId,
+        studentName: app?.studentName ?? 'Unknown',
+        type: body.type as CommunicationType,
+        trigger: 'custom' as const,
+        recipient: app?.guardianEmail ?? '',
+        subject: body.subject,
+        message: body.message,
+        sentAt: new Date().toISOString(),
+        status: 'sent' as const,
+        sentBy: 'Current User',
+      }
+    })
+    communicationLogs.unshift(...newLogs)
+    return HttpResponse.json({ data: newLogs, count: newLogs.length }, { status: 201 })
+  }),
+
+  // ==================== PAYMENT HANDLERS ====================
+
+  http.get('/api/admissions/payments', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const status = url.searchParams.get('status')
+    let payments = [...admissionPayments]
+    if (status) {
+      payments = payments.filter((p) => p.status === status)
+    }
+    return HttpResponse.json({ data: payments })
+  }),
+
+  http.get('/api/admissions/:id/payment', async ({ params }) => {
+    await delay(200)
+    const payment = admissionPayments.find((p) => p.applicationId === params.id)
+    if (!payment) {
+      return HttpResponse.json({ error: 'Payment not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: payment })
+  }),
+
+  http.post('/api/admissions/:id/payment', async ({ params, request }) => {
+    await delay(400)
+    const body = (await request.json()) as { amount: number; paymentMethod: string; transactionId?: string }
+    const paymentIndex = admissionPayments.findIndex((p) => p.applicationId === params.id)
+
+    if (paymentIndex === -1) {
+      return HttpResponse.json({ error: 'Payment record not found' }, { status: 404 })
+    }
+
+    const payment = admissionPayments[paymentIndex]
+    const newPaid = payment.paidAmount + body.amount
+    const updatedPayment = {
+      ...payment,
+      paidAmount: newPaid,
+      status: newPaid >= payment.totalAmount ? 'paid' as const : 'partial' as const,
+      paymentDate: new Date().toISOString(),
+      paymentMethod: body.paymentMethod,
+      transactionId: body.transactionId ?? `TXN${Date.now()}`,
+      receiptNumber: `REC-${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`,
+      feeBreakdown: payment.feeBreakdown.map((f) => ({ ...f, paid: true })),
+    }
+    admissionPayments[paymentIndex] = updatedPayment
+
+    return HttpResponse.json({ data: updatedPayment })
+  }),
+
+  // ==================== ANALYTICS HANDLERS ====================
+
+  http.get('/api/admissions/analytics', async () => {
+    await delay(300)
+    return HttpResponse.json({ data: generateAnalytics() })
+  }),
+
+  // ==================== PUBLIC APPLICATION HANDLER ====================
+
+  http.post('/api/public/admissions/apply', async ({ request }) => {
+    await delay(500)
+    const body = (await request.json()) as CreateApplicationRequest & { source?: string }
+
+    const newApplication: Application = {
+      id: generateId(),
+      applicationNumber: generateApplicationNumber(),
+      status: 'applied',
+      studentName: body.studentName,
+      dateOfBirth: body.dateOfBirth,
+      gender: body.gender,
+      photoUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${body.studentName.replace(/\s/g, '')}&backgroundColor=b6e3f4,c0aede,d1d4f9`,
+      email: body.email,
+      phone: body.phone,
+      address: body.address,
+      applyingForClass: body.applyingForClass,
+      previousSchool: body.previousSchool,
+      previousClass: body.previousClass,
+      previousMarks: body.previousMarks,
+      fatherName: body.fatherName,
+      motherName: body.motherName,
+      guardianPhone: body.guardianPhone,
+      guardianEmail: body.guardianEmail,
+      guardianOccupation: body.guardianOccupation,
+      appliedDate: new Date().toISOString(),
+      documents: [],
+      statusHistory: [
+        {
+          id: generateId(),
+          fromStatus: null,
+          toStatus: 'applied',
+          changedAt: new Date().toISOString(),
+          changedBy: 'Online Portal',
+          note: 'Application submitted via public portal',
+        },
+      ],
+      notes: [],
+      source: (body.source as Application['source']) ?? 'website',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    applications.unshift(newApplication)
+
+    return HttpResponse.json({
+      data: {
+        applicationNumber: newApplication.applicationNumber,
+        message: 'Application submitted successfully. You will receive a confirmation email shortly.',
+      },
+    }, { status: 201 })
   }),
 ]

@@ -12,6 +12,15 @@ import type {
   CreateGradeScaleRequest,
   UpdateGradeScaleRequest,
   MarksEntryStudent,
+  ExamTimetable,
+  ExamSlot,
+  CreateExamSlotRequest,
+  ClassAnalytics,
+  StudentProgress,
+  CoScholasticRecord,
+  SubmitCoScholasticRequest,
+  QuestionPaper,
+  CreateQuestionPaperRequest,
 } from '../types/exams.types'
 
 const API_BASE = '/api'
@@ -227,4 +236,99 @@ export async function deleteGradeScale(id: string) {
   })
   if (!response.ok) throw new Error('Failed to delete grade scale')
   return response.json() as Promise<{ success: boolean }>
+}
+
+// ==================== EXAM TIMETABLE ====================
+
+export async function fetchExamTimetable(examId: string): Promise<{ data: ExamTimetable }> {
+  const response = await fetch(`${API_BASE}/exams/${examId}/timetable`)
+  if (!response.ok) throw new Error('Failed to fetch timetable')
+  return response.json()
+}
+
+export async function createExamSlot(examId: string, data: CreateExamSlotRequest): Promise<{ data: ExamSlot }> {
+  const response = await fetch(`${API_BASE}/exams/${examId}/timetable`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create exam slot')
+  return response.json()
+}
+
+// ==================== CLASS ANALYTICS ====================
+
+export async function fetchClassAnalytics(examId: string, className?: string, section?: string): Promise<{ data: ClassAnalytics }> {
+  const params = new URLSearchParams()
+  if (className) params.set('class', className)
+  if (section) params.set('section', section)
+  const response = await fetch(`${API_BASE}/exams/${examId}/analytics?${params.toString()}`)
+  if (!response.ok) throw new Error('Failed to fetch analytics')
+  return response.json()
+}
+
+// ==================== STUDENT PROGRESS ====================
+
+export async function fetchStudentProgress(studentId: string): Promise<{ data: StudentProgress }> {
+  const response = await fetch(`${API_BASE}/students/${studentId}/progress`)
+  if (!response.ok) throw new Error('Failed to fetch student progress')
+  return response.json()
+}
+
+// ==================== CO-SCHOLASTIC ====================
+
+export async function fetchCoScholasticRecords(filters: { studentId?: string; term?: string; area?: string; page?: number; limit?: number } = {}): Promise<{ data: CoScholasticRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
+  const params = new URLSearchParams()
+  if (filters.studentId) params.set('studentId', filters.studentId)
+  if (filters.term) params.set('term', filters.term)
+  if (filters.area && filters.area !== 'all') params.set('area', filters.area)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  const response = await fetch(`${API_BASE}/exams/co-scholastic?${params.toString()}`)
+  if (!response.ok) throw new Error('Failed to fetch co-scholastic records')
+  return response.json()
+}
+
+export async function submitCoScholastic(data: SubmitCoScholasticRequest): Promise<{ data: CoScholasticRecord[] }> {
+  const response = await fetch(`${API_BASE}/exams/co-scholastic`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to submit co-scholastic records')
+  return response.json()
+}
+
+// ==================== QUESTION PAPERS ====================
+
+export async function fetchQuestionPapers(filters: { examId?: string; subjectId?: string; className?: string } = {}): Promise<{ data: QuestionPaper[] }> {
+  const params = new URLSearchParams()
+  if (filters.examId) params.set('examId', filters.examId)
+  if (filters.subjectId) params.set('subjectId', filters.subjectId)
+  if (filters.className) params.set('className', filters.className)
+  const response = await fetch(`${API_BASE}/exams/question-papers?${params.toString()}`)
+  if (!response.ok) throw new Error('Failed to fetch question papers')
+  return response.json()
+}
+
+export async function fetchQuestionPaper(id: string): Promise<{ data: QuestionPaper }> {
+  const response = await fetch(`${API_BASE}/exams/question-papers/${id}`)
+  if (!response.ok) throw new Error('Failed to fetch question paper')
+  return response.json()
+}
+
+export async function createQuestionPaper(data: CreateQuestionPaperRequest): Promise<{ data: QuestionPaper }> {
+  const response = await fetch(`${API_BASE}/exams/question-papers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create question paper')
+  return response.json()
+}
+
+export async function deleteQuestionPaper(id: string): Promise<{ success: boolean }> {
+  const response = await fetch(`${API_BASE}/exams/question-papers/${id}`, { method: 'DELETE' })
+  if (!response.ok) throw new Error('Failed to delete question paper')
+  return response.json()
 }

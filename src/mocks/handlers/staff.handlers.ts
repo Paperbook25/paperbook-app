@@ -1,5 +1,16 @@
 import { http, HttpResponse, delay } from 'msw'
-import { staff, type Staff } from '../data/staff.data'
+import {
+  staff,
+  type Staff,
+  timetableEntries,
+  type TimetableEntry,
+  substitutions,
+  type SubstitutionRecord,
+  performanceReviews,
+  type PerformanceReviewRecord,
+  professionalDevelopments,
+  type PDRecord,
+} from '../data/staff.data'
 import {
   staffAttendance,
   leaveRequests,
@@ -519,5 +530,334 @@ export const staffHandlers = [
     }
 
     return HttpResponse.json({ data: salarySlips[slipIndex] })
+  }),
+
+  // ==================== TIMETABLE HANDLERS ====================
+
+  // Get staff timetable
+  http.get('/api/staff/:id/timetable', async ({ params }) => {
+    await delay(200)
+    const staffMember = staff.find((s) => s.id === params.id)
+    if (!staffMember) {
+      return HttpResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    const entries = timetableEntries.filter((e) => e.staffId === params.id)
+    return HttpResponse.json({
+      data: {
+        staffId: params.id,
+        staffName: staffMember.name,
+        entries,
+        totalPeriodsPerWeek: entries.length,
+      },
+    })
+  }),
+
+  // Get class timetable
+  http.get('/api/timetable/class', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const cls = url.searchParams.get('class')
+    const section = url.searchParams.get('section')
+
+    if (!cls || !section) {
+      return HttpResponse.json({ error: 'Class and section required' }, { status: 400 })
+    }
+
+    const entries = timetableEntries.filter((e) => e.class === cls && e.section === section)
+    return HttpResponse.json({
+      data: { class: cls, section, entries },
+    })
+  }),
+
+  // Create/update timetable entry
+  http.post('/api/timetable', async ({ request }) => {
+    await delay(300)
+    const body = await request.json() as Partial<TimetableEntry>
+
+    const staffMember = staff.find((s) => s.id === body.staffId)
+    if (!staffMember) {
+      return HttpResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    const entry: TimetableEntry = {
+      id: generateId(),
+      staffId: body.staffId || '',
+      staffName: staffMember.name,
+      day: body.day || 'Monday',
+      periodNumber: body.periodNumber || 1,
+      subject: body.subject || '',
+      class: body.class || '',
+      section: body.section || '',
+      room: body.room,
+    }
+
+    timetableEntries.push(entry)
+    return HttpResponse.json({ data: entry }, { status: 201 })
+  }),
+
+  // Delete timetable entry
+  http.delete('/api/timetable/:id', async ({ params }) => {
+    await delay(200)
+    const index = timetableEntries.findIndex((e) => e.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Entry not found' }, { status: 404 })
+    }
+    timetableEntries.splice(index, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
+  // ==================== SUBSTITUTION HANDLERS ====================
+
+  // Get substitutions
+  http.get('/api/staff/substitutions', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const date = url.searchParams.get('date')
+    const status = url.searchParams.get('status')
+
+    let filtered = [...substitutions]
+
+    if (date) {
+      filtered = filtered.filter((s) => s.date === date)
+    }
+
+    if (status && status !== 'all') {
+      filtered = filtered.filter((s) => s.status === status)
+    }
+
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Create substitution
+  http.post('/api/staff/substitutions', async ({ request }) => {
+    await delay(300)
+    const body = await request.json() as {
+      date: string
+      absentStaffId: string
+      substituteStaffId: string
+      periodNumber: number
+      class: string
+      section: string
+      subject: string
+      reason?: string
+    }
+
+    const absentStaff = staff.find((s) => s.id === body.absentStaffId)
+    const substituteStaff = staff.find((s) => s.id === body.substituteStaffId)
+
+    if (!absentStaff || !substituteStaff) {
+      return HttpResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    const sub: SubstitutionRecord = {
+      id: generateId(),
+      date: body.date,
+      absentStaffId: body.absentStaffId,
+      absentStaffName: absentStaff.name,
+      substituteStaffId: body.substituteStaffId,
+      substituteStaffName: substituteStaff.name,
+      periodNumber: body.periodNumber,
+      class: body.class,
+      section: body.section,
+      subject: body.subject,
+      status: 'assigned',
+      reason: body.reason,
+      createdAt: new Date().toISOString(),
+    }
+
+    substitutions.unshift(sub)
+    return HttpResponse.json({ data: sub }, { status: 201 })
+  }),
+
+  // Update substitution status
+  http.patch('/api/staff/substitutions/:id', async ({ params, request }) => {
+    await delay(200)
+    const body = await request.json() as { status: SubstitutionRecord['status'] }
+
+    const index = substitutions.findIndex((s) => s.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Substitution not found' }, { status: 404 })
+    }
+
+    substitutions[index] = { ...substitutions[index], status: body.status }
+    return HttpResponse.json({ data: substitutions[index] })
+  }),
+
+  // ==================== PERFORMANCE REVIEW HANDLERS ====================
+
+  // Get all performance reviews
+  http.get('/api/staff/performance-reviews', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const staffId = url.searchParams.get('staffId')
+    const period = url.searchParams.get('period')
+    const year = url.searchParams.get('year')
+
+    let filtered = [...performanceReviews]
+
+    if (staffId) {
+      filtered = filtered.filter((r) => r.staffId === staffId)
+    }
+
+    if (period) {
+      filtered = filtered.filter((r) => r.period === period)
+    }
+
+    if (year) {
+      filtered = filtered.filter((r) => r.year === parseInt(year))
+    }
+
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get staff performance reviews
+  http.get('/api/staff/:id/performance-reviews', async ({ params }) => {
+    await delay(200)
+    const reviews = performanceReviews.filter((r) => r.staffId === params.id)
+    return HttpResponse.json({ data: reviews })
+  }),
+
+  // Create performance review
+  http.post('/api/staff/performance-reviews', async ({ request }) => {
+    await delay(400)
+    const body = await request.json() as {
+      staffId: string
+      period: PerformanceReviewRecord['period']
+      year: number
+      ratings: { category: string; rating: number; comment?: string }[]
+      strengths: string
+      areasOfImprovement: string
+      goals: string
+    }
+
+    const staffMember = staff.find((s) => s.id === body.staffId)
+    if (!staffMember) {
+      return HttpResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    const overallRating = Number(
+      (body.ratings.reduce((sum, r) => sum + r.rating, 0) / body.ratings.length).toFixed(1)
+    )
+
+    const review: PerformanceReviewRecord = {
+      id: generateId(),
+      staffId: body.staffId,
+      staffName: staffMember.name,
+      reviewerId: 'current-user',
+      reviewerName: 'Current User',
+      period: body.period,
+      year: body.year,
+      ratings: body.ratings,
+      overallRating,
+      strengths: body.strengths,
+      areasOfImprovement: body.areasOfImprovement,
+      goals: body.goals,
+      status: 'submitted',
+      createdAt: new Date().toISOString(),
+      submittedAt: new Date().toISOString(),
+    }
+
+    performanceReviews.unshift(review)
+    return HttpResponse.json({ data: review }, { status: 201 })
+  }),
+
+  // Acknowledge performance review
+  http.patch('/api/staff/performance-reviews/:id/acknowledge', async ({ params }) => {
+    await delay(200)
+    const index = performanceReviews.findIndex((r) => r.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Review not found' }, { status: 404 })
+    }
+
+    performanceReviews[index] = {
+      ...performanceReviews[index],
+      status: 'acknowledged',
+      acknowledgedAt: new Date().toISOString(),
+    }
+
+    return HttpResponse.json({ data: performanceReviews[index] })
+  }),
+
+  // ==================== PROFESSIONAL DEVELOPMENT HANDLERS ====================
+
+  // Get staff professional development records
+  http.get('/api/staff/:id/professional-development', async ({ params }) => {
+    await delay(200)
+    const records = professionalDevelopments.filter((pd) => pd.staffId === params.id)
+    return HttpResponse.json({ data: records })
+  }),
+
+  // Get all professional development records
+  http.get('/api/staff/professional-development', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const type = url.searchParams.get('type')
+    const status = url.searchParams.get('status')
+
+    let filtered = [...professionalDevelopments]
+
+    if (type && type !== 'all') {
+      filtered = filtered.filter((pd) => pd.type === type)
+    }
+
+    if (status && status !== 'all') {
+      filtered = filtered.filter((pd) => pd.status === status)
+    }
+
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Create professional development record
+  http.post('/api/staff/:id/professional-development', async ({ params, request }) => {
+    await delay(300)
+    const body = await request.json() as Omit<PDRecord, 'id' | 'staffId' | 'createdAt'>
+
+    const staffMember = staff.find((s) => s.id === params.id)
+    if (!staffMember) {
+      return HttpResponse.json({ error: 'Staff not found' }, { status: 404 })
+    }
+
+    const record: PDRecord = {
+      id: generateId(),
+      staffId: params.id as string,
+      ...body,
+      createdAt: new Date().toISOString(),
+    }
+
+    professionalDevelopments.unshift(record)
+    return HttpResponse.json({ data: record }, { status: 201 })
+  }),
+
+  // Update professional development record
+  http.put('/api/staff/professional-development/:id', async ({ params, request }) => {
+    await delay(200)
+    const body = await request.json() as Partial<PDRecord>
+
+    const index = professionalDevelopments.findIndex((pd) => pd.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    professionalDevelopments[index] = { ...professionalDevelopments[index], ...body }
+    return HttpResponse.json({ data: professionalDevelopments[index] })
+  }),
+
+  // Delete professional development record
+  http.delete('/api/staff/professional-development/:id', async ({ params }) => {
+    await delay(200)
+    const index = professionalDevelopments.findIndex((pd) => pd.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+
+    professionalDevelopments.splice(index, 1)
+    return HttpResponse.json({ success: true })
   }),
 ]

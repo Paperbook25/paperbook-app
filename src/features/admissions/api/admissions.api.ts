@@ -9,6 +9,18 @@ import type {
   CreateApplicationRequest,
   UpdateApplicationRequest,
   UpdateStatusRequest,
+  WaitlistEntry,
+  ClassCapacity,
+  EntranceExamSchedule,
+  ExamResult,
+  ScheduleExamRequest,
+  RecordExamScoreRequest,
+  CommunicationLog,
+  CommunicationTemplate,
+  SendCommunicationRequest,
+  AdmissionPayment,
+  RecordPaymentRequest,
+  AdmissionAnalytics,
 } from '../types/admission.types'
 
 const API_BASE = '/api/admissions'
@@ -187,4 +199,144 @@ export async function deleteApplication(id: string): Promise<{ success: boolean 
     throw new Error('Failed to delete application')
   }
   return response.json()
+}
+
+// ==================== WAITLIST API ====================
+
+export async function fetchWaitlist(cls?: string): Promise<WaitlistEntry[]> {
+  const params = new URLSearchParams()
+  if (cls) params.set('class', cls)
+  const response = await fetch(`${API_BASE}/waitlist?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch waitlist')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchClassCapacity(): Promise<ClassCapacity[]> {
+  const response = await fetch(`${API_BASE}/class-capacity`)
+  if (!response.ok) throw new Error('Failed to fetch class capacity')
+  const json = await response.json()
+  return json.data
+}
+
+// ==================== ENTRANCE EXAM API ====================
+
+export async function fetchExamSchedules(): Promise<EntranceExamSchedule[]> {
+  const response = await fetch(`${API_BASE}/exam-schedules`)
+  if (!response.ok) throw new Error('Failed to fetch exam schedules')
+  const json = await response.json()
+  return json.data
+}
+
+export async function createExamSchedule(data: ScheduleExamRequest): Promise<EntranceExamSchedule> {
+  const response = await fetch(`${API_BASE}/exam-schedules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to create exam schedule')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchExamResults(filters?: { class?: string; scheduleId?: string }): Promise<ExamResult[]> {
+  const params = new URLSearchParams()
+  if (filters?.class) params.set('class', filters.class)
+  if (filters?.scheduleId) params.set('scheduleId', filters.scheduleId)
+  const response = await fetch(`${API_BASE}/exam-results?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch exam results')
+  const json = await response.json()
+  return json.data
+}
+
+export async function recordExamScore(applicationId: string, data: Omit<RecordExamScoreRequest, 'applicationId'>): Promise<Application> {
+  const response = await fetch(`${API_BASE}/${applicationId}/exam-score`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to record exam score')
+  const json = await response.json()
+  return json.data
+}
+
+// ==================== COMMUNICATION API ====================
+
+export async function fetchCommunicationLogs(filters?: { applicationId?: string; type?: string }): Promise<CommunicationLog[]> {
+  const params = new URLSearchParams()
+  if (filters?.applicationId) params.set('applicationId', filters.applicationId)
+  if (filters?.type) params.set('type', filters.type)
+  const response = await fetch(`${API_BASE}/communications?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch communication logs')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchCommunicationTemplates(): Promise<CommunicationTemplate[]> {
+  const response = await fetch(`${API_BASE}/communication-templates`)
+  if (!response.ok) throw new Error('Failed to fetch templates')
+  const json = await response.json()
+  return json.data
+}
+
+export async function sendCommunication(data: SendCommunicationRequest): Promise<{ count: number }> {
+  const response = await fetch(`${API_BASE}/send-communication`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to send communication')
+  const json = await response.json()
+  return json
+}
+
+// ==================== PAYMENT API ====================
+
+export async function fetchAdmissionPayments(status?: string): Promise<AdmissionPayment[]> {
+  const params = new URLSearchParams()
+  if (status) params.set('status', status)
+  const response = await fetch(`${API_BASE}/payments?${params}`)
+  if (!response.ok) throw new Error('Failed to fetch payments')
+  const json = await response.json()
+  return json.data
+}
+
+export async function fetchApplicationPayment(applicationId: string): Promise<AdmissionPayment> {
+  const response = await fetch(`${API_BASE}/${applicationId}/payment`)
+  if (!response.ok) throw new Error('Failed to fetch payment')
+  const json = await response.json()
+  return json.data
+}
+
+export async function recordPayment(data: RecordPaymentRequest): Promise<AdmissionPayment> {
+  const response = await fetch(`${API_BASE}/${data.applicationId}/payment`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to record payment')
+  const json = await response.json()
+  return json.data
+}
+
+// ==================== ANALYTICS API ====================
+
+export async function fetchAdmissionAnalytics(): Promise<AdmissionAnalytics> {
+  const response = await fetch(`${API_BASE}/analytics`)
+  if (!response.ok) throw new Error('Failed to fetch analytics')
+  const json = await response.json()
+  return json.data
+}
+
+// ==================== PUBLIC API ====================
+
+export async function submitPublicApplication(data: CreateApplicationRequest & { source?: string }): Promise<{ applicationNumber: string; message: string }> {
+  const response = await fetch('/api/public/admissions/apply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!response.ok) throw new Error('Failed to submit application')
+  const json = await response.json()
+  return json.data
 }

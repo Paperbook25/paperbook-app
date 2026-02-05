@@ -1,4 +1,4 @@
-import { Bell, Search, Moon, Sun, Menu, LogOut, User, Settings } from 'lucide-react'
+import { Search, Moon, Sun, Menu, LogOut, User, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -14,6 +14,7 @@ import { useUIStore } from '@/stores/useUIStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { getInitials } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
+import { NotificationCenter } from './NotificationCenter'
 
 export function Header() {
   const { theme, setTheme, openCommandPalette, setSidebarMobileOpen } = useUIStore()
@@ -77,12 +78,7 @@ export function Header() {
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
-            3
-          </span>
-        </Button>
+        <NotificationCenter />
 
         {/* User Menu */}
         <DropdownMenu>

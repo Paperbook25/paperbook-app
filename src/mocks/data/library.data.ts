@@ -6,6 +6,16 @@ import type {
   IssuedBook,
   Fine,
   FINE_RATE_PER_DAY,
+  BookReservation,
+  ReadingRecord,
+  DigitalBook,
+  DigitalFormat,
+  OverdueNotification,
+  NotificationConfig,
+  NotificationChannel,
+  NotificationStatus,
+  StudentReadingReport,
+  BookRecommendation,
 } from '@/features/library/types/library.types'
 
 // ==================== CONSTANTS ====================
@@ -273,6 +283,7 @@ function createFine(issuedBook: IssuedBook): Fine {
     studentId: issuedBook.studentId,
     studentName: issuedBook.studentName,
     studentClass: issuedBook.studentClass,
+    studentSection: issuedBook.studentSection,
     overdueDays,
     amount: overdueDays * FINE_RATE,
     status,
@@ -314,6 +325,7 @@ for (let i = 0; i < historicalFinesCount; i++) {
     studentId: student.id,
     studentName: student.name,
     studentClass: student.class,
+    studentSection: student.section,
     overdueDays,
     amount: overdueDays * FINE_RATE,
     status: faker.helpers.arrayElement(['paid', 'waived'] as const),
@@ -351,4 +363,255 @@ export function getAvailableStudents() {
       rollNumber: String(s.rollNumber),
       admissionNumber: s.admissionNumber,
     }))
+}
+
+// ==================== RESERVATIONS ====================
+
+const unavailableBooks = books.filter(b => b.availableCopies === 0)
+const activeStudents = students.filter(s => s.status === 'active')
+
+export const reservations: BookReservation[] = []
+
+// Create reservations for unavailable books
+unavailableBooks.slice(0, 8).forEach((book, idx) => {
+  const queueSize = faker.number.int({ min: 1, max: 3 })
+  for (let q = 0; q < queueSize; q++) {
+    const student = activeStudents[(idx * 3 + q) % activeStudents.length]
+    const reservedAt = faker.date.recent({ days: 14 })
+    const expiresAt = new Date(reservedAt)
+    expiresAt.setDate(expiresAt.getDate() + 7)
+    const status = faker.helpers.weightedArrayElement([
+      { value: 'active' as const, weight: 60 },
+      { value: 'fulfilled' as const, weight: 20 },
+      { value: 'cancelled' as const, weight: 10 },
+      { value: 'expired' as const, weight: 10 },
+    ])
+    reservations.push({
+      id: faker.string.uuid(),
+      bookId: book.id,
+      bookTitle: book.title,
+      bookIsbn: book.isbn,
+      studentId: student.id,
+      studentName: student.name,
+      studentClass: student.class,
+      studentSection: student.section,
+      reservedAt: reservedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      status,
+      queuePosition: q + 1,
+      fulfilledAt: status === 'fulfilled' ? faker.date.recent({ days: 3 }).toISOString() : undefined,
+      cancelledAt: status === 'cancelled' ? faker.date.recent({ days: 5 }).toISOString() : undefined,
+    })
+  }
+})
+
+// Ensure at least 12 reservations
+while (reservations.length < 12) {
+  const book = faker.helpers.arrayElement(books)
+  const student = faker.helpers.arrayElement(activeStudents)
+  const reservedAt = faker.date.recent({ days: 21 })
+  const expiresAt = new Date(reservedAt)
+  expiresAt.setDate(expiresAt.getDate() + 7)
+  reservations.push({
+    id: faker.string.uuid(),
+    bookId: book.id,
+    bookTitle: book.title,
+    bookIsbn: book.isbn,
+    studentId: student.id,
+    studentName: student.name,
+    studentClass: student.class,
+    studentSection: student.section,
+    reservedAt: reservedAt.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    status: 'active',
+    queuePosition: 1,
+  })
+}
+
+// ==================== READING HISTORY ====================
+
+export const readingHistory: ReadingRecord[] = []
+
+// Generate historical reading records from returned books concept
+const completedCategories = [...BOOK_CATEGORIES]
+for (let i = 0; i < 60; i++) {
+  const student = activeStudents[i % activeStudents.length]
+  const book = books[i % books.length]
+  const issueDate = faker.date.past({ years: 1 })
+  const daysToRead = faker.number.int({ min: 3, max: 20 })
+  const returnDate = new Date(issueDate)
+  returnDate.setDate(returnDate.getDate() + daysToRead)
+
+  readingHistory.push({
+    id: faker.string.uuid(),
+    studentId: student.id,
+    studentName: student.name,
+    studentClass: student.class,
+    studentSection: student.section,
+    bookId: book.id,
+    bookTitle: book.title,
+    bookAuthor: book.author,
+    bookCategory: book.category,
+    issueDate: issueDate.toISOString(),
+    returnDate: returnDate.toISOString(),
+    daysToRead,
+    rating: faker.helpers.maybe(() => faker.number.int({ min: 1, max: 5 }), { probability: 0.7 }),
+  })
+}
+
+export function getStudentReadingReport(studentId: string): StudentReadingReport | null {
+  const studentRecords = readingHistory.filter(r => r.studentId === studentId)
+  if (studentRecords.length === 0) return null
+
+  const student = studentRecords[0]
+  const categoryMap = new Map<BookCategory, number>()
+  studentRecords.forEach(r => {
+    categoryMap.set(r.bookCategory, (categoryMap.get(r.bookCategory) || 0) + 1)
+  })
+  const categoryBreakdown = Array.from(categoryMap.entries())
+    .map(([category, count]) => ({ category, count }))
+    .sort((a, b) => b.count - a.count)
+
+  const monthMap = new Map<string, number>()
+  studentRecords.forEach(r => {
+    const month = new Date(r.returnDate).toISOString().slice(0, 7)
+    monthMap.set(month, (monthMap.get(month) || 0) + 1)
+  })
+  const monthlyBreakdown = Array.from(monthMap.entries())
+    .map(([month, count]) => ({ month, count }))
+    .sort((a, b) => a.month.localeCompare(b.month))
+
+  const ratingsSum = studentRecords.filter(r => r.rating).reduce((s, r) => s + (r.rating || 0), 0)
+  const ratingsCount = studentRecords.filter(r => r.rating).length
+
+  return {
+    studentId,
+    studentName: student.studentName,
+    studentClass: student.studentClass,
+    studentSection: student.studentSection,
+    totalBooksRead: studentRecords.length,
+    averageDaysToRead: Math.round(studentRecords.reduce((s, r) => s + r.daysToRead, 0) / studentRecords.length),
+    averageRating: ratingsCount > 0 ? Math.round((ratingsSum / ratingsCount) * 10) / 10 : 0,
+    favoriteCategory: categoryBreakdown[0]?.category || 'Fiction',
+    categoryBreakdown,
+    monthlyBreakdown,
+    recentBooks: studentRecords.sort((a, b) => b.returnDate.localeCompare(a.returnDate)).slice(0, 10),
+  }
+}
+
+export function getBookRecommendations(studentId: string): BookRecommendation[] {
+  const studentRecords = readingHistory.filter(r => r.studentId === studentId)
+  const readBookIds = new Set(studentRecords.map(r => r.bookId))
+  const categoryFreq = new Map<BookCategory, number>()
+  studentRecords.forEach(r => {
+    categoryFreq.set(r.bookCategory, (categoryFreq.get(r.bookCategory) || 0) + 1)
+  })
+
+  return books
+    .filter(b => !readBookIds.has(b.id) && b.availableCopies > 0)
+    .map(b => {
+      const catScore = (categoryFreq.get(b.category) || 0) * 20
+      const recencyScore = Math.min(30, (2025 - b.publicationYear) <= 5 ? 30 : 10)
+      const matchScore = Math.min(100, catScore + recencyScore + faker.number.int({ min: 5, max: 25 }))
+      const reasons = [
+        `Popular in ${b.category}`,
+        `Matches your reading preferences`,
+        `Highly rated by other students`,
+        `Recommended for ${b.category} readers`,
+      ]
+      return {
+        bookId: b.id,
+        bookTitle: b.title,
+        bookAuthor: b.author,
+        bookCategory: b.category,
+        coverUrl: b.coverUrl,
+        reason: faker.helpers.arrayElement(reasons),
+        matchScore,
+      }
+    })
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 10)
+}
+
+// ==================== DIGITAL LIBRARY ====================
+
+const DIGITAL_TITLES: { title: string; author: string; category: BookCategory; format: DigitalFormat }[] = [
+  { title: 'NCERT Physics Class 12', author: 'NCERT', category: 'Science', format: 'pdf' },
+  { title: 'NCERT Chemistry Class 12', author: 'NCERT', category: 'Science', format: 'pdf' },
+  { title: 'NCERT Mathematics Class 12', author: 'NCERT', category: 'Mathematics', format: 'pdf' },
+  { title: 'NCERT Biology Class 12', author: 'NCERT', category: 'Science', format: 'pdf' },
+  { title: 'NCERT History Class 10', author: 'NCERT', category: 'History', format: 'pdf' },
+  { title: 'The Great Gatsby (Audio)', author: 'F. Scott Fitzgerald', category: 'Fiction', format: 'audiobook' },
+  { title: 'Sapiens (ePub)', author: 'Yuval Noah Harari', category: 'Non-Fiction', format: 'epub' },
+  { title: 'A Brief History of Time (ePub)', author: 'Stephen Hawking', category: 'Science', format: 'epub' },
+  { title: 'Wings of Fire (Audio)', author: 'A.P.J. Abdul Kalam', category: 'Biography', format: 'audiobook' },
+  { title: 'Clean Code (PDF)', author: 'Robert C. Martin', category: 'Technology', format: 'pdf' },
+  { title: 'The Alchemist (ePub)', author: 'Paulo Coelho', category: 'Fiction', format: 'epub' },
+  { title: 'Atomic Habits (Audio)', author: 'James Clear', category: 'Non-Fiction', format: 'audiobook' },
+  { title: 'NCERT English Class 10', author: 'NCERT', category: 'Literature', format: 'pdf' },
+  { title: 'Introduction to Algorithms (PDF)', author: 'Thomas H. Cormen', category: 'Technology', format: 'pdf' },
+  { title: 'Oxford Dictionary (PDF)', author: 'Oxford University Press', category: 'Reference', format: 'pdf' },
+]
+
+export const digitalBooks: DigitalBook[] = DIGITAL_TITLES.map((dt, i) => {
+  const linkedBook = books.find(b => b.title === dt.title.replace(/ \(.*\)$/, ''))
+  return {
+    id: faker.string.uuid(),
+    bookId: linkedBook?.id,
+    title: dt.title,
+    author: dt.author,
+    category: dt.category,
+    format: dt.format,
+    fileSize: dt.format === 'audiobook'
+      ? `${faker.number.int({ min: 50, max: 200 })} MB`
+      : `${faker.number.float({ min: 0.5, max: 15, fractionDigits: 1 })} MB`,
+    coverUrl: `https://picsum.photos/seed/digital-${i}/200/300`,
+    description: faker.lorem.paragraph(2),
+    totalAccesses: faker.number.int({ min: 10, max: 500 }),
+    addedAt: faker.date.past({ years: 1 }).toISOString(),
+    downloadUrl: `#download-${faker.string.alphanumeric(8)}`,
+  }
+})
+
+// ==================== OVERDUE NOTIFICATIONS ====================
+
+const overdueIssuedBooks = issuedBooks.filter(ib => ib.status === 'overdue')
+
+export const overdueNotifications: OverdueNotification[] = overdueIssuedBooks.flatMap(ib => {
+  const student = students.find(s => s.id === ib.studentId)
+  const dueDate = new Date(ib.dueDate)
+  const overdueDays = Math.max(1, Math.floor((Date.now() - dueDate.getTime()) / (1000 * 60 * 60 * 24)))
+  const channels: NotificationChannel[] = ['sms', 'email', 'whatsapp']
+
+  return channels.slice(0, faker.number.int({ min: 1, max: 3 })).map(channel => ({
+    id: faker.string.uuid(),
+    studentId: ib.studentId,
+    studentName: ib.studentName,
+    studentClass: ib.studentClass,
+    parentName: student ? `${faker.person.firstName()} ${student.name.split(' ').pop()}` : 'Parent',
+    parentPhone: faker.phone.number({ style: 'national' }),
+    parentEmail: faker.internet.email(),
+    bookTitle: ib.bookTitle,
+    dueDate: ib.dueDate,
+    overdueDays,
+    fineAmount: overdueDays * 5,
+    channel,
+    status: faker.helpers.weightedArrayElement([
+      { value: 'delivered' as const, weight: 50 },
+      { value: 'sent' as const, weight: 30 },
+      { value: 'failed' as const, weight: 10 },
+      { value: 'pending' as const, weight: 10 },
+    ]),
+    sentAt: faker.date.recent({ days: 7 }).toISOString(),
+    message: `Dear Parent, ${ib.studentName}'s library book "${ib.bookTitle}" is overdue by ${overdueDays} days. Fine: Rs ${overdueDays * 5}. Please return it at the earliest.`,
+  }))
+})
+
+export const notificationConfig: NotificationConfig = {
+  autoSendEnabled: true,
+  channels: ['sms', 'email'],
+  sendAfterDays: 1,
+  repeatEveryDays: 3,
+  maxReminders: 5,
+  messageTemplate: 'Dear Parent, {{studentName}}\'s library book "{{bookTitle}}" is overdue by {{overdueDays}} days. Fine: Rs {{fineAmount}}. Please return it at the earliest.',
 }

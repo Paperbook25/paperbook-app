@@ -7,12 +7,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { Role } from '@/types/common.types'
 
-const demoAccounts = [
-  { role: 'admin' as Role, name: 'Admin User', email: 'admin@paperbook.in' },
-  { role: 'principal' as Role, name: 'Dr. Sharma', email: 'principal@paperbook.in' },
-  { role: 'teacher' as Role, name: 'Priya Teacher', email: 'teacher@paperbook.in' },
-  { role: 'accountant' as Role, name: 'Rahul Accounts', email: 'accounts@paperbook.in' },
+// Staff accounts
+const staffAccounts = [
+  { role: 'admin' as Role, name: 'Admin User', email: 'admin@paperbook.in', label: 'Admin' },
+  { role: 'principal' as Role, name: 'Dr. Sharma', email: 'principal@paperbook.in', label: 'Principal' },
+  { role: 'teacher' as Role, name: 'Priya Teacher', email: 'teacher@paperbook.in', label: 'Teacher' },
+  { role: 'accountant' as Role, name: 'Rahul Accounts', email: 'accounts@paperbook.in', label: 'Accountant' },
+  { role: 'librarian' as Role, name: 'Meera Librarian', email: 'librarian@paperbook.in', label: 'Librarian' },
+  { role: 'transport_manager' as Role, name: 'Vijay Transport', email: 'transport@paperbook.in', label: 'Transport' },
 ]
+
+// Student & Parent accounts
+const userAccounts = [
+  { role: 'student' as Role, name: 'Rahul Kumar', email: 'student@paperbook.in', label: 'Student', studentId: 'STU001', class: 'Class 10', section: 'A' },
+  { role: 'parent' as Role, name: 'Suresh Kumar', email: 'parent@paperbook.in', label: 'Parent', childIds: ['STU001'] },
+]
+
+const demoAccounts = [...staffAccounts, ...userAccounts]
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -32,13 +43,30 @@ export function LoginPage() {
     // Find demo account or create default admin
     const account = demoAccounts.find((a) => a.email === email) || demoAccounts[0]
 
-    login({
-      id: '1',
+    // Build user object with role-specific data
+    const userData: any = {
+      id: account.role === 'student' ? 'STU001' : account.role === 'parent' ? 'PAR001' : '1',
       name: account.name,
       email: account.email,
       role: account.role,
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${account.name}`,
-    })
+    }
+
+    // Add student-specific data
+    if (account.role === 'student' && 'studentId' in account) {
+      const studentAccount = account as typeof userAccounts[0]
+      userData.studentId = studentAccount.studentId
+      userData.class = studentAccount.class
+      userData.section = studentAccount.section
+    }
+
+    // Add parent-specific data
+    if (account.role === 'parent' && 'childIds' in account) {
+      const parentAccount = account as typeof userAccounts[1]
+      userData.childIds = parentAccount.childIds
+    }
+
+    login(userData)
 
     setIsLoading(false)
     navigate('/')
@@ -119,11 +147,14 @@ export function LoginPage() {
 
             {/* Demo Accounts */}
             <div className="mt-6 pt-6 border-t">
-              <p className="text-sm text-muted-foreground text-center mb-4">
+              <p className="text-sm text-muted-foreground text-center mb-3">
                 Quick demo login
               </p>
-              <div className="grid grid-cols-2 gap-2">
-                {demoAccounts.map((account) => (
+
+              {/* Staff Accounts */}
+              <p className="text-xs text-muted-foreground mb-2">Staff</p>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {staffAccounts.map((account) => (
                   <Button
                     key={account.role}
                     variant="outline"
@@ -131,7 +162,23 @@ export function LoginPage() {
                     className="text-xs"
                     onClick={() => handleDemoLogin(account)}
                   >
-                    {account.role.charAt(0).toUpperCase() + account.role.slice(1)}
+                    {account.label}
+                  </Button>
+                ))}
+              </div>
+
+              {/* Student & Parent Accounts */}
+              <p className="text-xs text-muted-foreground mb-2">Student / Parent</p>
+              <div className="grid grid-cols-2 gap-2">
+                {userAccounts.map((account) => (
+                  <Button
+                    key={account.role}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => handleDemoLogin(account)}
+                  >
+                    {account.label}
                   </Button>
                 ))}
               </div>
