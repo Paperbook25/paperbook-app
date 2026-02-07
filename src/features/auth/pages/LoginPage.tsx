@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, GraduationCap } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -82,9 +82,7 @@ export function LoginPage() {
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground mb-4">
-            <GraduationCap className="h-8 w-8" />
-          </div>
+          <img src="/logo.svg" alt="PaperBook" className="h-16 w-16 mx-auto mb-4" />
           <h1 className="text-3xl font-bold">PaperBook</h1>
           <p className="text-muted-foreground mt-1">School Management System</p>
         </div>

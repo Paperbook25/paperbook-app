@@ -154,8 +154,8 @@ export const backupConfig: BackupConfig = {
 // Theme Configuration
 export const themeConfig: ThemeConfig = {
   mode: 'system',
-  primaryColor: '#2563eb',
-  accentColor: '#0891b2',
+  primaryColor: '#6d28d9',
+  accentColor: '#7c3aed',
 }
 
 // ==================== AUDIT LOG ====================

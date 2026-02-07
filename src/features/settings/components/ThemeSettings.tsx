@@ -16,9 +16,9 @@ const THEME_MODES = [
 ] as const
 
 const PRESET_COLORS = [
+  { name: 'Purple', primary: '#6d28d9', accent: '#7c3aed' },
   { name: 'Blue', primary: '#2563eb', accent: '#0891b2' },
   { name: 'Green', primary: '#16a34a', accent: '#0d9488' },
-  { name: 'Purple', primary: '#7c3aed', accent: '#a855f7' },
   { name: 'Orange', primary: '#ea580c', accent: '#f59e0b' },
   { name: 'Red', primary: '#dc2626', accent: '#e11d48' },
 ]
