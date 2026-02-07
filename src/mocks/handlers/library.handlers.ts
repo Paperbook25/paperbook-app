@@ -204,7 +204,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: paginatedBooks,
-      pagination: {
+      meta: {
         page,
         limit,
         total,
@@ -355,7 +355,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: paginatedBooks,
-      pagination: {
+      meta: {
         page,
         limit,
         total,
@@ -523,7 +523,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: paginatedFines,
-      pagination: {
+      meta: {
         page,
         limit,
         total,
@@ -629,7 +629,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: filtered.slice(startIndex, startIndex + limit),
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -733,7 +733,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: filtered.slice(startIndex, startIndex + limit),
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -792,7 +792,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: filtered.slice(startIndex, startIndex + limit),
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -835,7 +835,7 @@ export const libraryHandlers = [
 
     return HttpResponse.json({
       data: filtered.slice(startIndex, startIndex + limit),
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { apiGet, apiPatch } from '@/lib/api-client'
 import {
   Bell,
   Check,
@@ -59,23 +60,22 @@ export function NotificationCenter() {
   const { data: result } = useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
-      const res = await fetch('/api/notifications')
-      const json = await res.json()
-      return json.data as Notification[]
+      const response = await apiGet<{ data: Notification[] }>('/api/notifications')
+      return response.data
     },
     refetchInterval: 30000,
   })
 
   const markReadMutation = useMutation({
     mutationFn: async (id: string) => {
-      await fetch(`/api/notifications/${id}/read`, { method: 'PATCH' })
+      await apiPatch(`/api/notifications/${id}/read`)
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   })
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      await fetch('/api/notifications/mark-all-read', { method: 'PATCH' })
+      await apiPatch('/api/notifications/mark-all-read')
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notifications'] }),
   })

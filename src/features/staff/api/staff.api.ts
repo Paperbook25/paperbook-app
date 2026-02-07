@@ -1,3 +1,4 @@
+import { apiGet, apiPost, apiPut, apiPatch, apiDelete } from '@/lib/api-client'
 import type { PaginatedResponse } from '@/types/common.types'
 import type {
   Staff,
@@ -39,66 +40,29 @@ export async function fetchStaff(
   if (filters.department) params.set('department', filters.department)
   if (filters.status && filters.status !== 'all') params.set('status', filters.status)
 
-  const response = await fetch(`${API_BASE}?${params.toString()}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch staff')
-  }
-  return response.json()
+  return apiGet<PaginatedResponse<Staff>>(`${API_BASE}?${params.toString()}`)
 }
 
 export async function fetchStaffMember(id: string): Promise<{ data: Staff }> {
-  const response = await fetch(`${API_BASE}/${id}`)
-  if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('Staff member not found')
-    }
-    throw new Error('Failed to fetch staff member')
-  }
-  return response.json()
+  return apiGet<{ data: Staff }>(`${API_BASE}/${id}`)
 }
 
 export async function createStaff(data: CreateStaffRequest): Promise<{ data: Staff }> {
-  const response = await fetch(API_BASE, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to create staff member')
-  }
-  return response.json()
+  return apiPost<{ data: Staff }>(API_BASE, data)
 }
 
 export async function updateStaff(id: string, data: UpdateStaffRequest): Promise<{ data: Staff }> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to update staff member')
-  }
-  return response.json()
+  return apiPut<{ data: Staff }>(`${API_BASE}/${id}`, data)
 }
 
 export async function deleteStaff(id: string): Promise<{ success: boolean }> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: 'DELETE',
-  })
-  if (!response.ok) {
-    throw new Error('Failed to delete staff member')
-  }
-  return response.json()
+  return apiDelete<{ success: boolean }>(`${API_BASE}/${id}`)
 }
 
 // ==================== ATTENDANCE ====================
 
 export async function fetchDailyAttendance(date: string): Promise<{ data: StaffAttendanceRecord[] }> {
-  const response = await fetch(`${API_BASE}/attendance?date=${date}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch attendance')
-  }
-  return response.json()
+  return apiGet<{ data: StaffAttendanceRecord[] }>(`${API_BASE}/attendance?date=${date}`)
 }
 
 export async function saveAttendance(
@@ -106,15 +70,7 @@ export async function saveAttendance(
   records: BulkAttendanceRecord[]
 ): Promise<{ success: boolean; count: number }> {
   const recordsWithDate = records.map((r) => ({ ...r, date }))
-  const response = await fetch(`${API_BASE}/attendance`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(recordsWithDate),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to save attendance')
-  }
-  return response.json()
+  return apiPost<{ success: boolean; count: number }>(`${API_BASE}/attendance`, recordsWithDate)
 }
 
 export async function fetchStaffAttendance(
@@ -126,11 +82,7 @@ export async function fetchStaffAttendance(
   if (month) params.set('month', String(month))
   if (year) params.set('year', String(year))
 
-  const response = await fetch(`${API_BASE}/${staffId}/attendance?${params.toString()}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch staff attendance')
-  }
-  return response.json()
+  return apiGet<{ data: StaffAttendanceRecord[] }>(`${API_BASE}/${staffId}/attendance?${params.toString()}`)
 }
 
 export async function fetchAttendanceSummary(
@@ -142,22 +94,14 @@ export async function fetchAttendanceSummary(
   if (month) params.set('month', String(month))
   if (year) params.set('year', String(year))
 
-  const response = await fetch(`${API_BASE}/${staffId}/attendance/summary?${params.toString()}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch attendance summary')
-  }
-  return response.json()
+  return apiGet<{ data: StaffAttendanceSummary }>(`${API_BASE}/${staffId}/attendance/summary?${params.toString()}`)
 }
 
 // ==================== LEAVE ====================
 
 export async function fetchLeaveBalance(staffId: string, year?: number): Promise<{ data: LeaveBalance }> {
   const params = year ? `?year=${year}` : ''
-  const response = await fetch(`${API_BASE}/${staffId}/leave-balance${params}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch leave balance')
-  }
-  return response.json()
+  return apiGet<{ data: LeaveBalance }>(`${API_BASE}/${staffId}/leave-balance${params}`)
 }
 
 export async function fetchAllLeaveRequests(
@@ -167,139 +111,73 @@ export async function fetchAllLeaveRequests(
   if (filters.status) params.set('status', filters.status)
   if (filters.staffId) params.set('staffId', filters.staffId)
 
-  const response = await fetch(`${API_BASE}/leave-requests?${params.toString()}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch leave requests')
-  }
-  return response.json()
+  return apiGet<{ data: LeaveRequest[] }>(`${API_BASE}/leave-requests?${params.toString()}`)
 }
 
 export async function fetchStaffLeaveRequests(staffId: string): Promise<{ data: LeaveRequest[] }> {
-  const response = await fetch(`${API_BASE}/${staffId}/leave-requests`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch staff leave requests')
-  }
-  return response.json()
+  return apiGet<{ data: LeaveRequest[] }>(`${API_BASE}/${staffId}/leave-requests`)
 }
 
 export async function createLeaveRequest(
   staffId: string,
   data: CreateLeaveRequest
 ): Promise<{ data: LeaveRequest }> {
-  const response = await fetch(`${API_BASE}/${staffId}/leave-requests`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to create leave request')
-  }
-  return response.json()
+  return apiPost<{ data: LeaveRequest }>(`${API_BASE}/${staffId}/leave-requests`, data)
 }
 
 export async function updateLeaveRequest(
   requestId: string,
   data: { status: 'approved' | 'rejected'; rejectionReason?: string }
 ): Promise<{ data: LeaveRequest }> {
-  const response = await fetch(`/api/leave-requests/${requestId}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to update leave request')
-  }
-  return response.json()
+  return apiPatch<{ data: LeaveRequest }>(`/api/leave-requests/${requestId}`, data)
 }
 
 // ==================== SALARY ====================
 
 export async function fetchSalaryStructure(staffId: string): Promise<{ data: SalaryStructure }> {
-  const response = await fetch(`${API_BASE}/${staffId}/salary-structure`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch salary structure')
-  }
-  return response.json()
+  return apiGet<{ data: SalaryStructure }>(`${API_BASE}/${staffId}/salary-structure`)
 }
 
 export async function updateSalaryStructure(
   staffId: string,
   data: Partial<SalaryStructure>
 ): Promise<{ data: SalaryStructure }> {
-  const response = await fetch(`${API_BASE}/${staffId}/salary-structure`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to update salary structure')
-  }
-  return response.json()
+  return apiPut<{ data: SalaryStructure }>(`${API_BASE}/${staffId}/salary-structure`, data)
 }
 
 export async function fetchSalarySlips(staffId: string): Promise<{ data: SalarySlip[] }> {
-  const response = await fetch(`${API_BASE}/${staffId}/salary-slips`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch salary slips')
-  }
-  return response.json()
+  return apiGet<{ data: SalarySlip[] }>(`${API_BASE}/${staffId}/salary-slips`)
 }
 
 export async function processMonthlySalary(
   data: ProcessSalaryRequest
 ): Promise<{ data: SalarySlip[]; message: string }> {
-  const response = await fetch('/api/salary/process', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) {
-    throw new Error('Failed to process salary')
-  }
-  return response.json()
+  return apiPost<{ data: SalarySlip[]; message: string }>('/api/salary/process', data)
 }
 
 export async function markSalaryPaid(slipId: string): Promise<{ data: SalarySlip }> {
-  const response = await fetch(`/api/salary-slips/${slipId}/pay`, {
-    method: 'PATCH',
-  })
-  if (!response.ok) {
-    throw new Error('Failed to mark salary as paid')
-  }
-  return response.json()
+  return apiPatch<{ data: SalarySlip }>(`/api/salary-slips/${slipId}/pay`)
 }
 
 // ==================== TIMETABLE ====================
 
 export async function fetchStaffTimetable(staffId: string): Promise<StaffTimetable> {
-  const response = await fetch(`${API_BASE}/${staffId}/timetable`)
-  if (!response.ok) throw new Error('Failed to fetch timetable')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: StaffTimetable }>(`${API_BASE}/${staffId}/timetable`)
+  return result.data
 }
 
 export async function fetchClassTimetable(cls: string, section: string): Promise<ClassTimetable> {
-  const response = await fetch(`/api/timetable/class?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`)
-  if (!response.ok) throw new Error('Failed to fetch class timetable')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: ClassTimetable }>(`/api/timetable/class?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`)
+  return result.data
 }
 
 export async function createTimetableEntry(data: Omit<TimetableEntry, 'id' | 'staffName'>): Promise<TimetableEntry> {
-  const response = await fetch('/api/timetable', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to create timetable entry')
-  const json = await response.json()
-  return json.data
+  const result = await apiPost<{ data: TimetableEntry }>('/api/timetable', data)
+  return result.data
 }
 
 export async function deleteTimetableEntry(id: string): Promise<{ success: boolean }> {
-  const response = await fetch(`/api/timetable/${id}`, { method: 'DELETE' })
-  if (!response.ok) throw new Error('Failed to delete timetable entry')
-  return response.json()
+  return apiDelete<{ success: boolean }>(`/api/timetable/${id}`)
 }
 
 // ==================== SUBSTITUTIONS ====================
@@ -308,32 +186,18 @@ export async function fetchSubstitutions(filters?: { date?: string; status?: str
   const params = new URLSearchParams()
   if (filters?.date) params.set('date', filters.date)
   if (filters?.status) params.set('status', filters.status)
-  const response = await fetch(`${API_BASE}/substitutions?${params}`)
-  if (!response.ok) throw new Error('Failed to fetch substitutions')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: Substitution[] }>(`${API_BASE}/substitutions?${params}`)
+  return result.data
 }
 
 export async function createSubstitution(data: CreateSubstitutionRequest): Promise<Substitution> {
-  const response = await fetch(`${API_BASE}/substitutions`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to create substitution')
-  const json = await response.json()
-  return json.data
+  const result = await apiPost<{ data: Substitution }>(`${API_BASE}/substitutions`, data)
+  return result.data
 }
 
 export async function updateSubstitutionStatus(id: string, status: string): Promise<Substitution> {
-  const response = await fetch(`${API_BASE}/substitutions/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
-  })
-  if (!response.ok) throw new Error('Failed to update substitution')
-  const json = await response.json()
-  return json.data
+  const result = await apiPatch<{ data: Substitution }>(`${API_BASE}/substitutions/${id}`, { status })
+  return result.data
 }
 
 // ==================== PERFORMANCE REVIEWS ====================
@@ -343,82 +207,62 @@ export async function fetchPerformanceReviews(filters?: { staffId?: string; peri
   if (filters?.staffId) params.set('staffId', filters.staffId)
   if (filters?.period) params.set('period', filters.period)
   if (filters?.year) params.set('year', String(filters.year))
-  const response = await fetch(`${API_BASE}/performance-reviews?${params}`)
-  if (!response.ok) throw new Error('Failed to fetch performance reviews')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: PerformanceReview[] }>(`${API_BASE}/performance-reviews?${params}`)
+  return result.data
 }
 
 export async function fetchStaffPerformanceReviews(staffId: string): Promise<PerformanceReview[]> {
-  const response = await fetch(`${API_BASE}/${staffId}/performance-reviews`)
-  if (!response.ok) throw new Error('Failed to fetch staff performance reviews')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: PerformanceReview[] }>(`${API_BASE}/${staffId}/performance-reviews`)
+  return result.data
 }
 
 export async function createPerformanceReview(data: CreatePerformanceReview): Promise<PerformanceReview> {
-  const response = await fetch(`${API_BASE}/performance-reviews`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to create performance review')
-  const json = await response.json()
-  return json.data
+  const result = await apiPost<{ data: PerformanceReview }>(`${API_BASE}/performance-reviews`, data)
+  return result.data
 }
 
 export async function acknowledgeReview(id: string): Promise<PerformanceReview> {
-  const response = await fetch(`${API_BASE}/performance-reviews/${id}/acknowledge`, {
-    method: 'PATCH',
-  })
-  if (!response.ok) throw new Error('Failed to acknowledge review')
-  const json = await response.json()
-  return json.data
+  const result = await apiPatch<{ data: PerformanceReview }>(`${API_BASE}/performance-reviews/${id}/acknowledge`)
+  return result.data
 }
 
 // ==================== PROFESSIONAL DEVELOPMENT ====================
 
 export async function fetchStaffPD(staffId: string): Promise<ProfessionalDevelopment[]> {
-  const response = await fetch(`${API_BASE}/${staffId}/professional-development`)
-  if (!response.ok) throw new Error('Failed to fetch professional development records')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: ProfessionalDevelopment[] }>(`${API_BASE}/${staffId}/professional-development`)
+  return result.data
 }
 
 export async function fetchAllPD(filters?: { type?: string; status?: string }): Promise<ProfessionalDevelopment[]> {
   const params = new URLSearchParams()
   if (filters?.type) params.set('type', filters.type)
   if (filters?.status) params.set('status', filters.status)
-  const response = await fetch(`${API_BASE}/professional-development?${params}`)
-  if (!response.ok) throw new Error('Failed to fetch professional development records')
-  const json = await response.json()
-  return json.data
+  const result = await apiGet<{ data: ProfessionalDevelopment[] }>(`${API_BASE}/professional-development?${params}`)
+  return result.data
 }
 
 export async function createPD(staffId: string, data: Omit<CreatePDRequest, 'staffId'>): Promise<ProfessionalDevelopment> {
-  const response = await fetch(`${API_BASE}/${staffId}/professional-development`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to create professional development record')
-  const json = await response.json()
-  return json.data
+  const result = await apiPost<{ data: ProfessionalDevelopment }>(`${API_BASE}/${staffId}/professional-development`, data)
+  return result.data
 }
 
 export async function updatePD(id: string, data: Partial<ProfessionalDevelopment>): Promise<ProfessionalDevelopment> {
-  const response = await fetch(`${API_BASE}/professional-development/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  })
-  if (!response.ok) throw new Error('Failed to update professional development record')
-  const json = await response.json()
-  return json.data
+  const result = await apiPut<{ data: ProfessionalDevelopment }>(`${API_BASE}/professional-development/${id}`, data)
+  return result.data
 }
 
 export async function deletePD(id: string): Promise<{ success: boolean }> {
-  const response = await fetch(`${API_BASE}/professional-development/${id}`, { method: 'DELETE' })
-  if (!response.ok) throw new Error('Failed to delete professional development record')
-  return response.json()
+  return apiDelete<{ success: boolean }>(`${API_BASE}/professional-development/${id}`)
+}
+
+// ==================== EXPORT ====================
+
+export async function exportStaff(
+  filters?: { department?: string; status?: string }
+): Promise<Record<string, string | number>[]> {
+  const params = new URLSearchParams()
+  if (filters?.department) params.set('department', filters.department)
+  if (filters?.status) params.set('status', filters.status)
+  const result = await apiGet<{ data: Record<string, string | number>[] }>(`${API_BASE}/export?${params}`)
+  return result.data
 }

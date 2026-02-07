@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Download, MoreHorizontal, Eye, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -29,7 +29,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { deleteStaff, exportStaff } from '../api/staff.api'
+import { useToast } from '@/hooks/use-toast'
 import { getInitials, formatDate, formatCurrency } from '@/lib/utils'
 
 const DEPARTMENTS = ['All Departments', 'Mathematics', 'Science', 'English', 'Social Studies', 'Hindi', 'Computer Science', 'Physical Education', 'Art', 'Music', 'Administration']
@@ -37,11 +49,34 @@ const STATUSES = ['All Status', 'active', 'on_leave', 'resigned']
 
 export function StaffListPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [search, setSearch] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('All Departments')
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [page, setPage] = useState(1)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
   const limit = 10
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteStaff(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff'] })
+      toast({
+        title: 'Staff Deleted',
+        description: 'The staff member has been removed successfully.',
+      })
+      setDeleteId(null)
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete staff member. Please try again.',
+        variant: 'destructive',
+      })
+    },
+  })
 
   const { data, isLoading } = useQuery({
     queryKey: ['staff', { search, departmentFilter, statusFilter, page, limit }],
@@ -61,6 +96,57 @@ export function StaffListPage() {
 
   const staffList = data?.data || []
   const meta = data?.meta || { total: 0, totalPages: 1 }
+
+  const staffToDelete = staffList.find((s: any) => s.id === deleteId)
+
+  const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const exportData = await exportStaff({
+        department: departmentFilter !== 'All Departments' ? departmentFilter : undefined,
+        status: statusFilter !== 'All Status' ? statusFilter : undefined,
+      })
+
+      // Convert to CSV
+      if (exportData.length === 0) {
+        toast({
+          title: 'No Data',
+          description: 'No staff members to export with current filters.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      const headers = Object.keys(exportData[0])
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => headers.map(h => `"${row[h] ?? ''}"`).join(','))
+      ].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `staff-export-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast({
+        title: 'Export Complete',
+        description: `Exported ${exportData.length} staff members.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export staff data. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -83,9 +169,9 @@ export function StaffListPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Staff' }]}
         actions={
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
               <Download className="h-4 w-4 mr-2" />
-              Export
+              {isExporting ? 'Exporting...' : 'Export'}
             </Button>
             <Button size="sm" onClick={() => navigate('/staff/new')}>
               <Plus className="h-4 w-4 mr-2" />
@@ -230,7 +316,13 @@ export function StaffListPage() {
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDeleteId(staff.id)
+                              }}
+                            >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -275,6 +367,29 @@ export function StaffListPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Staff Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {staffToDelete?.name}? This action cannot be undone
+              and will remove all associated records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteId && deleteMutation.mutate(deleteId)}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

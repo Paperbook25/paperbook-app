@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPut } from '@/lib/api-client'
+import { apiGet } from '@/lib/api-client'
 import type {
   ClassAttendance,
   AttendanceRecord,

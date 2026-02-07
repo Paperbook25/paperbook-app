@@ -342,6 +342,28 @@ export const studentsHandlers = [
     return HttpResponse.json({ data: results })
   }),
 
+  // ==================== MESSAGING ====================
+
+  http.post('/api/students/:id/message-parent', async ({ request }) => {
+    await delay(500)
+    const body = await request.json() as {
+      channel: 'sms' | 'email' | 'whatsapp' | 'all'
+      subject?: string
+      message: string
+    }
+
+    const sentVia = body.channel === 'all'
+      ? ['sms', 'email', 'whatsapp']
+      : [body.channel]
+
+    return HttpResponse.json({
+      data: {
+        success: true,
+        sentVia,
+      },
+    })
+  }),
+
   // ==================== BULK EXPORT ====================
 
   http.get('/api/students/export', async ({ request }) => {

@@ -69,7 +69,7 @@ export function LedgerTable() {
   }
 
   const entries = data?.data || []
-  const pagination = data?.pagination
+  const pagination = data?.meta
 
   return (
     <div className="space-y-4">

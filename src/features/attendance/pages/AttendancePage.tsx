@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Check, X, Clock, Calendar, Users, FileText, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -83,15 +83,16 @@ export function AttendancePage() {
   const report = reportData?.data || []
 
   // Initialize attendance data when students load
-  useState(() => {
+  useEffect(() => {
     if (students.length > 0) {
       const initial = students.reduce((acc, s) => ({
         ...acc,
         [s.id]: s.status || 'present',
       }), {})
       setAttendanceData(initial)
+      setHasChanges(false)
     }
-  })
+  }, [students])
 
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value })

@@ -86,8 +86,8 @@ const navigation: NavItem[] = [
     children: [
       { name: 'Mark Attendance', href: '/attendance' },
       { name: 'Period-wise', href: '/attendance/periods' },
-      { name: 'Reports', href: '/attendance/reports' },
-      { name: 'Leave Management', href: '/attendance/leave' },
+      { name: 'Reports', href: '/attendance?tab=reports' },
+      { name: 'Leave Management', href: '/attendance?tab=leave' },
       { name: 'Shortage Alerts', href: '/attendance/alerts' },
       { name: 'Late Detection', href: '/attendance/late' },
       { name: 'Notifications', href: '/attendance/notifications' },
@@ -108,13 +108,13 @@ const navigation: NavItem[] = [
     roles: ['admin', 'principal', 'librarian', 'teacher', 'student'],
     children: [
       { name: 'Catalog', href: '/library' },
-      { name: 'Issued Books', href: '/library/issued' },
+      { name: 'Issued Books', href: '/library?tab=issued' },
       { name: 'Reservations', href: '/library/reservations' },
       { name: 'Scanner', href: '/library/scanner' },
       { name: 'Digital Library', href: '/library/digital' },
       { name: 'Reading History', href: '/library/reading' },
       { name: 'Notifications', href: '/library/notifications' },
-      { name: 'Fines', href: '/library/fines' },
+      { name: 'Fines', href: '/library?tab=fines' },
     ],
   },
   {
@@ -183,14 +183,14 @@ const navigation: NavItem[] = [
     roles: ['admin', 'principal', 'accountant'],
     children: [
       { name: 'Fee Structure', href: '/finance' },
-      { name: 'Collection', href: '/finance/collection' },
-      { name: 'Payments', href: '/finance/payments' },
+      { name: 'Collection', href: '/finance?tab=collection' },
+      { name: 'Payments', href: '/finance?tab=payments' },
       { name: 'Installments', href: '/finance/installments' },
       { name: 'Discounts', href: '/finance/discounts' },
       { name: 'Concessions', href: '/finance/concessions' },
       { name: 'Online Payments', href: '/finance/online-payments' },
       { name: 'Escalation', href: '/finance/escalation' },
-      { name: 'Reports', href: '/finance/reports' },
+      { name: 'Reports', href: '/finance?tab=reports' },
     ],
   },
   // Parent-specific fees view
@@ -338,7 +338,7 @@ export function Sidebar() {
       <ScrollArea className="flex-1 py-4">
         <nav className="space-y-1 px-2">
           {filteredNav.map((item) => (
-            <NavItem key={item.href} item={item} collapsed={sidebarCollapsed} />
+            <NavItem key={item.name} item={item} collapsed={sidebarCollapsed} />
           ))}
         </nav>
       </ScrollArea>

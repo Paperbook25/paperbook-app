@@ -540,6 +540,46 @@ export const admissionsHandlers = [
     return HttpResponse.json({ data: generateAnalytics() })
   }),
 
+  // ==================== EXPORT HANDLER ====================
+
+  http.get('/api/admissions/export', async ({ request }) => {
+    await delay(500)
+    const url = new URL(request.url)
+    const statusFilter = url.searchParams.get('status') as ApplicationStatus | null
+    const classFilter = url.searchParams.get('class')
+
+    let filtered = [...applications]
+    if (statusFilter) {
+      filtered = filtered.filter((a) => a.status === statusFilter)
+    }
+    if (classFilter) {
+      filtered = filtered.filter((a) => a.applyingForClass === classFilter)
+    }
+
+    const exportData = filtered.map((a) => ({
+      applicationNumber: a.applicationNumber,
+      studentName: a.studentName,
+      dateOfBirth: a.dateOfBirth,
+      gender: a.gender,
+      email: a.email,
+      phone: a.phone,
+      applyingForClass: a.applyingForClass,
+      previousSchool: a.previousSchool || '',
+      previousClass: a.previousClass || '',
+      previousMarks: a.previousMarks || '',
+      fatherName: a.fatherName,
+      motherName: a.motherName,
+      guardianPhone: a.guardianPhone,
+      guardianEmail: a.guardianEmail,
+      guardianOccupation: a.guardianOccupation || '',
+      status: a.status,
+      appliedDate: a.appliedDate,
+      address: `${a.address.street}, ${a.address.city}, ${a.address.state} - ${a.address.pincode}`,
+    }))
+
+    return HttpResponse.json({ data: exportData })
+  }),
+
   // ==================== PUBLIC APPLICATION HANDLER ====================
 
   http.post('/api/public/admissions/apply', async ({ request }) => {

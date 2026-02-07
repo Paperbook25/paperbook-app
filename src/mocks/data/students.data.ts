@@ -14,7 +14,7 @@ export interface Student {
   email: string
   phone: string
   dateOfBirth: string
-  gender: 'male' | 'female'
+  gender: 'male' | 'female' | 'other'
   bloodGroup: string
   class: string
   section: string

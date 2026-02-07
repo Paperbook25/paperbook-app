@@ -95,16 +95,6 @@ export interface UpdateStudentRequest {
   status?: 'active' | 'inactive' | 'graduated' | 'transferred'
 }
 
-export interface PaginatedResponse<T> {
-  data: T[]
-  meta: {
-    total: number
-    page: number
-    limit: number
-    totalPages: number
-  }
-}
-
 // ==================== TIMELINE ====================
 
 export type TimelineEventType =

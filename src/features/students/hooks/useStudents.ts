@@ -19,6 +19,7 @@ import {
   fetchIDCardData,
   bulkImportStudents,
   exportStudents,
+  sendParentMessage,
 } from '../api/students.api'
 import type {
   StudentFilters,
@@ -241,5 +242,19 @@ export function useBulkImport() {
 export function useExportStudents() {
   return useMutation({
     mutationFn: (filters?: { class?: string; section?: string }) => exportStudents(filters),
+  })
+}
+
+export function useSendParentMessage() {
+  return useMutation({
+    mutationFn: ({
+      studentId,
+      ...data
+    }: {
+      studentId: string
+      channel: 'sms' | 'email' | 'whatsapp' | 'all'
+      subject?: string
+      message: string
+    }) => sendParentMessage(studentId, data),
   })
 }

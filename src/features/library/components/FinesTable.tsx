@@ -62,7 +62,7 @@ export function FinesTable({ filters, onFiltersChange }: FinesTableProps) {
   const updateFine = useUpdateFine()
 
   const fines = data?.data || []
-  const pagination = data?.pagination
+  const pagination = data?.meta
 
   const pendingFinesTotal = fines
     .filter((f) => f.status === 'pending')

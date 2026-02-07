@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Download, Upload, MoreHorizontal, Eye, Pencil, Trash2, ArrowUpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -29,10 +28,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { BulkImportDialog } from '../components/BulkImportDialog'
 import { ExportDialog } from '../components/ExportDialog'
 import { PromotionDialog } from '../components/PromotionDialog'
+import { useStudents, useDeleteStudent } from '../hooks/useStudents'
+import { useToast } from '@/hooks/use-toast'
 import { getInitials, formatDate } from '@/lib/utils'
 
 const CLASSES = ['All Classes', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12']
@@ -41,6 +52,7 @@ const STATUSES = ['All Status', 'active', 'inactive', 'graduated', 'transferred'
 
 export function StudentsListPage() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [search, setSearch] = useState('')
   const [classFilter, setClassFilter] = useState('All Classes')
   const [sectionFilter, setSectionFilter] = useState('All Sections')
@@ -49,27 +61,42 @@ export function StudentsListPage() {
   const [importOpen, setImportOpen] = useState(false)
   const [exportOpen, setExportOpen] = useState(false)
   const [promotionOpen, setPromotionOpen] = useState(false)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const limit = 10
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['students', { search, classFilter, sectionFilter, statusFilter, page, limit }],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(limit),
-      })
-      if (search) params.set('search', search)
-      if (classFilter !== 'All Classes') params.set('class', classFilter)
-      if (sectionFilter !== 'All Sections') params.set('section', sectionFilter)
-      if (statusFilter !== 'All Status') params.set('status', statusFilter)
+  const deleteMutation = useDeleteStudent()
 
-      const res = await fetch(`/api/students?${params}`)
-      return res.json()
-    },
+  const { data, isLoading } = useStudents({
+    search: search || undefined,
+    class: classFilter !== 'All Classes' ? classFilter : undefined,
+    section: sectionFilter !== 'All Sections' ? sectionFilter : undefined,
+    status: statusFilter !== 'All Status' ? statusFilter : undefined,
+    page,
+    limit,
   })
 
   const students = data?.data || []
   const meta = data?.meta || { total: 0, totalPages: 1 }
+
+  const studentToDelete = students.find((s: any) => s.id === deleteId)
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+    try {
+      await deleteMutation.mutateAsync(deleteId)
+      toast({
+        title: 'Student Deleted',
+        description: 'The student has been removed successfully.',
+      })
+      setDeleteId(null)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete student. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -273,7 +300,13 @@ export function StudentsListPage() {
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDeleteId(student.id)
+                              }}
+                            >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
@@ -323,6 +356,29 @@ export function StudentsListPage() {
       <BulkImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
       <PromotionDialog open={promotionOpen} onOpenChange={setPromotionOpen} />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Student</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {studentToDelete?.name}? This action cannot be undone
+              and will remove all associated records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteMutation.isPending}
+              onClick={handleDelete}
+            >
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

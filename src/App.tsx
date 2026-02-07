@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { Toaster } from '@/components/ui/toaster'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { RoleProtectedRoute, ALL_ROLES } from '@/components/auth/RoleProtectedRoute'
 
 // Pages
 import { LoginPage } from '@/features/auth/pages/LoginPage'
@@ -50,7 +51,7 @@ import { OnlinePaymentsPage } from '@/features/finance/pages/OnlinePaymentsPage'
 import { ParentFeeDashboardPage } from '@/features/finance/pages/ParentFeeDashboardPage'
 import { SettingsPage } from '@/features/settings/pages/SettingsPage'
 import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
-import { ExamsPage, NewExamPage, ExamDetailPage, MarksEntryPage } from '@/features/exams/pages'
+import { ExamsPage, NewExamPage, EditExamPage, ExamDetailPage, MarksEntryPage } from '@/features/exams/pages'
 import { ExamTimetablePage } from '@/features/exams/pages/ExamTimetablePage'
 import { MarksAnalyticsPage } from '@/features/exams/pages/MarksAnalyticsPage'
 import { ProgressTrackingPage } from '@/features/exams/pages/ProgressTrackingPage'
@@ -138,33 +139,33 @@ export default function App() {
           <Route
             path="/students"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <StudentsListPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/students/new"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <NewStudentPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/students/:id"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <StudentDetailPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/students/:id/edit"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <EditStudentPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -172,73 +173,73 @@ export default function App() {
           <Route
             path="/staff"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <StaffListPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/new"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <NewStaffPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/attendance"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <StaffAttendancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/leave"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <LeaveManagementPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/salary"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <SalaryManagementPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/timetable"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <TimetableManagementPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/substitutions"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <SubstitutionPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/:id"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <StaffDetailPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/staff/:id/edit"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <EditStaffPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -246,57 +247,57 @@ export default function App() {
           <Route
             path="/attendance"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <AttendancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/periods"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <PeriodAttendancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/alerts"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <ShortageAlertsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/late"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <LateDetectionPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/notifications"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <AttendanceNotificationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/biometric"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <BiometricPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <AttendancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -304,73 +305,73 @@ export default function App() {
           <Route
             path="/admissions"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <ApplicationsListPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/pipeline"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <AdmissionsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/new"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <NewApplicationPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/entrance-exams"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <EntranceExamsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/waitlist"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <WaitlistPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/communications"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <CommunicationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/payments"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <AdmissionPaymentsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/analytics"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <AdmissionAnalyticsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admissions/:id"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <ApplicationDetailPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -378,57 +379,57 @@ export default function App() {
           <Route
             path="/library"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <LibraryPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/library/scanner"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <BarcodeScannerPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/library/reservations"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <ReservationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/library/reading"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <ReadingHistoryPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/library/digital"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <DigitalLibraryPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/library/notifications"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <OverdueNotificationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/library/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
                 <LibraryPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -436,65 +437,65 @@ export default function App() {
           <Route
             path="/transport"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <TransportPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/vehicles"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <VehiclesPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/drivers"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <DriversPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/tracking"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <TrackingPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/stops"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <StopAssignmentsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/maintenance"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <MaintenancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/notifications"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <TransportNotificationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/transport/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
                 <TransportPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -502,65 +503,65 @@ export default function App() {
           <Route
             path="/finance"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <FinancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/installments"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <InstallmentPlansPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/discounts"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <DiscountRulesPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/concessions"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <ConcessionsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/escalation"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <EscalationPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/online-payments"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <OnlinePaymentsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/my-fees"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <ParentFeeDashboardPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/finance/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
                 <FinancePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -568,17 +569,17 @@ export default function App() {
           <Route
             path="/settings"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <SettingsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/settings/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <SettingsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -586,17 +587,17 @@ export default function App() {
           <Route
             path="/integrations"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <IntegrationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/integrations/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
                 <IntegrationsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -604,73 +605,81 @@ export default function App() {
           <Route
             path="/exams"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <ExamsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/new"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <NewExamPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/timetable"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <ExamTimetablePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/analytics"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <MarksAnalyticsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/progress"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <ProgressTrackingPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/co-scholastic"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <CoScholasticPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/question-papers"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <QuestionPapersPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/exams/:id/edit"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
+                <EditExamPage />
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/:id"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <ExamDetailPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/exams/:id/marks"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
                 <MarksEntryPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 
@@ -678,81 +687,81 @@ export default function App() {
           <Route
             path="/lms"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <LmsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/courses"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <CoursesListPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/courses/new"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <NewCoursePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/courses/:id"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <CourseDetailPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/courses/:id/edit"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <EditCoursePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/courses/:id/learn"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <StudentCoursePage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/live-classes"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <LiveClassesPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/enrollments"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <EnrollmentsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/assignments"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <AssignmentsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/lms/*"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <LmsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
 

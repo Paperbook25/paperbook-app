@@ -28,7 +28,7 @@ export function ReservationManager() {
   const cancelMutation = useCancelReservation()
 
   const reservations = result?.data || []
-  const pagination = result?.pagination
+  const pagination = result?.meta
 
   const activeCount = reservations.filter(r => r.status === 'active').length
 

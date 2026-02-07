@@ -41,7 +41,7 @@ export function FinancePage() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
+        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="collection">Collection</TabsTrigger>
           <TabsTrigger value="outstanding">Outstanding</TabsTrigger>
           <TabsTrigger value="fee-management">Fee Setup</TabsTrigger>

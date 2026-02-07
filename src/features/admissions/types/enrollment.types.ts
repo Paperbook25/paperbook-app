@@ -1,5 +1,5 @@
 import type { Application } from './admission.types'
-import type { Student } from '@/mocks/data/students.data'
+import type { Student } from '@/features/students/types/student.types'
 
 export interface EnrollmentFormData {
   section: 'A' | 'B' | 'C' | 'D'

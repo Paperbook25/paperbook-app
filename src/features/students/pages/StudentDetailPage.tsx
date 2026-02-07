@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
   Mail,
@@ -19,6 +18,7 @@ import {
   Users,
   CreditCard as IdCard,
   Clock,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,11 +30,16 @@ import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { CollectFeeDialog } from '../components/CollectFeeDialog'
+import { MessageParentDialog } from '../components/MessageParentDialog'
 import { StudentTimeline } from '../components/StudentTimeline'
 import { DocumentVault } from '../components/DocumentVault'
 import { HealthRecordCard } from '../components/HealthRecordCard'
 import { SiblingCard } from '../components/SiblingCard'
 import { IDCardPreview } from '../components/IDCardPreview'
+import { useStudent } from '../hooks/useStudents'
+import { useStudentMarks } from '@/features/exams/hooks/useExams'
+import { useStudentAttendance } from '@/features/attendance/hooks/useAttendance'
+import { useStudentFeesById } from '@/features/finance/hooks/useFinance'
 import { cn, getInitials, formatDate, formatCurrency } from '@/lib/utils'
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
@@ -53,16 +58,12 @@ export function StudentDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [collectFeeOpen, setCollectFeeOpen] = useState(false)
+  const [messageOpen, setMessageOpen] = useState(false)
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['student', id],
-    queryFn: async () => {
-      const res = await fetch(`/api/students/${id}`)
-      if (!res.ok) throw new Error('Student not found')
-      const json = await res.json()
-      return json.data
-    },
-  })
+  const { data: result, isLoading, error } = useStudent(id!)
+  const { data: marksResult, isLoading: marksLoading } = useStudentMarks(id!)
+  const { data: attendanceResult, isLoading: attendanceLoading } = useStudentAttendance(id!)
+  const { data: feesResult, isLoading: feesLoading } = useStudentFeesById(id!)
 
   if (isLoading) {
     return (
@@ -78,6 +79,8 @@ export function StudentDetailPage() {
       </div>
     )
   }
+
+  const data = result?.data
 
   if (error || !data) {
     return (
@@ -108,7 +111,7 @@ export function StudentDetailPage() {
               <IndianRupee className="h-4 w-4 mr-2" />
               Collect Fee
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setMessageOpen(true)}>
               <MessageSquare className="h-4 w-4 mr-2" />
               Message Parent
             </Button>
@@ -222,20 +225,43 @@ export function StudentDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Academic Performance</CardTitle>
-              <CardDescription>Current semester grades and performance</CardDescription>
+              <CardDescription>Exam marks and subject-wise performance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {['Mathematics', 'Science', 'English', 'Social Studies', 'Hindi'].map((subject) => (
-                  <div key={subject}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm font-medium">{subject}</span>
-                      <span className="text-sm text-muted-foreground">{Math.floor(Math.random() * 30 + 70)}%</span>
-                    </div>
-                    <Progress value={Math.floor(Math.random() * 30 + 70)} className="h-2" />
+              {marksLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : (() => {
+                const marks = marksResult?.data || []
+                // Group marks by subject, use the latest per subject
+                const subjectMap = new Map<string, { name: string; obtained: number; max: number }>()
+                marks.forEach((m) => {
+                  const existing = subjectMap.get(m.subjectId)
+                  if (!existing || m.marksObtained > existing.obtained) {
+                    subjectMap.set(m.subjectId, { name: m.subjectName, obtained: m.marksObtained, max: m.maxMarks })
+                  }
+                })
+                const subjects = Array.from(subjectMap.values())
+                return subjects.length === 0 ? (
+                  <p className="text-center py-8 text-muted-foreground">No exam marks available</p>
+                ) : (
+                  <div className="space-y-4">
+                    {subjects.map((s) => {
+                      const pct = Math.round((s.obtained / s.max) * 100)
+                      return (
+                        <div key={s.name}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium">{s.name}</span>
+                            <span className="text-sm text-muted-foreground">{s.obtained}/{s.max} ({pct}%)</span>
+                          </div>
+                          <Progress value={pct} className="h-2" />
+                        </div>
+                      )
+                    })}
                   </div>
-                ))}
-              </div>
+                )
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -247,20 +273,30 @@ export function StudentDetailPage() {
               <CardDescription>Current academic year attendance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">92%</p>
-                  <p className="text-sm text-muted-foreground">Overall Attendance</p>
+              {attendanceLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-                <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">184</p>
-                  <p className="text-sm text-muted-foreground">Days Present</p>
-                </div>
-                <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
-                  <p className="text-2xl font-bold text-red-600">16</p>
-                  <p className="text-sm text-muted-foreground">Days Absent</p>
-                </div>
-              </div>
+              ) : (() => {
+                const att = attendanceResult?.data
+                if (!att) return <p className="text-center py-8 text-muted-foreground">No attendance data available</p>
+                return (
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                      <p className="text-2xl font-bold text-green-600">{att.summary.attendancePercentage}%</p>
+                      <p className="text-sm text-muted-foreground">Overall Attendance</p>
+                    </div>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                      <p className="text-2xl font-bold text-blue-600">{att.summary.presentDays}</p>
+                      <p className="text-sm text-muted-foreground">Days Present</p>
+                    </div>
+                    <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                      <p className="text-2xl font-bold text-red-600">{att.summary.absentDays}</p>
+                      <p className="text-sm text-muted-foreground">Days Absent</p>
+                    </div>
+                  </div>
+                )
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -272,46 +308,67 @@ export function StudentDetailPage() {
               <CardDescription>Current academic year fee status</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div>
-                    <p className="font-medium">Total Annual Fee</p>
-                    <p className="text-sm text-muted-foreground">2024-25</p>
-                  </div>
-                  <p className="text-xl font-bold">{formatCurrency(85000)}</p>
+              {feesLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground">Paid</p>
-                    <p className="text-lg font-bold text-green-600">{formatCurrency(60000)}</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <p className="text-sm text-muted-foreground">Pending</p>
-                    <p className="text-lg font-bold text-red-600">{formatCurrency(25000)}</p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="font-medium mb-2">Payment History</p>
-                  <div className="space-y-2">
-                    {[
-                      { date: '2024-04-15', amount: 30000, type: 'Q1 Fee' },
-                      { date: '2024-07-10', amount: 30000, type: 'Q2 Fee' },
-                    ].map((payment, i) => (
-                      <div key={i} className="flex items-center justify-between py-2 text-sm">
-                        <div>
-                          <p className="font-medium">{payment.type}</p>
-                          <p className="text-xs text-muted-foreground">{formatDate(payment.date)}</p>
-                        </div>
-                        <p className="font-medium text-green-600">{formatCurrency(payment.amount)}</p>
+              ) : (() => {
+                const fees = feesResult?.data || []
+                const totalFees = fees.reduce((sum, f) => sum + f.totalAmount, 0)
+                const totalPaid = fees.reduce((sum, f) => sum + f.paidAmount, 0)
+                const totalPending = totalFees - totalPaid
+                return fees.length === 0 ? (
+                  <p className="text-center py-8 text-muted-foreground">No fee records available</p>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                      <div>
+                        <p className="font-medium">Total Annual Fee</p>
+                        <p className="text-sm text-muted-foreground">{fees[0]?.academicYear || ''}</p>
                       </div>
-                    ))}
+                      <p className="text-xl font-bold">{formatCurrency(totalFees)}</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground">Paid</p>
+                        <p className="text-lg font-bold text-green-600">{formatCurrency(totalPaid)}</p>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <p className="text-sm text-muted-foreground">Pending</p>
+                        <p className="text-lg font-bold text-red-600">{formatCurrency(totalPending)}</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div>
+                      <p className="font-medium mb-2">Fee Breakdown</p>
+                      <div className="space-y-2">
+                        {fees.map((fee) => (
+                          <div key={fee.id} className="flex items-center justify-between py-2 text-sm">
+                            <div>
+                              <p className="font-medium">{fee.feeTypeName}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Due: {formatDate(fee.dueDate)} &middot;{' '}
+                                <Badge variant={fee.status === 'paid' ? 'success' : fee.status === 'partial' ? 'warning' : 'destructive'} className="text-[10px] px-1">
+                                  {fee.status}
+                                </Badge>
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium">{formatCurrency(fee.totalAmount)}</p>
+                              {fee.paidAmount > 0 && (
+                                <p className="text-xs text-green-600">Paid: {formatCurrency(fee.paidAmount)}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                )
+              })()}
             </CardContent>
           </Card>
         </TabsContent>
@@ -343,6 +400,17 @@ export function StudentDetailPage() {
           className: student.class,
           section: student.section,
           admissionNumber: student.admissionNumber,
+        }}
+      />
+
+      {/* Message Parent Dialog */}
+      <MessageParentDialog
+        open={messageOpen}
+        onOpenChange={setMessageOpen}
+        student={{
+          id: student.id,
+          name: student.name,
+          parent: student.parent,
         }}
       />
     </div>

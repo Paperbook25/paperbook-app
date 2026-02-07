@@ -32,7 +32,7 @@ export function ReadingHistoryView() {
   const { data: recsResult } = useBookRecommendations(selectedStudentId)
 
   const records = historyResult?.data || []
-  const pagination = historyResult?.pagination
+  const pagination = historyResult?.meta
   const report = reportResult?.data
   const recommendations = recsResult?.data || []
 

@@ -70,7 +70,7 @@ export function OverdueNotificationsView() {
   }, [config])
 
   const notifications = notifResult?.data || []
-  const pagination = notifResult?.pagination
+  const pagination = notifResult?.meta
 
   const handleSaveConfig = () => {
     updateConfig.mutate(

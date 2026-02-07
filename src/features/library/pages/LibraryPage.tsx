@@ -99,9 +99,9 @@ export function LibraryPage() {
 
   const stats = statsData?.data
   const books = booksData?.data || []
-  const booksPagination = booksData?.pagination
+  const booksPagination = booksData?.meta
   const issuedBooks = issuedData?.data || []
-  const issuedPagination = issuedData?.pagination
+  const issuedPagination = issuedData?.meta
 
   // Handlers
   const handleBookClick = (book: Book) => {

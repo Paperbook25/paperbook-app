@@ -860,4 +860,36 @@ export const staffHandlers = [
     professionalDevelopments.splice(index, 1)
     return HttpResponse.json({ success: true })
   }),
+
+  // ==================== EXPORT HANDLER ====================
+
+  http.get('/api/staff/export', async ({ request }) => {
+    await delay(500)
+    const url = new URL(request.url)
+    const departmentFilter = url.searchParams.get('department')
+    const statusFilter = url.searchParams.get('status')
+
+    let filtered = staff.filter((s) => s.status === 'active')
+    if (departmentFilter) filtered = filtered.filter((s) => s.department === departmentFilter)
+    if (statusFilter) filtered = filtered.filter((s) => s.status === statusFilter)
+
+    const exportData = filtered.map((s) => ({
+      employeeId: s.employeeId,
+      name: s.name,
+      email: s.email,
+      phone: s.phone,
+      dateOfBirth: s.dateOfBirth,
+      gender: s.gender,
+      department: s.department,
+      designation: s.designation,
+      joiningDate: s.joiningDate,
+      qualification: Array.isArray(s.qualification) ? s.qualification.join(', ') : s.qualification,
+      specialization: s.specialization,
+      salary: s.salary,
+      address: `${s.address.street}, ${s.address.city}, ${s.address.state} - ${s.address.pincode}`,
+      status: s.status,
+    }))
+
+    return HttpResponse.json({ data: exportData })
+  }),
 ]

@@ -427,7 +427,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -492,7 +492,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -662,7 +662,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -756,7 +756,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -980,7 +980,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -1364,7 +1364,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 
@@ -1406,7 +1406,7 @@ export const financeHandlers = [
 
     return HttpResponse.json({
       data: paginatedData,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 

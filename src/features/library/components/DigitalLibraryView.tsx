@@ -33,7 +33,7 @@ export function DigitalLibraryView() {
   const recordAccess = useRecordDigitalAccess()
 
   const books = result?.data || []
-  const pagination = result?.pagination
+  const pagination = result?.meta
 
   const handleAccess = (id: string, title: string) => {
     recordAccess.mutate(id, {

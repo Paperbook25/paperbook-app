@@ -32,17 +32,21 @@ import {
 import { PageHeader } from '@/components/layout/PageHeader'
 import { cn, formatDate, getInitials } from '@/lib/utils'
 import { useApplications, useUpdateStatus } from '../hooks/useAdmissions'
+import { exportApplications } from '../api/admissions.api'
+import { useToast } from '@/hooks/use-toast'
 import type { ApplicationStatus } from '../types/admission.types'
 import { APPLICATION_STATUSES, CLASSES, getStatusConfig, canTransitionTo } from '../types/admission.types'
 import { StatusChangeDialog } from '../components/StatusChangeDialog'
 
 export function ApplicationsListPage() {
   const navigate = useNavigate()
+  const { toast } = useToast()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | 'all'>('all')
   const [classFilter, setClassFilter] = useState<string>('')
   const [page, setPage] = useState(1)
   const [limit] = useState(10)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Status change dialog state
   const [statusDialogOpen, setStatusDialogOpen] = useState(false)
@@ -101,6 +105,54 @@ export function ApplicationsListPage() {
   const applications = data?.data || []
   const meta = data?.meta
 
+  const handleExport = async () => {
+    setIsExporting(true)
+    try {
+      const exportData = await exportApplications({
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        class: classFilter || undefined,
+      })
+
+      if (exportData.length === 0) {
+        toast({
+          title: 'No Data',
+          description: 'No applications to export with current filters.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      const headers = Object.keys(exportData[0])
+      const csvContent = [
+        headers.join(','),
+        ...exportData.map(row => headers.map(h => `"${row[h] ?? ''}"`).join(','))
+      ].join('\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `applications-export-${new Date().toISOString().split('T')[0]}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast({
+        title: 'Export Complete',
+        description: `Exported ${exportData.length} applications.`,
+      })
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export applications. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -109,9 +161,9 @@ export function ApplicationsListPage() {
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Admissions' }]}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
               <Download className="h-4 w-4 mr-2" />
-              Export
+              {isExporting ? 'Exporting...' : 'Export'}
             </Button>
             <Button size="sm" onClick={() => navigate('/admissions/new')}>
               <Plus className="h-4 w-4 mr-2" />

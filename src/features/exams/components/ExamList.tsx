@@ -143,6 +143,10 @@ export function ExamList({ exams, onDelete, onPublish, isDeleting, isPublishing 
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/exams/${exam.id}/edit`)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/exams/${exam.id}/marks`)}>
                             <FileSpreadsheet className="h-4 w-4 mr-2" />
                             Enter Marks
