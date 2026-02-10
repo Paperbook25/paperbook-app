@@ -171,3 +171,22 @@ export async function sendParentMessage(
   const result = await apiPost<{ data: { success: boolean; sentVia: string[] } }>(`${API_BASE}/${studentId}/message-parent`, data)
   return result.data
 }
+
+// ==================== CROSS-MODULE LOOKUPS ====================
+
+import type { RoomAllocation } from '@/features/hostel/types/hostel.types'
+import type { Alumni } from '@/features/alumni/types/alumni.types'
+
+export async function fetchStudentHostelAllocation(
+  studentId: string
+): Promise<RoomAllocation | null> {
+  const result = await apiGet<{ data: RoomAllocation | null }>(`${API_BASE}/${studentId}/hostel`)
+  return result.data
+}
+
+export async function fetchStudentAlumniRecord(
+  studentId: string
+): Promise<Alumni | null> {
+  const result = await apiGet<{ data: Alumni | null }>(`${API_BASE}/${studentId}/alumni`)
+  return result.data
+}

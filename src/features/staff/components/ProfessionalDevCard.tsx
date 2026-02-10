@@ -58,19 +58,19 @@ interface ProfessionalDevCardProps {
 }
 
 const TYPE_COLORS: Record<PDType, string> = {
-  certification: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-  workshop: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  seminar: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300',
-  training: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-  conference: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  course: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
+  certification: 'bg-purple-100 text-purple-700 dark:bg-purple-800 dark:text-purple-100',
+  workshop: 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100',
+  seminar: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-800 dark:text-cyan-100',
+  training: 'bg-orange-100 text-orange-700 dark:bg-orange-800 dark:text-orange-100',
+  conference: 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100',
+  course: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800 dark:text-indigo-100',
 }
 
 const STATUS_COLORS: Record<PDStatus, string> = {
-  upcoming: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  in_progress: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-  completed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  expired: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+  upcoming: 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100',
+  in_progress: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800 dark:text-yellow-100',
+  completed: 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100',
+  expired: 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-100',
 }
 
 const STATUS_LABELS: Record<PDStatus, string> = {
@@ -434,27 +434,27 @@ export function ProfessionalDevCard({ staffId }: ProfessionalDevCardProps) {
                 </div>
                 <p className="text-xl font-bold">{stats.total}</p>
               </div>
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950">
+              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-800">
                 <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                   <Award className="h-3.5 w-3.5" />
                   <span className="text-xs">Completed</span>
                 </div>
-                <p className="text-xl font-bold text-green-600">{stats.completed}</p>
+                <p className="text-xl font-bold text-green-600 dark:text-green-200">{stats.completed}</p>
               </div>
-              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950">
+              <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-800">
                 <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                   <Clock className="h-3.5 w-3.5" />
                   <span className="text-xs">Total Hours</span>
                 </div>
-                <p className="text-xl font-bold text-blue-600">{stats.totalHours}</p>
+                <p className="text-xl font-bold text-blue-600 dark:text-blue-200">{stats.totalHours}</p>
               </div>
               {stats.expiringSoon > 0 && (
-                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950">
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-800">
                   <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
                     <AlertTriangle className="h-3.5 w-3.5" />
                     <span className="text-xs">Expiring Soon</span>
                   </div>
-                  <p className="text-xl font-bold text-red-600">{stats.expiringSoon}</p>
+                  <p className="text-xl font-bold text-red-600 dark:text-red-200">{stats.expiringSoon}</p>
                 </div>
               )}
             </div>

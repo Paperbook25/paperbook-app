@@ -48,7 +48,6 @@ import type {
   CreateDiscountRuleRequest,
   DiscountRule,
   CreateConcessionRequest,
-  UpdateConcessionRequest,
   ConcessionRequest,
   UpdateEscalationConfigRequest,
   CreatePaymentOrderRequest,
@@ -1447,7 +1446,11 @@ export const financeHandlers = [
     const context = getUserContext(request)
     let childIds: string[] = []
 
-    if (context && isParent(context) && context.childIds) {
+    if (context && isStudent(context) && context.studentId) {
+      // Student viewing their own fees
+      childIds = [context.studentId]
+    } else if (context && isParent(context) && context.childIds) {
+      // Parent viewing their children's fees
       childIds = context.childIds
     } else {
       // For testing / admin viewing parent dashboard, use first 2 students

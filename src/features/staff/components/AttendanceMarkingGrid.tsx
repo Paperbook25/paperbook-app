@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { cn, getInitials } from '@/lib/utils'
+import { getInitials } from '@/lib/utils'
+import { getAttendanceBadgeVariant, ATTENDANCE_COLORS } from '@/lib/attendance-ui'
 import type { Staff, StaffAttendanceStatus, BulkAttendanceRecord, StaffAttendanceRecord } from '../types/staff.types'
 
 interface AttendanceMarkingGridProps {
@@ -30,11 +31,11 @@ interface AttendanceMarkingGridProps {
   isSaving?: boolean
 }
 
-const STATUS_OPTIONS: { value: StaffAttendanceStatus; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'present', label: 'Present', icon: <Check className="h-4 w-4" />, color: 'bg-green-100 text-green-700' },
-  { value: 'absent', label: 'Absent', icon: <X className="h-4 w-4" />, color: 'bg-red-100 text-red-700' },
-  { value: 'half_day', label: 'Half Day', icon: <Clock className="h-4 w-4" />, color: 'bg-yellow-100 text-yellow-700' },
-  { value: 'on_leave', label: 'On Leave', icon: <CalendarIcon className="h-4 w-4" />, color: 'bg-blue-100 text-blue-700' },
+const STATUS_OPTIONS: { value: StaffAttendanceStatus; label: string; icon: React.ReactNode }[] = [
+  { value: 'present', label: 'Present', icon: <Check className="h-4 w-4" /> },
+  { value: 'absent', label: 'Absent', icon: <X className="h-4 w-4" /> },
+  { value: 'half_day', label: 'Half Day', icon: <Clock className="h-4 w-4" /> },
+  { value: 'on_leave', label: 'On Leave', icon: <CalendarIcon className="h-4 w-4" /> },
 ]
 
 interface AttendanceEntry {
@@ -208,7 +209,10 @@ export function AttendanceMarkingGrid({
                         {STATUS_OPTIONS.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
                             <div className="flex items-center gap-2">
-                              <Badge variant="secondary" className={cn('w-6 h-6 p-0 flex items-center justify-center', option.color)}>
+                              <Badge
+                                variant={getAttendanceBadgeVariant(option.value)}
+                                className="w-6 h-6 p-0 flex items-center justify-center"
+                              >
                                 {option.icon}
                               </Badge>
                               {option.label}

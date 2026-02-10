@@ -8,7 +8,7 @@ import {
   maintenanceRecords,
   transportNotifications,
 } from '../data/transport.data'
-import type { TransportRoute, Vehicle, Driver, MaintenanceRecord } from '@/features/transport/types/transport.types'
+import type { TransportRoute, Vehicle, Driver, MaintenanceRecord, NotificationEventType } from '@/features/transport/types/transport.types'
 
 export const transportHandlers = [
   // ==================== ROUTES ====================
@@ -440,10 +440,10 @@ export const transportHandlers = [
       studentId: body.studentId as string || '',
       studentName: body.studentName as string || '',
       parentPhone: body.parentPhone as string || '',
-      routeId: body.routeId as string,
+      routeId: body.routeId as string || '',
       routeName: body.routeName as string || '',
       stopName: body.stopName as string || '',
-      eventType: body.eventType as string,
+      eventType: body.eventType as NotificationEventType,
       message: body.message as string,
       sentAt: new Date().toISOString(),
       channel: body.channel as string || 'sms',

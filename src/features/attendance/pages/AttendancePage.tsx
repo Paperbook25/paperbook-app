@@ -374,8 +374,8 @@ export function AttendancePage() {
           <div className="grid grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <Users className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                  <Users className="h-5 w-5 text-blue-600 dark:text-blue-200" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
@@ -385,8 +385,8 @@ export function AttendancePage() {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                  <Check className="h-5 w-5 text-green-600" />
+                <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
+                  <Check className="h-5 w-5 text-green-600 dark:text-green-200" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.present}</p>
@@ -396,8 +396,8 @@ export function AttendancePage() {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-                  <X className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
+                  <X className="h-5 w-5 text-red-600 dark:text-red-200" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.absent}</p>
@@ -407,8 +407,8 @@ export function AttendancePage() {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                  <Clock className="h-5 w-5 text-orange-600" />
+                <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
+                  <Clock className="h-5 w-5 text-orange-600 dark:text-orange-200" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.late}</p>
@@ -445,12 +445,13 @@ export function AttendancePage() {
                       <div
                         key={student.id}
                         className={cn(
-                          'p-3 rounded-lg border transition-colors cursor-pointer',
-                          status === 'present' && 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800',
-                          status === 'absent' && 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800',
-                          status === 'late' && 'bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800',
-                          status === 'half_day' && 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800',
-                          status === 'excused' && 'bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800'
+                          'p-3 rounded-lg border bg-card transition-all cursor-pointer hover:shadow-md',
+                          'border-l-4',
+                          status === 'present' && 'border-l-green-500',
+                          status === 'absent' && 'border-l-red-500',
+                          status === 'late' && 'border-l-orange-500',
+                          status === 'half_day' && 'border-l-yellow-500',
+                          status === 'excused' && 'border-l-blue-500'
                         )}
                         onClick={() => {
                           const statuses: AttendanceStatus[] = ['present', 'absent', 'late', 'half_day', 'excused']
@@ -459,27 +460,31 @@ export function AttendancePage() {
                           handleAttendanceChange(student.id, nextStatus)
                         }}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Avatar className="h-8 w-8">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10 shrink-0">
                             <AvatarImage src={student.photoUrl} />
-                            <AvatarFallback className="text-xs">{student.rollNumber}</AvatarFallback>
+                            <AvatarFallback className="text-xs font-medium">
+                              {student.name.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
                           </Avatar>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{student.name}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground line-clamp-1">
+                              {student.name}
+                            </p>
                             <p className="text-xs text-muted-foreground">Roll {student.rollNumber}</p>
                           </div>
+                          <Badge
+                            variant={
+                              status === 'present' ? 'success' :
+                              status === 'absent' ? 'destructive' :
+                              status === 'late' ? 'warning' :
+                              'secondary'
+                            }
+                            className="shrink-0 text-xs"
+                          >
+                            {ATTENDANCE_STATUS_LABELS[status]}
+                          </Badge>
                         </div>
-                        <Badge
-                          variant={
-                            status === 'present' ? 'success' :
-                            status === 'absent' ? 'destructive' :
-                            status === 'late' ? 'warning' :
-                            'secondary'
-                          }
-                          className="w-full justify-center"
-                        >
-                          {ATTENDANCE_STATUS_LABELS[status]}
-                        </Badge>
                       </div>
                     )
                   })}

@@ -172,6 +172,7 @@ function DocumentGridSkeleton() {
 export function DocumentVault({ studentId }: DocumentVaultProps) {
   const [uploadOpen, setUploadOpen] = useState(false)
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null)
+  const [verifyingDocId, setVerifyingDocId] = useState<string | null>(null)
   const [docType, setDocType] = useState<DocumentType | ''>('')
   const [docName, setDocName] = useState('')
 
@@ -208,6 +209,7 @@ export function DocumentVault({ studentId }: DocumentVaultProps) {
   }
 
   const handleVerify = async (docId: string) => {
+    setVerifyingDocId(docId)
     try {
       await verifyMutation.mutateAsync({ studentId, docId })
       toast({ title: 'Document verified successfully' })
@@ -216,6 +218,8 @@ export function DocumentVault({ studentId }: DocumentVaultProps) {
         title: 'Failed to verify document',
         variant: 'destructive',
       })
+    } finally {
+      setVerifyingDocId(null)
     }
   }
 
@@ -276,10 +280,7 @@ export function DocumentVault({ studentId }: DocumentVaultProps) {
                 document={doc}
                 onVerify={handleVerify}
                 onDelete={(docId) => setDeleteDocId(docId)}
-                isVerifying={
-                  verifyMutation.isPending &&
-                  verifyMutation.variables?.docId === doc.id
-                }
+                isVerifying={verifyingDocId === doc.id}
               />
             ))}
           </div>

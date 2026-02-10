@@ -294,12 +294,12 @@ export function BiometricDeviceManager() {
                           <div className={cn(
                             'p-2 rounded-lg',
                             device.status === 'active'
-                              ? 'bg-green-100 dark:bg-green-900 text-green-600'
+                              ? 'bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-200'
                               : device.status === 'error'
-                              ? 'bg-red-100 dark:bg-red-900 text-red-600'
+                              ? 'bg-red-100 dark:bg-red-800 text-red-600 dark:text-red-200'
                               : device.status === 'maintenance'
-                              ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-600'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                              ? 'bg-yellow-100 dark:bg-yellow-800 text-yellow-600 dark:text-yellow-200'
+                              : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-200'
                           )}>
                             {DEVICE_TYPE_ICONS[device.type]}
                           </div>
@@ -364,7 +364,7 @@ export function BiometricDeviceManager() {
 
                       {/* Error Message */}
                       {device.errorMessage && (
-                        <div className="text-sm text-red-600 bg-red-50 dark:bg-red-950 p-2 rounded-md">
+                        <div className="text-sm text-red-600 dark:text-red-200 bg-red-50 dark:bg-red-800 p-2 rounded-md">
                           <AlertTriangle className="h-3 w-3 inline mr-1" />
                           {device.errorMessage}
                         </div>

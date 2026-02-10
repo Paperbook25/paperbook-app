@@ -5,7 +5,6 @@ import type {
   BookCategory,
   IssuedBook,
   Fine,
-  FINE_RATE_PER_DAY,
   BookReservation,
   ReadingRecord,
   DigitalBook,

@@ -6,21 +6,23 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { Role } from '@/types/common.types'
+import { demoStudent } from '@/mocks/data/students.data'
+import { demoTeacher } from '@/mocks/data/staff.data'
 
 // Staff accounts
 const staffAccounts = [
   { role: 'admin' as Role, name: 'Admin User', email: 'admin@paperbook.in', label: 'Admin' },
   { role: 'principal' as Role, name: 'Dr. Sharma', email: 'principal@paperbook.in', label: 'Principal' },
-  { role: 'teacher' as Role, name: 'Priya Teacher', email: 'teacher@paperbook.in', label: 'Teacher' },
+  { role: 'teacher' as Role, name: demoTeacher.name, email: 'teacher@paperbook.in', label: 'Teacher', staffId: demoTeacher.id },
   { role: 'accountant' as Role, name: 'Rahul Accounts', email: 'accounts@paperbook.in', label: 'Accountant' },
   { role: 'librarian' as Role, name: 'Meera Librarian', email: 'librarian@paperbook.in', label: 'Librarian' },
   { role: 'transport_manager' as Role, name: 'Vijay Transport', email: 'transport@paperbook.in', label: 'Transport' },
 ]
 
-// Student & Parent accounts
+// Student & Parent accounts - use real IDs from mock data
 const userAccounts = [
-  { role: 'student' as Role, name: 'Rahul Kumar', email: 'student@paperbook.in', label: 'Student', studentId: 'STU001', class: 'Class 10', section: 'A' },
-  { role: 'parent' as Role, name: 'Suresh Kumar', email: 'parent@paperbook.in', label: 'Parent', childIds: ['STU001'] },
+  { role: 'student' as Role, name: demoStudent.name, email: 'student@paperbook.in', label: 'Student', studentId: demoStudent.id, class: demoStudent.class, section: demoStudent.section },
+  { role: 'parent' as Role, name: demoStudent.parent.fatherName, email: 'parent@paperbook.in', label: 'Parent', childIds: [demoStudent.id] },
 ]
 
 const demoAccounts = [...staffAccounts, ...userAccounts]
@@ -45,7 +47,11 @@ export function LoginPage() {
 
     // Build user object with role-specific data
     const userData: any = {
-      id: account.role === 'student' ? 'STU001' : account.role === 'parent' ? 'PAR001' : '1',
+      id: account.role === 'student'
+        ? (account as typeof userAccounts[0]).studentId
+        : account.role === 'parent'
+          ? 'PAR001'
+          : (account as any).staffId || crypto.randomUUID(),
       name: account.name,
       email: account.email,
       role: account.role,
@@ -64,6 +70,11 @@ export function LoginPage() {
     if (account.role === 'parent' && 'childIds' in account) {
       const parentAccount = account as typeof userAccounts[1]
       userData.childIds = parentAccount.childIds
+    }
+
+    // Add teacher-specific data
+    if (account.role === 'teacher' && 'staffId' in account) {
+      userData.staffId = (account as any).staffId
     }
 
     login(userData)

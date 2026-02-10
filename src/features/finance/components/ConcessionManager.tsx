@@ -20,10 +20,10 @@ const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
 
 const STATUS_COLORS: Record<ConcessionStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  approved: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  expired: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200',
+  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
+  approved: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+  rejected: 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
+  expired: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100',
 }
 
 export function ConcessionManager() {

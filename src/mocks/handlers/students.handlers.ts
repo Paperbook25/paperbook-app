@@ -1,5 +1,7 @@
 import { http, HttpResponse, delay } from 'msw'
 import { students, studentDocuments, getStudentTimeline, getNextClass, CLASSES, SECTIONS } from '../data/students.data'
+import { roomAllocations } from '../data/hostel.data'
+import { getAlumniByStudentId } from '../data/alumni.data'
 import type { StudentDocument } from '@/features/students/types/student.types'
 
 function generateId(): string {
@@ -7,6 +9,38 @@ function generateId(): string {
 }
 
 export const studentsHandlers = [
+  // ==================== HOSTEL ALLOCATION LOOKUP ====================
+
+  http.get('/api/students/:id/hostel', async ({ params }) => {
+    await delay(200)
+    const student = students.find((s) => s.id === params.id)
+    if (!student) {
+      return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+
+    // Find active hostel allocation for this student
+    const allocation = roomAllocations.find(
+      (a) => a.studentId === params.id && a.status === 'active'
+    )
+
+    return HttpResponse.json({ data: allocation || null })
+  }),
+
+  // ==================== ALUMNI RECORD LOOKUP ====================
+
+  http.get('/api/students/:id/alumni', async ({ params }) => {
+    await delay(200)
+    const student = students.find((s) => s.id === params.id)
+    if (!student) {
+      return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+
+    // Find alumni record linked to this student
+    const alumniRecord = getAlumniByStudentId(params.id as string)
+
+    return HttpResponse.json({ data: alumniRecord || null })
+  }),
+
   // ==================== TIMELINE ====================
 
   http.get('/api/students/:id/timeline', async ({ params }) => {
@@ -396,5 +430,92 @@ export const studentsHandlers = [
     }))
 
     return HttpResponse.json({ data: exportData })
+  }),
+
+  // ==================== ENROLLMENT (from Admissions) ====================
+
+  http.get('/api/students/next-roll-number', async ({ request }) => {
+    await delay(200)
+    const url = new URL(request.url)
+    const classParam = url.searchParams.get('class')
+    const section = url.searchParams.get('section')
+
+    if (!classParam || !section) {
+      return HttpResponse.json({ error: 'Class and section are required' }, { status: 400 })
+    }
+
+    // Find the highest roll number in this class/section
+    const classStudents = students.filter(
+      (s) => s.class === classParam && s.section === section && s.status === 'active'
+    )
+    const maxRoll = classStudents.reduce((max, s) => Math.max(max, s.rollNumber), 0)
+
+    return HttpResponse.json({ data: { nextRollNumber: maxRoll + 1 } })
+  }),
+
+  http.post('/api/students/enroll', async ({ request }) => {
+    await delay(500)
+    const body = await request.json() as {
+      applicationId: string
+      name: string
+      email: string
+      phone: string
+      dateOfBirth: string
+      gender: 'male' | 'female'
+      bloodGroup: string
+      class: string
+      section: string
+      rollNumber: number
+      fatherName: string
+      motherName: string
+      guardianPhone: string
+      guardianEmail: string
+      street: string
+      city: string
+      state: string
+      pincode: string
+    }
+
+    const now = new Date()
+    const count = students.length + 1
+
+    const newStudent = {
+      id: generateId(),
+      admissionNumber: `ADM${now.getFullYear()}${String(count).padStart(4, '0')}`,
+      name: body.name,
+      email: body.email || '',
+      phone: body.phone || '',
+      dateOfBirth: body.dateOfBirth || '',
+      gender: body.gender,
+      bloodGroup: body.bloodGroup || 'O+',
+      class: body.class,
+      section: body.section,
+      rollNumber: body.rollNumber,
+      admissionDate: now.toISOString(),
+      photoUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${body.name.replace(/\s/g, '')}`,
+      address: {
+        street: body.street || '',
+        city: body.city || '',
+        state: body.state || '',
+        pincode: body.pincode || '',
+      },
+      parent: {
+        fatherName: body.fatherName || '',
+        motherName: body.motherName || '',
+        guardianPhone: body.guardianPhone || '',
+        guardianEmail: body.guardianEmail || '',
+        occupation: '',
+      },
+      status: 'active' as const,
+    }
+
+    students.push(newStudent)
+
+    return HttpResponse.json({
+      data: {
+        student: newStudent,
+        admissionNumber: newStudent.admissionNumber,
+      },
+    }, { status: 201 })
   }),
 ]

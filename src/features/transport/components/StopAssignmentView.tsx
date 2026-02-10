@@ -82,8 +82,8 @@ export function StopAssignmentView() {
       <div className="grid grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-              <Users className="h-5 w-5 text-blue-600" />
+            <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+              <Users className="h-5 w-5 text-blue-600 dark:text-blue-200" />
             </div>
             <div>
               <p className="text-2xl font-bold">{totalStudents}</p>
@@ -93,8 +93,8 @@ export function StopAssignmentView() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-              <MapPin className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
+              <MapPin className="h-5 w-5 text-green-600 dark:text-green-200" />
             </div>
             <div>
               <p className="text-2xl font-bold">{uniqueStops}</p>
@@ -104,8 +104,8 @@ export function StopAssignmentView() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-              <span className="text-purple-600 font-bold text-sm">INR</span>
+            <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg">
+              <span className="text-purple-600 dark:text-purple-200 font-bold text-sm">INR</span>
             </div>
             <div>
               <p className="text-2xl font-bold">{formatCurrency(totalMonthlyFee)}</p>

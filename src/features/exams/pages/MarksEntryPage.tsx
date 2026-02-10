@@ -63,6 +63,8 @@ export function MarksEntryPage() {
       await submitMarks.mutateAsync({
         examId: id!,
         subjectId: selectedSubject.id,
+        className: selectedClass,
+        section: selectedSection,
         marks,
       })
       toast({

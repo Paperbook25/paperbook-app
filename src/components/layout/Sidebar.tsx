@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import { createPortal } from 'react-dom'
 import {
   LayoutDashboard,
   UserPlus,
@@ -12,22 +13,24 @@ import {
   IndianRupee,
   Settings,
   Plug,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
+  Building2,
+  UserCheck,
+  Package,
+  Users2,
+  X,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button'
 import { useUIStore } from '@/stores/useUIStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { Role } from '@/types/common.types'
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 
 interface NavItem {
   name: string
+  shortName?: string
   href: string
   icon: LucideIcon
   roles: Role[]
@@ -43,6 +46,7 @@ const navigation: NavItem[] = [
   },
   {
     name: 'Admissions',
+    shortName: 'Admit',
     href: '/admissions',
     icon: UserPlus,
     roles: ['admin', 'principal'],
@@ -80,6 +84,7 @@ const navigation: NavItem[] = [
   },
   {
     name: 'Attendance',
+    shortName: 'Attend',
     href: '/attendance',
     icon: ClipboardCheck,
     roles: ['admin', 'principal', 'teacher'],
@@ -97,6 +102,7 @@ const navigation: NavItem[] = [
   // Student/Parent specific attendance view
   {
     name: 'My Attendance',
+    shortName: 'Attend',
     href: '/attendance',
     icon: ClipboardCheck,
     roles: ['student', 'parent'],
@@ -105,7 +111,7 @@ const navigation: NavItem[] = [
     name: 'Library',
     href: '/library',
     icon: BookOpen,
-    roles: ['admin', 'principal', 'librarian', 'teacher', 'student'],
+    roles: ['admin', 'principal', 'librarian', 'teacher', 'student', 'parent'],
     children: [
       { name: 'Catalog', href: '/library' },
       { name: 'Issued Books', href: '/library?tab=issued' },
@@ -145,12 +151,13 @@ const navigation: NavItem[] = [
       { name: 'Notifications', href: '/transport/notifications' },
     ],
   },
-  // Parent-specific transport view
+  // Parent/Student transport tracking view
   {
     name: 'Bus Tracking',
+    shortName: 'Bus',
     href: '/transport/tracking',
     icon: Bus,
-    roles: ['parent'],
+    roles: ['parent', 'student'],
   },
   {
     name: 'Exams',
@@ -172,6 +179,7 @@ const navigation: NavItem[] = [
   // Student/Parent exam results view
   {
     name: 'My Results',
+    shortName: 'Results',
     href: '/exams?tab=reports',
     icon: ClipboardList,
     roles: ['student', 'parent'],
@@ -193,15 +201,68 @@ const navigation: NavItem[] = [
       { name: 'Reports', href: '/finance?tab=reports' },
     ],
   },
-  // Parent-specific fees view
+  // Parent/Student fees view
   {
     name: 'Fees',
     href: '/finance/my-fees',
     icon: IndianRupee,
-    roles: ['parent'],
+    roles: ['parent', 'student'],
+  },
+  {
+    name: 'Hostel',
+    href: '/hostel',
+    icon: Building2,
+    roles: ['admin', 'principal'],
+    children: [
+      { name: 'Dashboard', href: '/hostel' },
+      { name: 'Rooms', href: '/hostel/rooms' },
+      { name: 'Allocations', href: '/hostel/allocations' },
+      { name: 'Fees', href: '/hostel/fees' },
+      { name: 'Mess Menu', href: '/hostel/mess' },
+      { name: 'Attendance', href: '/hostel/attendance' },
+    ],
+  },
+  {
+    name: 'Visitors',
+    href: '/visitors',
+    icon: UserCheck,
+    roles: ['admin', 'principal'],
+    children: [
+      { name: 'Check-In', href: '/visitors' },
+      { name: 'Logs', href: '/visitors/logs' },
+      { name: 'Reports', href: '/visitors/reports' },
+      { name: 'Pre-Approved', href: '/visitors/pre-approved' },
+    ],
+  },
+  {
+    name: 'Inventory',
+    href: '/inventory',
+    icon: Package,
+    roles: ['admin', 'principal', 'accountant'],
+    children: [
+      { name: 'Dashboard', href: '/inventory' },
+      { name: 'Assets', href: '/inventory/assets' },
+      { name: 'Stock', href: '/inventory/stock' },
+      { name: 'Purchase Orders', href: '/inventory/purchase-orders' },
+      { name: 'Vendors', href: '/inventory/vendors' },
+    ],
+  },
+  {
+    name: 'Alumni',
+    href: '/alumni',
+    icon: Users2,
+    roles: ['admin', 'principal'],
+    children: [
+      { name: 'Directory', href: '/alumni' },
+      { name: 'Batches', href: '/alumni/batches' },
+      { name: 'Achievements', href: '/alumni/achievements' },
+      { name: 'Contributions', href: '/alumni/contributions' },
+      { name: 'Events', href: '/alumni/events' },
+    ],
   },
   {
     name: 'Integrations',
+    shortName: 'Integrate',
     href: '/integrations',
     icon: Plug,
     roles: ['admin', 'principal'],
@@ -231,13 +292,188 @@ const navigation: NavItem[] = [
   },
 ]
 
-function NavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
+interface FlyoutPanelProps {
+  item: NavItem
+  isOpen: boolean
+  onNavigate: () => void
+  triggerRect: DOMRect | null
+}
+
+function FlyoutPanel({ item, isOpen, onNavigate, triggerRect }: FlyoutPanelProps) {
   const location = useLocation()
-  const [expanded, setExpanded] = useState(false)
-  const isActive = location.pathname === item.href || location.pathname.startsWith(item.href + '/')
+
+  if (!triggerRect) return null
+
+  // Calculate position based on trigger element
+  const left = triggerRect.right + 8 // 8px gap from sidebar
+
+  // Check if flyout would overflow bottom of screen
+  const flyoutHeight = Math.min((item.children?.length || 0) * 40 + 60, 380)
+  const adjustedTop = triggerRect.top + flyoutHeight > window.innerHeight - 20
+    ? Math.max(20, window.innerHeight - flyoutHeight - 20)
+    : triggerRect.top
+
+  const flyoutContent = (
+    <>
+      {/* Invisible bridge to prevent hover gap - rendered at portal level */}
+      <div
+        style={{
+          position: 'fixed',
+          top: triggerRect.top,
+          left: triggerRect.right,
+          width: 12,
+          height: triggerRect.height,
+          zIndex: 99,
+        }}
+        className={isOpen ? 'block' : 'hidden'}
+      />
+
+      {/* Flyout content */}
+      <div
+        role="menu"
+        aria-label={`${item.name} submenu`}
+        style={{ top: adjustedTop, left }}
+        className={cn(
+          'fixed z-[100] min-w-52 max-w-64',
+          'transition-all duration-150 ease-out',
+          isOpen
+            ? 'opacity-100 translate-x-0 pointer-events-auto'
+            : 'opacity-0 -translate-x-2 pointer-events-none'
+        )}
+      >
+        <div className="rounded-xl border bg-card p-2 shadow-lg">
+          {/* Header */}
+          <div className="mb-2 px-3 py-2 border-b">
+            <h3 className="text-sm font-semibold text-foreground">{item.name}</h3>
+          </div>
+
+          {/* Menu items */}
+          <div className="space-y-0.5 max-h-80 overflow-y-auto">
+            {item.children?.map((child) => {
+              const isChildActive = location.pathname === child.href ||
+                (location.pathname + location.search) === child.href
+              return (
+                <Link
+                  key={child.href}
+                  to={child.href}
+                  role="menuitem"
+                  onClick={onNavigate}
+                  className={cn(
+                    'flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors',
+                    isChildActive
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-foreground/70 hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  {child.name}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+
+  return createPortal(flyoutContent, document.body)
+}
+
+function SidebarNavItem({ item }: { item: NavItem }) {
+  const location = useLocation()
+  const [isOpen, setIsOpen] = useState(false)
+  const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const itemRef = useRef<HTMLDivElement>(null)
+
+  const isActive = location.pathname === item.href ||
+    (item.href !== '/' && location.pathname.startsWith(item.href + '/'))
   const hasChildren = item.children && item.children.length > 0
 
-  const content = (
+  const handleMouseEnter = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+
+    // Capture position for portal positioning
+    if (itemRef.current) {
+      setTriggerRect(itemRef.current.getBoundingClientRect())
+    }
+
+    setIsOpen(true)
+  }, [])
+
+  const handleMouseLeave = useCallback(() => {
+    timeoutRef.current = setTimeout(() => setIsOpen(false), 150)
+  }, [])
+
+  const handleNavigate = useCallback(() => {
+    setIsOpen(false)
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [])
+
+  // Close flyout on route change
+  useEffect(() => {
+    setIsOpen(false)
+  }, [location.pathname])
+
+  return (
+    <div
+      ref={itemRef}
+      className="relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Icon + Label stacked */}
+      <Link
+        to={item.href}
+        onKeyDown={(e) => {
+          if (hasChildren && e.key === 'ArrowRight') {
+            e.preventDefault()
+            setIsOpen(true)
+          }
+        }}
+        aria-label={item.name}
+        aria-haspopup={hasChildren ? 'menu' : undefined}
+        aria-expanded={hasChildren ? isOpen : undefined}
+        className={cn(
+          'flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-center transition-all',
+          isActive
+            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+            : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+        )}
+      >
+        <item.icon className="h-5 w-5 shrink-0" />
+        <span className="text-[8px] font-medium leading-none truncate w-full">
+          {item.shortName || item.name}
+        </span>
+      </Link>
+
+      {/* Flyout Panel */}
+      {hasChildren && (
+        <FlyoutPanel
+          item={item}
+          isOpen={isOpen}
+          onNavigate={handleNavigate}
+          triggerRect={triggerRect}
+        />
+      )}
+    </div>
+  )
+}
+
+// Mobile nav item with accordion-style expansion
+function MobileNavItem({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+  const location = useLocation()
+  const [expanded, setExpanded] = useState(false)
+
+  const isActive = location.pathname === item.href ||
+    (item.href !== '/' && location.pathname.startsWith(item.href + '/'))
+  const hasChildren = item.children && item.children.length > 0
+
+  return (
     <div>
       <Link
         to={hasChildren ? '#' : item.href}
@@ -245,43 +481,43 @@ function NavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           if (hasChildren) {
             e.preventDefault()
             setExpanded(!expanded)
+          } else {
+            onNavigate()
           }
         }}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors',
           isActive
             ? 'bg-primary text-primary-foreground'
-            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-          collapsed && 'justify-center px-2'
+            : 'text-foreground hover:bg-muted'
         )}
       >
         <item.icon className="h-5 w-5 shrink-0" />
-        {!collapsed && (
-          <>
-            <span className="flex-1">{item.name}</span>
-            {hasChildren && (
-              <ChevronDown
-                className={cn(
-                  'h-4 w-4 transition-transform',
-                  expanded && 'rotate-180'
-                )}
-              />
-            )}
-          </>
+        <span className="flex-1">{item.name}</span>
+        {hasChildren && (
+          <svg
+            className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         )}
       </Link>
 
-      {hasChildren && expanded && !collapsed && (
+      {hasChildren && expanded && (
         <div className="ml-4 mt-1 space-y-1 border-l pl-4">
           {item.children?.map((child) => (
             <Link
               key={child.href}
               to={child.href}
+              onClick={onNavigate}
               className={cn(
-                'block rounded-lg px-3 py-1.5 text-sm transition-colors',
+                'block rounded-lg px-3 py-2 text-sm transition-colors',
                 location.pathname === child.href
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                  : 'text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                  ? 'bg-muted text-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               )}
             >
               {child.name}
@@ -291,76 +527,88 @@ function NavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
       )}
     </div>
   )
+}
 
-  if (collapsed) {
-    return (
-      <Tooltip delayDuration={0}>
-        <TooltipTrigger asChild>{content}</TooltipTrigger>
-        <TooltipContent side="right" className="flex items-center gap-4">
-          {item.name}
-        </TooltipContent>
-      </Tooltip>
-    )
-  }
+// Mobile drawer component
+function MobileDrawer({ filteredNav }: { filteredNav: NavItem[] }) {
+  const { sidebarMobileOpen, setSidebarMobileOpen } = useUIStore()
+  const location = useLocation()
 
-  return content
+  // Close drawer on route change
+  useEffect(() => {
+    setSidebarMobileOpen(false)
+  }, [location.pathname, setSidebarMobileOpen])
+
+  const handleClose = useCallback(() => {
+    setSidebarMobileOpen(false)
+  }, [setSidebarMobileOpen])
+
+  if (!sidebarMobileOpen) return null
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+        onClick={handleClose}
+      />
+
+      {/* Drawer */}
+      <div className="fixed inset-y-0 left-0 z-50 w-72 bg-background shadow-xl lg:hidden animate-in slide-in-from-left duration-300">
+        {/* Header */}
+        <div className="flex h-16 items-center justify-between border-b px-4">
+          <Link to="/" className="flex items-center gap-2" onClick={handleClose}>
+            <img src="/logo.svg" alt="PaperBook" className="h-8 w-8" />
+            <span className="font-semibold text-lg">PaperBook</span>
+          </Link>
+          <Button variant="ghost" size="icon" onClick={handleClose}>
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Navigation */}
+        <ScrollArea className="h-[calc(100vh-4rem)]">
+          <nav className="space-y-1 p-4">
+            {filteredNav.map((item) => (
+              <MobileNavItem
+                key={item.href + item.name}
+                item={item}
+                onNavigate={handleClose}
+              />
+            ))}
+          </nav>
+        </ScrollArea>
+      </div>
+    </>
+  )
 }
 
 export function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar } = useUIStore()
   const { hasRole } = useAuthStore()
 
   const filteredNav = navigation.filter((item) => hasRole(item.roles))
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 z-40 flex h-screen flex-col border-r bg-sidebar transition-all duration-300',
-        sidebarCollapsed ? 'w-16' : 'w-64'
-      )}
-    >
-      {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
-        {!sidebarCollapsed && (
-          <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.svg" alt="PaperBook" className="h-8 w-8" />
-            <span className="font-semibold text-lg">PaperBook</span>
-          </Link>
-        )}
-        {sidebarCollapsed && (
-          <Link to="/" className="mx-auto">
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-20 flex-col bg-sidebar border-r border-sidebar-border lg:flex">
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
+          <Link to="/">
             <img src="/logo.svg" alt="PaperBook" className="h-8 w-8" />
           </Link>
-        )}
-      </div>
+        </div>
 
-      {/* Navigation */}
-      <ScrollArea className="flex-1 py-4">
-        <nav className="space-y-1 px-2">
+        {/* Navigation */}
+        <nav className="flex-1 flex flex-col justify-between py-2 px-1.5 overflow-hidden">
           {filteredNav.map((item) => (
-            <NavItem key={item.name} item={item} collapsed={sidebarCollapsed} />
+            <SidebarNavItem key={item.href + item.name} item={item} />
           ))}
         </nav>
-      </ScrollArea>
+      </aside>
 
-      {/* Collapse Button */}
-      <div className="border-t p-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn('w-full', sidebarCollapsed && 'px-2')}
-          onClick={toggleSidebar}
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <>
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Collapse
-            </>
-          )}
-        </Button>
-      </div>
-    </aside>
+      {/* Mobile Drawer */}
+      <MobileDrawer filteredNav={filteredNav} />
+    </>
   )
 }

@@ -27,7 +27,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b-2 border-sky-400/30 bg-sky-100/80 backdrop-blur supports-[backdrop-filter]:bg-sky-100/60 px-4 lg:px-6 dark:bg-sky-950/50 dark:border-sky-500/30">
       {/* Left side - Mobile menu & Search */}
       <div className="flex items-center gap-4">
         <Button

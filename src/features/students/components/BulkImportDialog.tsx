@@ -478,7 +478,7 @@ export function BulkImportDialog({ open, onOpenChange }: BulkImportDialogProps) 
                     {parsedData.map((item, index) => (
                       <TableRow
                         key={index}
-                        className={!item.isValid ? 'bg-red-50 dark:bg-red-950/20' : ''}
+                        className={!item.isValid ? 'bg-red-50 dark:bg-red-900/30' : ''}
                       >
                         <TableCell className="font-mono text-xs text-muted-foreground">
                           {index + 1}
@@ -583,14 +583,14 @@ export function BulkImportDialog({ open, onOpenChange }: BulkImportDialogProps) 
                       <p className="text-2xl font-bold">{importResult.total}</p>
                       <p className="text-sm text-muted-foreground">Total</p>
                     </div>
-                    <div className="text-center p-4 border rounded-lg bg-green-50 dark:bg-green-950/20">
-                      <p className="text-2xl font-bold text-green-600">
+                    <div className="text-center p-4 border rounded-lg bg-green-50 dark:bg-green-800/30">
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-200">
                         {importResult.successful}
                       </p>
                       <p className="text-sm text-muted-foreground">Imported</p>
                     </div>
-                    <div className="text-center p-4 border rounded-lg bg-red-50 dark:bg-red-950/20">
-                      <p className="text-2xl font-bold text-red-600">
+                    <div className="text-center p-4 border rounded-lg bg-red-50 dark:bg-red-800/30">
+                      <p className="text-2xl font-bold text-red-600 dark:text-red-200">
                         {importResult.failed}
                       </p>
                       <p className="text-sm text-muted-foreground">Failed</p>

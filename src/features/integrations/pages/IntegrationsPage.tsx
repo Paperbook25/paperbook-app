@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Plus, MessageSquare, Mail, CreditCard, MessageCircle, Fingerprint, Webhook, Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'

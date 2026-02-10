@@ -11,6 +11,9 @@ import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { StudentDashboard } from '@/features/dashboard/pages/StudentDashboard'
 import { ParentDashboard } from '@/features/dashboard/pages/ParentDashboard'
 import { TeacherDashboard } from '@/features/dashboard/pages/TeacherDashboard'
+import { AccountantDashboard } from '@/features/dashboard/pages/AccountantDashboard'
+import { LibrarianDashboard } from '@/features/dashboard/pages/LibrarianDashboard'
+import { TransportManagerDashboard } from '@/features/dashboard/pages/TransportManagerDashboard'
 import { StudentsListPage } from '@/features/students/pages/StudentsListPage'
 import { StudentDetailPage } from '@/features/students/pages/StudentDetailPage'
 import { NewStudentPage } from '@/features/students/pages/NewStudentPage'
@@ -68,6 +71,7 @@ import { ShortageAlertsPage } from '@/features/attendance/pages/ShortageAlertsPa
 import { LateDetectionPage } from '@/features/attendance/pages/LateDetectionPage'
 import { AttendanceNotificationsPage } from '@/features/attendance/pages/NotificationsPage'
 import { BiometricPage } from '@/features/attendance/pages/BiometricPage'
+import { LeaveApplicationPage } from '@/features/attendance/pages/LeaveApplicationPage'
 import { LmsPage } from '@/features/lms/pages/LmsPage'
 import { CoursesListPage } from '@/features/lms/pages/CoursesListPage'
 import { NewCoursePage } from '@/features/lms/pages/NewCoursePage'
@@ -77,6 +81,10 @@ import { StudentCoursePage } from '@/features/lms/pages/StudentCoursePage'
 import { LiveClassesPage } from '@/features/lms/pages/LiveClassesPage'
 import { EnrollmentsPage } from '@/features/lms/pages/EnrollmentsPage'
 import { AssignmentsPage } from '@/features/lms/pages/AssignmentsPage'
+import { HostelPage, RoomsPage, AllocationsPage, HostelFeesPage, MessPage, HostelAttendancePage } from '@/features/hostel'
+import { VisitorsPage, VisitorLogsPage, VisitorReportsPage, PreApprovedPage } from '@/features/visitors'
+import { InventoryPage, AssetsPage, StockPage, PurchaseOrdersPage, CreatePurchaseOrderPage, VendorsPage } from '@/features/inventory'
+import { AlumniPage, BatchesPage, AchievementsPage, ContributionsPage, EventsPage as AlumniEventsPage } from '@/features/alumni'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -113,7 +121,19 @@ function RoleDashboard() {
     return <TeacherDashboard />
   }
 
-  // Default to admin/staff dashboard
+  if (user?.role === 'accountant') {
+    return <AccountantDashboard />
+  }
+
+  if (user?.role === 'librarian') {
+    return <LibrarianDashboard />
+  }
+
+  if (user?.role === 'transport_manager') {
+    return <TransportManagerDashboard />
+  }
+
+  // Default to admin/principal dashboard
   return <DashboardPage />
 }
 
@@ -293,6 +313,14 @@ export default function App() {
             }
           />
           <Route
+            path="/attendance/leave"
+            element={
+              <RoleProtectedRoute allowedRoles={['parent', 'student']}>
+                <LeaveApplicationPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
             path="/attendance/*"
             element={
               <RoleProtectedRoute allowedRoles={ALL_ROLES}>
@@ -403,7 +431,7 @@ export default function App() {
           <Route
             path="/library/reading"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student', 'parent']}>
                 <ReadingHistoryPage />
               </RoleProtectedRoute>
             }
@@ -461,7 +489,7 @@ export default function App() {
           <Route
             path="/transport/tracking"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent', 'student']}>
                 <TrackingPage />
               </RoleProtectedRoute>
             }
@@ -499,11 +527,11 @@ export default function App() {
             }
           />
 
-          {/* Finance */}
+          {/* Finance - Admin routes */}
           <Route
             path="/finance"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <FinancePage />
               </RoleProtectedRoute>
             }
@@ -511,7 +539,7 @@ export default function App() {
           <Route
             path="/finance/installments"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <InstallmentPlansPage />
               </RoleProtectedRoute>
             }
@@ -519,7 +547,7 @@ export default function App() {
           <Route
             path="/finance/discounts"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <DiscountRulesPage />
               </RoleProtectedRoute>
             }
@@ -527,7 +555,7 @@ export default function App() {
           <Route
             path="/finance/concessions"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <ConcessionsPage />
               </RoleProtectedRoute>
             }
@@ -535,7 +563,7 @@ export default function App() {
           <Route
             path="/finance/escalation"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <EscalationPage />
               </RoleProtectedRoute>
             }
@@ -543,15 +571,16 @@ export default function App() {
           <Route
             path="/finance/online-payments"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <OnlinePaymentsPage />
               </RoleProtectedRoute>
             }
           />
+          {/* Finance - Student/Parent fee dashboard */}
           <Route
             path="/finance/my-fees"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['parent', 'student']}>
                 <ParentFeeDashboardPage />
               </RoleProtectedRoute>
             }
@@ -559,7 +588,7 @@ export default function App() {
           <Route
             path="/finance/*"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
                 <FinancePage />
               </RoleProtectedRoute>
             }
@@ -613,7 +642,7 @@ export default function App() {
           <Route
             path="/exams/new"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <NewExamPage />
               </RoleProtectedRoute>
             }
@@ -661,7 +690,7 @@ export default function App() {
           <Route
             path="/exams/:id/edit"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <EditExamPage />
               </RoleProtectedRoute>
             }
@@ -677,7 +706,7 @@ export default function App() {
           <Route
             path="/exams/:id/marks"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <MarksEntryPage />
               </RoleProtectedRoute>
             }
@@ -703,7 +732,7 @@ export default function App() {
           <Route
             path="/lms/courses/new"
             element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <NewCoursePage />
               </RoleProtectedRoute>
             }
@@ -719,7 +748,7 @@ export default function App() {
           <Route
             path="/lms/courses/:id/edit"
             element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
                 <EditCoursePage />
               </RoleProtectedRoute>
             }
@@ -761,6 +790,214 @@ export default function App() {
             element={
               <RoleProtectedRoute allowedRoles={ALL_ROLES}>
                 <LmsPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Hostel */}
+          <Route
+            path="/hostel"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <HostelPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/hostel/rooms"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <RoomsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/hostel/allocations"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <AllocationsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/hostel/fees"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <HostelFeesPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/hostel/mess"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <MessPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/hostel/attendance"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <HostelAttendancePage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/hostel/*"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <HostelPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Visitors */}
+          <Route
+            path="/visitors"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <VisitorsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/visitors/logs"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <VisitorLogsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/visitors/reports"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <VisitorReportsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/visitors/pre-approved"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <PreApprovedPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/visitors/*"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <VisitorsPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Inventory */}
+          <Route
+            path="/inventory"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <InventoryPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/assets"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <AssetsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/stock"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <StockPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/purchase-orders"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <PurchaseOrdersPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/purchase-orders/new"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <CreatePurchaseOrderPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/vendors"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <VendorsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/inventory/*"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <InventoryPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Alumni */}
+          <Route
+            path="/alumni"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <AlumniPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/alumni/batches"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <BatchesPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/alumni/achievements"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <AchievementsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/alumni/contributions"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <ContributionsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/alumni/events"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <AlumniEventsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/alumni/*"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
+                <AlumniPage />
               </RoleProtectedRoute>
             }
           />

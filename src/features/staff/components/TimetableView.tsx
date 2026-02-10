@@ -14,18 +14,18 @@ interface TimetableViewProps {
 
 // Color mapping for subjects - consistent colors based on subject name hash
 const SUBJECT_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  Mathematics: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-700 dark:text-blue-300', border: 'border-blue-200 dark:border-blue-800' },
-  Science: { bg: 'bg-green-50 dark:bg-green-950', text: 'text-green-700 dark:text-green-300', border: 'border-green-200 dark:border-green-800' },
-  English: { bg: 'bg-purple-50 dark:bg-purple-950', text: 'text-purple-700 dark:text-purple-300', border: 'border-purple-200 dark:border-purple-800' },
-  Hindi: { bg: 'bg-orange-50 dark:bg-orange-950', text: 'text-orange-700 dark:text-orange-300', border: 'border-orange-200 dark:border-orange-800' },
-  'Social Studies': { bg: 'bg-amber-50 dark:bg-amber-950', text: 'text-amber-700 dark:text-amber-300', border: 'border-amber-200 dark:border-amber-800' },
-  'Computer Science': { bg: 'bg-cyan-50 dark:bg-cyan-950', text: 'text-cyan-700 dark:text-cyan-300', border: 'border-cyan-200 dark:border-cyan-800' },
-  'Physical Education': { bg: 'bg-rose-50 dark:bg-rose-950', text: 'text-rose-700 dark:text-rose-300', border: 'border-rose-200 dark:border-rose-800' },
-  Art: { bg: 'bg-pink-50 dark:bg-pink-950', text: 'text-pink-700 dark:text-pink-300', border: 'border-pink-200 dark:border-pink-800' },
-  Music: { bg: 'bg-violet-50 dark:bg-violet-950', text: 'text-violet-700 dark:text-violet-300', border: 'border-violet-200 dark:border-violet-800' },
+  Mathematics: { bg: 'bg-blue-50 dark:bg-blue-800', text: 'text-blue-700 dark:text-blue-100', border: 'border-blue-200 dark:border-blue-700' },
+  Science: { bg: 'bg-green-50 dark:bg-green-800', text: 'text-green-700 dark:text-green-100', border: 'border-green-200 dark:border-green-700' },
+  English: { bg: 'bg-purple-50 dark:bg-purple-800', text: 'text-purple-700 dark:text-purple-100', border: 'border-purple-200 dark:border-purple-700' },
+  Hindi: { bg: 'bg-orange-50 dark:bg-orange-800', text: 'text-orange-700 dark:text-orange-100', border: 'border-orange-200 dark:border-orange-700' },
+  'Social Studies': { bg: 'bg-amber-50 dark:bg-amber-800', text: 'text-amber-700 dark:text-amber-100', border: 'border-amber-200 dark:border-amber-700' },
+  'Computer Science': { bg: 'bg-cyan-50 dark:bg-cyan-800', text: 'text-cyan-700 dark:text-cyan-100', border: 'border-cyan-200 dark:border-cyan-700' },
+  'Physical Education': { bg: 'bg-rose-50 dark:bg-rose-800', text: 'text-rose-700 dark:text-rose-100', border: 'border-rose-200 dark:border-rose-700' },
+  Art: { bg: 'bg-pink-50 dark:bg-pink-800', text: 'text-pink-700 dark:text-pink-100', border: 'border-pink-200 dark:border-pink-700' },
+  Music: { bg: 'bg-violet-50 dark:bg-violet-800', text: 'text-violet-700 dark:text-violet-100', border: 'border-violet-200 dark:border-violet-700' },
 }
 
-const DEFAULT_COLOR = { bg: 'bg-slate-50 dark:bg-slate-950', text: 'text-slate-700 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-800' }
+const DEFAULT_COLOR = { bg: 'bg-slate-50 dark:bg-slate-800', text: 'text-slate-700 dark:text-slate-100', border: 'border-slate-200 dark:border-slate-700' }
 
 function getSubjectColor(subject: string) {
   return SUBJECT_COLORS[subject] || DEFAULT_COLOR

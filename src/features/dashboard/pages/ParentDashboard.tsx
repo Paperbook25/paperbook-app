@@ -11,6 +11,9 @@ import {
   FileText,
   Bus,
   Award,
+  Clock,
+  GraduationCap,
+  ArrowRight,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -69,6 +72,39 @@ export function ParentDashboard() {
       const json = await res.json()
       return json.data
     },
+  })
+
+  // Fetch child's timetable
+  const { data: timetable } = useQuery({
+    queryKey: ['dashboard', 'child-timetable', selectedChild],
+    queryFn: async () => {
+      const res = await fetch(`/api/dashboard/child-timetable?studentId=${selectedChild}`)
+      const json = await res.json()
+      return json.data
+    },
+    enabled: !!selectedChild,
+  })
+
+  // Fetch child's pending assignments
+  const { data: assignments } = useQuery({
+    queryKey: ['dashboard', 'child-assignments', selectedChild],
+    queryFn: async () => {
+      const res = await fetch(`/api/dashboard/child-assignments?studentId=${selectedChild}`)
+      const json = await res.json()
+      return json.data
+    },
+    enabled: !!selectedChild,
+  })
+
+  // Fetch child's teachers
+  const { data: teachers } = useQuery({
+    queryKey: ['dashboard', 'child-teachers', selectedChild],
+    queryFn: async () => {
+      const res = await fetch(`/api/dashboard/child-teachers?studentId=${selectedChild}`)
+      const json = await res.json()
+      return json.data
+    },
+    enabled: !!selectedChild,
   })
 
   // Mock monthly attendance data
@@ -166,7 +202,7 @@ export function ParentDashboard() {
           </CardContent>
         </Card>
 
-        <Link to="/fees">
+        <Link to="/finance/my-fees">
           <Card className="hover:shadow-md transition-shadow h-full">
             <CardContent className="pt-6">
               <div className="flex items-center gap-4">
@@ -307,7 +343,7 @@ export function ParentDashboard() {
                   <span className="text-xs">Apply Leave</span>
                 </Button>
               </Link>
-              <Link to="/fees">
+              <Link to="/finance/my-fees">
                 <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2">
                   <div className="p-2 rounded-lg bg-green-500 text-white">
                     <IndianRupee className="h-5 w-5" />
@@ -367,6 +403,138 @@ export function ParentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Timetable & Teachers */}
+      <div className="grid gap-6 lg:grid-cols-3 mb-6">
+        {/* Today's Schedule */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Today's Schedule
+              </CardTitle>
+              <CardDescription>
+                {currentChild?.name}'s classes for today
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {timetable && timetable.length > 0 ? (
+              <div className="space-y-2">
+                {timetable.map((period: any, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-3 p-3 border rounded-lg"
+                  >
+                    <div className="text-center min-w-[40px]">
+                      <span className="text-lg font-bold">{period.period}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium text-sm">{period.subject}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {period.time} | {period.teacherName}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {period.room}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No schedule for today</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Teachers */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Teachers
+            </CardTitle>
+            <CardDescription>Class teachers</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {teachers && teachers.length > 0 ? (
+              <div className="space-y-3">
+                {teachers.slice(0, 5).map((teacher: any) => (
+                  <div key={teacher.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback>{teacher.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{teacher.name}</p>
+                      <p className="text-xs text-muted-foreground">{teacher.subject}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <GraduationCap className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No teacher information</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pending Assignments */}
+      {assignments && assignments.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Pending Assignments
+              </CardTitle>
+              <CardDescription>
+                {currentChild?.name}'s upcoming assignments
+              </CardDescription>
+            </div>
+            <Link to="/lms/assignments">
+              <Button variant="ghost" size="sm">
+                View All
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+              {assignments.slice(0, 4).map((assignment: any) => (
+                <div
+                  key={assignment.id}
+                  className={cn(
+                    'p-3 rounded-lg border',
+                    assignment.daysUntilDue <= 1 && 'border-red-200 bg-red-50',
+                    assignment.daysUntilDue <= 3 && assignment.daysUntilDue > 1 && 'border-orange-200 bg-orange-50',
+                    assignment.daysUntilDue > 3 && 'border-green-200 bg-green-50'
+                  )}
+                >
+                  <p className="font-medium text-sm truncate">{assignment.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{assignment.courseName}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-xs">
+                      {assignment.daysUntilDue <= 0
+                        ? 'Overdue'
+                        : assignment.daysUntilDue === 1
+                        ? 'Due tomorrow'
+                        : `Due in ${assignment.daysUntilDue} days`}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upcoming Events */}
       <Card>

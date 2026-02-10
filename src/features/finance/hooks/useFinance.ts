@@ -34,6 +34,7 @@ import {
   fetchFinancialSummary,
   fetchFinanceStats,
   fetchInstallmentPlans,
+  fetchInstallmentPlan,
   createInstallmentPlan,
   toggleInstallmentPlan,
   deleteInstallmentPlan,
@@ -147,6 +148,8 @@ export const financeKeys = {
   installmentPlans: () => [...financeKeys.all, 'installment-plans'] as const,
   installmentPlansList: (academicYear?: string) =>
     [...financeKeys.installmentPlans(), academicYear] as const,
+  installmentPlanDetail: (id: string) =>
+    [...financeKeys.installmentPlans(), 'detail', id] as const,
 
   // Discount Rules
   discountRules: () => [...financeKeys.all, 'discount-rules'] as const,
@@ -514,6 +517,14 @@ export function useInstallmentPlans(academicYear?: string) {
   return useQuery({
     queryKey: financeKeys.installmentPlansList(academicYear),
     queryFn: () => fetchInstallmentPlans(academicYear),
+  })
+}
+
+export function useInstallmentPlan(id: string) {
+  return useQuery({
+    queryKey: financeKeys.installmentPlanDetail(id),
+    queryFn: () => fetchInstallmentPlan(id),
+    enabled: !!id,
   })
 }
 

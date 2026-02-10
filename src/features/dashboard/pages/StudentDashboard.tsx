@@ -9,12 +9,16 @@ import {
   Clock,
   TrendingUp,
   FileText,
+  MonitorPlay,
+  Bus,
+  ArrowRight,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { cn, formatCurrency, formatDate } from '@/lib/utils'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -99,6 +103,36 @@ export function StudentDashboard() {
     },
   })
 
+  // Fetch enrolled courses
+  const { data: courses } = useQuery({
+    queryKey: ['dashboard', 'student-courses'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/student-courses')
+      const json = await res.json()
+      return json.data
+    },
+  })
+
+  // Fetch pending assignments
+  const { data: assignments } = useQuery({
+    queryKey: ['dashboard', 'student-assignments'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/student-assignments')
+      const json = await res.json()
+      return json.data
+    },
+  })
+
+  // Fetch transport info
+  const { data: transport } = useQuery({
+    queryKey: ['dashboard', 'student-transport'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/student-transport')
+      const json = await res.json()
+      return json.data
+    },
+  })
+
   return (
     <div>
       <PageHeader
@@ -120,7 +154,7 @@ export function StudentDashboard() {
           value={formatCurrency(pendingFees)}
           icon={IndianRupee}
           color="bg-orange-500"
-          href="/fees"
+          href="/finance/my-fees"
         />
         <QuickStat
           title="Library Books"
@@ -307,6 +341,153 @@ export function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* LMS & Transport Section */}
+      <div className="grid gap-6 lg:grid-cols-3 mb-6">
+        {/* Enrolled Courses */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MonitorPlay className="h-5 w-5" />
+                My Courses
+              </CardTitle>
+              <CardDescription>Continue learning where you left off</CardDescription>
+            </div>
+            <Link to="/lms/courses">
+              <Button variant="ghost" size="sm">
+                View All
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2">
+              {courses?.slice(0, 4).map((course: any) => (
+                <Link key={course.id} to={`/lms/courses/${course.id}/learn`}>
+                  <div className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <MonitorPlay className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{course.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Progress value={course.progress} className="flex-1 h-1.5" />
+                        <span className="text-xs text-muted-foreground">{course.progress}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+              {(!courses || courses.length === 0) && (
+                <div className="col-span-2 text-center py-6 text-muted-foreground">
+                  <MonitorPlay className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No courses enrolled yet</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Transport Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bus className="h-5 w-5" />
+              Bus Route
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {transport ? (
+              <div className="space-y-4">
+                <div className="p-4 rounded-lg bg-primary/5 border">
+                  <p className="font-medium text-sm">{transport.routeName}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Bus: {transport.vehicleNumber}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Driver: {transport.driverName}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Your Stop</p>
+                  <div className="flex items-center gap-2 p-2 border rounded-lg">
+                    <div className="p-1.5 rounded-full bg-green-500">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                    </div>
+                    <div>
+                      <p className="text-sm">{transport.stopName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Pickup: {transport.pickupTime}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <Link to="/transport/tracking">
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Bus className="h-4 w-4 mr-2" />
+                    Track Live
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <Bus className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">No transport assigned</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Pending Assignments */}
+      {assignments && assignments.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Pending Assignments
+              </CardTitle>
+              <CardDescription>Due soon - complete these first</CardDescription>
+            </div>
+            <Link to="/lms/assignments">
+              <Button variant="ghost" size="sm">
+                View All
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+              {assignments?.slice(0, 4).map((assignment: any) => (
+                <div
+                  key={assignment.id}
+                  className={cn(
+                    'p-3 rounded-lg border',
+                    assignment.daysUntilDue <= 1 && 'border-red-200 bg-red-50',
+                    assignment.daysUntilDue <= 3 && assignment.daysUntilDue > 1 && 'border-orange-200 bg-orange-50',
+                    assignment.daysUntilDue > 3 && 'border-green-200 bg-green-50'
+                  )}
+                >
+                  <p className="font-medium text-sm truncate">{assignment.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{assignment.courseName}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Clock className="h-3 w-3" />
+                    <span className="text-xs">
+                      {assignment.daysUntilDue <= 0
+                        ? 'Overdue'
+                        : assignment.daysUntilDue === 1
+                        ? 'Due tomorrow'
+                        : `Due in ${assignment.daysUntilDue} days`}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Upcoming Events */}
       <Card>

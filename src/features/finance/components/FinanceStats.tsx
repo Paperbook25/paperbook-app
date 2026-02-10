@@ -37,7 +37,7 @@ export function FinanceStats() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
               <IndianRupee className="h-5 w-5 text-green-600" />
             </div>
             <div>
@@ -52,7 +52,7 @@ export function FinanceStats() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+            <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
               <AlertCircle className="h-5 w-5 text-red-600" />
             </div>
             <div>
@@ -67,7 +67,7 @@ export function FinanceStats() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
               <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
             <div>
@@ -99,7 +99,7 @@ export function FinanceStats() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+              <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
                 <Clock className="h-5 w-5 text-orange-600" />
               </div>
               <div>
@@ -108,7 +108,7 @@ export function FinanceStats() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+              <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg">
                 <Users className="h-5 w-5 text-purple-600" />
               </div>
               <div>

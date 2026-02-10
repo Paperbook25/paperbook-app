@@ -7,10 +7,9 @@
   </defs>
   <!-- Rounded-rect background -->
   <rect width="32" height="32" rx="8" fill="url(#bgGrad)"/>
-  <!-- White "P" lettermark: vertical stem + bowl -->
+  <!-- White "P" lettermark -->
   <path d="M11 7h6.5a5.5 5.5 0 010 11H15v7h-4V7z" fill="#ffffff"/>
   <path d="M15 11h2.5a1.5 1.5 0 010 3H15v-3z" fill="url(#bgGrad)"/>
-  <!-- Page-fold accent (enhanced visibility) -->
-  <path d="M20 20l5-5v10h-10l5-5z" fill="#ffffff" opacity="0.45"/>
-  <path d="M20 20l5-5v10h-10l5-5z" stroke="#ffffff" stroke-width="0.5" opacity="0.6" fill="none"/>
+  <!-- Saffron acute angle triangle accent pointing up-right -->
+  <polygon points="20,25 27,17 27,25" fill="#FF9933"/>
 </svg>

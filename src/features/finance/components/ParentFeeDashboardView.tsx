@@ -1,4 +1,4 @@
-import { IndianRupee, Users, AlertCircle, Receipt, Download } from 'lucide-react'
+import { IndianRupee, Users, AlertCircle, Receipt, Download, GraduationCap } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useParentFeeDashboard } from '../hooks/useFinance'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { PAYMENT_STATUS_LABELS, PAYMENT_MODE_LABELS, type PaymentStatus, type PaymentMode } from '../types/finance.types'
 
 const formatCurrency = (amount: number) =>
@@ -13,6 +14,8 @@ const formatCurrency = (amount: number) =>
 
 export function ParentFeeDashboardView() {
   const { data: result, isLoading } = useParentFeeDashboard()
+  const { user } = useAuthStore()
+  const isStudent = user?.role === 'student'
   const dashboard = result?.data
 
   if (isLoading) {
@@ -36,7 +39,7 @@ export function ParentFeeDashboardView() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-800">
               <IndianRupee className="h-5 w-5 text-green-600" />
             </div>
             <div>
@@ -47,7 +50,7 @@ export function ParentFeeDashboardView() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900">
+            <div className="p-2 rounded-lg bg-red-100 dark:bg-red-800">
               <AlertCircle className="h-5 w-5 text-red-600" />
             </div>
             <div>
@@ -56,17 +59,32 @@ export function ParentFeeDashboardView() {
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-              <Users className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Children</p>
-              <p className="text-2xl font-bold">{dashboard.children.length}</p>
-            </div>
-          </CardContent>
-        </Card>
+        {!isStudent && (
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-800">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Children</p>
+                <p className="text-2xl font-bold">{dashboard.children.length}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {isStudent && (
+          <Card>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-800">
+                <GraduationCap className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Academic Year</p>
+                <p className="text-2xl font-bold">2024-25</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Per-Child Overview */}
@@ -131,9 +149,9 @@ export function ParentFeeDashboardView() {
             <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
               {dashboard.upcomingDues.map((due, i) => (
                 <div key={i} className={`border rounded-lg p-3 ${
-                  due.daysUntilDue < 7 ? 'border-red-300 bg-red-50 dark:bg-red-950' :
-                  due.daysUntilDue < 30 ? 'border-yellow-300 bg-yellow-50 dark:bg-yellow-950' :
-                  'border-green-300 bg-green-50 dark:bg-green-950'
+                  due.daysUntilDue < 7 ? 'border-red-300 bg-red-50 dark:bg-red-800 dark:border-red-700' :
+                  due.daysUntilDue < 30 ? 'border-yellow-300 bg-yellow-50 dark:bg-yellow-800 dark:border-yellow-700' :
+                  'border-green-300 bg-green-50 dark:bg-green-800 dark:border-green-700'
                 }`}>
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-sm">{due.feeTypeName}</span>

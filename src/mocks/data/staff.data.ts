@@ -385,3 +385,6 @@ export const staffStats = {
     female: staff.filter((s) => s.gender === 'female').length,
   },
 }
+
+// Demo teacher for login page (first active teacher)
+export const demoTeacher = staff.find(s => s.designation === 'Teacher' && s.status === 'active') || staff.find(s => s.status === 'active')!

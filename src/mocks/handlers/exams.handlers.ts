@@ -388,8 +388,8 @@ export const examsHandlers = [
         examId: params.examId as string,
         studentId: mark.studentId,
         studentName: faker.person.fullName(),
-        studentClass: '',
-        studentSection: '',
+        studentClass: body.className || '',
+        studentSection: body.section || '',
         admissionNumber: `ADM2024${faker.string.numeric(4)}`,
         subjectId: body.subjectId,
         subjectName: subject.name,
@@ -706,7 +706,7 @@ export const examsHandlers = [
 
     return HttpResponse.json({
       data: paginated,
-      pagination: { page, limit, total, totalPages },
+      meta: { page, limit, total, totalPages },
     })
   }),
 

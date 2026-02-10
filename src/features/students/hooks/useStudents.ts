@@ -20,6 +20,8 @@ import {
   bulkImportStudents,
   exportStudents,
   sendParentMessage,
+  fetchStudentHostelAllocation,
+  fetchStudentAlumniRecord,
 } from '../api/students.api'
 import type {
   StudentFilters,
@@ -42,6 +44,8 @@ export const studentKeys = {
   siblings: (id: string) => [...studentKeys.all, 'siblings', id] as const,
   health: (id: string) => [...studentKeys.all, 'health', id] as const,
   idCard: (id: string) => [...studentKeys.all, 'id-card', id] as const,
+  hostelAllocation: (id: string) => [...studentKeys.all, 'hostel-allocation', id] as const,
+  alumniRecord: (id: string) => [...studentKeys.all, 'alumni-record', id] as const,
 }
 
 // ==================== QUERY HOOKS ====================
@@ -256,5 +260,23 @@ export function useSendParentMessage() {
       subject?: string
       message: string
     }) => sendParentMessage(studentId, data),
+  })
+}
+
+// ==================== CROSS-MODULE HOOKS ====================
+
+export function useStudentHostelAllocation(studentId: string) {
+  return useQuery({
+    queryKey: studentKeys.hostelAllocation(studentId),
+    queryFn: () => fetchStudentHostelAllocation(studentId),
+    enabled: !!studentId,
+  })
+}
+
+export function useStudentAlumniRecord(studentId: string) {
+  return useQuery({
+    queryKey: studentKeys.alumniRecord(studentId),
+    queryFn: () => fetchStudentAlumniRecord(studentId),
+    enabled: !!studentId,
   })
 }

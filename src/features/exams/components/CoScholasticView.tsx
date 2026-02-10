@@ -11,9 +11,9 @@ import { useCoScholasticRecords } from '../hooks/useExams'
 import { CO_SCHOLASTIC_AREA_LABELS, CO_SCHOLASTIC_GRADE_LABELS, TERMS, type CoScholasticArea, type CoScholasticGrade } from '../types/exams.types'
 
 const GRADE_COLORS: Record<CoScholasticGrade, string> = {
-  A: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  B: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  C: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+  A: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+  B: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100',
+  C: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
 }
 
 export function CoScholasticView() {

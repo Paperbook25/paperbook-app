@@ -32,9 +32,9 @@ import { useToast } from '@/hooks/use-toast'
 import { formatCurrency, getInitials } from '@/lib/utils'
 
 const ENROLLMENT_STATUS_COLORS: Record<EnrollmentStatus, string> = {
-  active: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  completed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  dropped: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  active: 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100',
+  completed: 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100',
+  dropped: 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-100',
 }
 
 export function CourseDetailPage() {

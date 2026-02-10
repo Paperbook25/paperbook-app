@@ -7,10 +7,10 @@ interface LeaveBalanceCardProps {
 }
 
 const LEAVE_COLORS: Record<LeaveType, { bg: string; progress: string }> = {
-  EL: { bg: 'bg-green-50 dark:bg-green-950', progress: 'bg-green-500' },
-  CL: { bg: 'bg-blue-50 dark:bg-blue-950', progress: 'bg-blue-500' },
-  SL: { bg: 'bg-orange-50 dark:bg-orange-950', progress: 'bg-orange-500' },
-  PL: { bg: 'bg-purple-50 dark:bg-purple-950', progress: 'bg-purple-500' },
+  EL: { bg: 'bg-green-50 dark:bg-green-800', progress: 'bg-green-500' },
+  CL: { bg: 'bg-blue-50 dark:bg-blue-800', progress: 'bg-blue-500' },
+  SL: { bg: 'bg-orange-50 dark:bg-orange-800', progress: 'bg-orange-500' },
+  PL: { bg: 'bg-purple-50 dark:bg-purple-800', progress: 'bg-purple-500' },
 }
 
 export function LeaveBalanceCard({ balance }: LeaveBalanceCardProps) {

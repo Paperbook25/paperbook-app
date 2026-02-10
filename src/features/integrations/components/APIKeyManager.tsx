@@ -353,8 +353,8 @@ export function APIKeyManager({ apiKeys, onCreate, onRevoke, isCreating }: APIKe
               </div>
             </div>
 
-            <div className="p-4 bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-lg">
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+            <div className="p-4 bg-amber-50 dark:bg-amber-800 border border-amber-200 dark:border-amber-700 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-100">
                 Make sure to copy this key now. You won&apos;t be able to see it again!
               </p>
             </div>

@@ -44,7 +44,7 @@ const SECTIONS = ['A', 'B', 'C', 'D']
 const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 const INDIAN_STATES = ['Maharashtra', 'Karnataka', 'Tamil Nadu', 'Delhi', 'Gujarat', 'Rajasthan', 'Uttar Pradesh', 'West Bengal', 'Kerala', 'Telangana']
 
-function createStudent(): Student {
+function createStudent(forceStatus?: Student['status'], forceClass?: string): Student {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
   const admissionYear = faker.date.past({ years: 5 }).getFullYear()
@@ -59,7 +59,7 @@ function createStudent(): Student {
     dateOfBirth: faker.date.birthdate({ min: 5, max: 18, mode: 'age' }).toISOString(),
     gender,
     bloodGroup: faker.helpers.arrayElement(BLOOD_GROUPS),
-    class: faker.helpers.arrayElement(CLASSES),
+    class: forceClass || faker.helpers.arrayElement(CLASSES),
     section: faker.helpers.arrayElement(SECTIONS),
     rollNumber: faker.number.int({ min: 1, max: 50 }),
     admissionDate: faker.date.past({ years: 3 }).toISOString(),
@@ -77,7 +77,7 @@ function createStudent(): Student {
       guardianEmail: faker.internet.email(),
       occupation: faker.person.jobTitle(),
     },
-    status: faker.helpers.weightedArrayElement([
+    status: forceStatus || faker.helpers.weightedArrayElement([
       { value: 'active', weight: 85 },
       { value: 'inactive', weight: 5 },
       { value: 'graduated', weight: 8 },
@@ -86,8 +86,25 @@ function createStudent(): Student {
   }
 }
 
-// Generate 150 students
-export const students: Student[] = Array.from({ length: 150 }, createStudent)
+// Generate 150 students with guaranteed mix of statuses
+// First, create 25 graduated students (for alumni linking)
+const graduatedStudents = Array.from({ length: 25 }, () => createStudent('graduated', 'Class 12'))
+
+// Then create 120 active students across all classes
+const activeStudents = Array.from({ length: 120 }, () => createStudent('active'))
+
+// Finally create 5 students with other statuses
+const otherStudents = Array.from({ length: 5 }, () =>
+  createStudent(faker.helpers.arrayElement(['inactive', 'transferred']))
+)
+
+export const students: Student[] = [...graduatedStudents, ...activeStudents, ...otherStudents]
+
+// Helper to get active students for hostel allocation
+export const getActiveStudents = () => students.filter(s => s.status === 'active')
+
+// Helper to get graduated students for alumni linking
+export const getGraduatedStudents = () => students.filter(s => s.status === 'graduated')
 
 // ==================== SIBLING LINKING ====================
 
@@ -235,3 +252,6 @@ export const studentStats = {
     female: students.filter((s) => s.gender === 'female').length,
   },
 }
+
+// Demo student for login page (first active student)
+export const demoStudent = students.find(s => s.status === 'active')!

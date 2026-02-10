@@ -61,9 +61,9 @@ const STATUS_VARIANTS: Record<string, { variant: 'secondary' | 'default' | 'outl
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  acknowledged: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100',
+  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100',
+  acknowledged: 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100',
 }
 
 function renderStars(rating: number) {

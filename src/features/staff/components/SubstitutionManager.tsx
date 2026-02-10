@@ -48,10 +48,10 @@ interface SubstitutionManagerProps {
 }
 
 const STATUS_CONFIG: Record<SubstitutionStatus, { label: string; variant: string; className: string }> = {
-  pending: { label: 'Pending', variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
-  assigned: { label: 'Assigned', variant: 'secondary', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  completed: { label: 'Completed', variant: 'secondary', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  cancelled: { label: 'Cancelled', variant: 'secondary', className: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  pending: { label: 'Pending', variant: 'secondary', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100' },
+  assigned: { label: 'Assigned', variant: 'secondary', className: 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100' },
+  completed: { label: 'Completed', variant: 'secondary', className: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' },
+  cancelled: { label: 'Cancelled', variant: 'secondary', className: 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100' },
 }
 
 function SubstitutionListSkeleton() {

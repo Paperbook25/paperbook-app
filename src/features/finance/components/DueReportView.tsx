@@ -73,8 +73,8 @@ export function DueReportView() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
+                  <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-200" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-red-600">
@@ -88,8 +88,8 @@ export function DueReportView() {
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-                    <AlertTriangle className="h-5 w-5 text-orange-600" />
+                  <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
+                    <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-200" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{report.totalStudentsWithDues}</p>

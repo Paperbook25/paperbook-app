@@ -121,7 +121,7 @@ export function FinesTable({ filters, onFiltersChange }: FinesTableProps) {
         return <Badge variant="destructive">Pending</Badge>
       case 'paid':
         return (
-          <Badge variant="default" className="bg-green-600">
+          <Badge variant="default" className="bg-green-600 text-white">
             Paid
           </Badge>
         )

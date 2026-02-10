@@ -23,13 +23,13 @@ const ALERT_TYPE_LABELS: Record<AlertType, string> = {
 const SEVERITY_CONFIG: Record<AlertSeverity, { label: string; className: string; iconClassName: string }> = {
   warning: {
     label: 'Warning',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-900 dark:text-yellow-200 dark:border-yellow-700',
-    iconClassName: 'text-yellow-600',
+    className: 'bg-yellow-100 text-yellow-800 border-yellow-300 dark:bg-yellow-800 dark:text-yellow-100 dark:border-yellow-600',
+    iconClassName: 'text-yellow-600 dark:text-yellow-200',
   },
   critical: {
     label: 'Critical',
-    className: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-900 dark:text-red-200 dark:border-red-700',
-    iconClassName: 'text-red-600',
+    className: 'bg-red-100 text-red-800 border-red-300 dark:bg-red-800 dark:text-red-100 dark:border-red-600',
+    iconClassName: 'text-red-600 dark:text-red-200',
   },
 }
 
@@ -226,8 +226,8 @@ export function ShortageAlertManager() {
                         className={cn(
                           'border rounded-lg p-4',
                           alert.severity === 'critical'
-                            ? 'border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-950/30'
-                            : 'border-yellow-200 bg-yellow-50/50 dark:border-yellow-800 dark:bg-yellow-950/30'
+                            ? 'border-red-200 bg-red-50/50 dark:border-red-700 dark:bg-red-900/50'
+                            : 'border-yellow-200 bg-yellow-50/50 dark:border-yellow-700 dark:bg-yellow-900/50'
                         )}
                       >
                         <div className="flex justify-between items-start gap-4">

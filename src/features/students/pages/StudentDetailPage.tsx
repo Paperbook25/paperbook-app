@@ -36,6 +36,8 @@ import { DocumentVault } from '../components/DocumentVault'
 import { HealthRecordCard } from '../components/HealthRecordCard'
 import { SiblingCard } from '../components/SiblingCard'
 import { IDCardPreview } from '../components/IDCardPreview'
+import { HostelStatusCard } from '../components/HostelStatusCard'
+import { AlumniStatusCard } from '../components/AlumniStatusCard'
 import { useStudent } from '../hooks/useStudents'
 import { useStudentMarks } from '@/features/exams/hooks/useExams'
 import { useStudentAttendance } from '@/features/attendance/hooks/useAttendance'
@@ -180,6 +182,8 @@ export function StudentDetailPage() {
           <TabsTrigger value="health">Health</TabsTrigger>
           <TabsTrigger value="siblings">Siblings</TabsTrigger>
           <TabsTrigger value="idcard">ID Card</TabsTrigger>
+          <TabsTrigger value="hostel">Hostel</TabsTrigger>
+          <TabsTrigger value="alumni">Alumni</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -282,16 +286,16 @@ export function StudentDetailPage() {
                 if (!att) return <p className="text-center py-8 text-muted-foreground">No attendance data available</p>
                 return (
                   <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
-                      <p className="text-2xl font-bold text-green-600">{att.summary.attendancePercentage}%</p>
+                    <div className="p-4 bg-green-50 dark:bg-green-800 rounded-lg">
+                      <p className="text-2xl font-bold text-green-600 dark:text-green-200">{att.summary.attendancePercentage}%</p>
                       <p className="text-sm text-muted-foreground">Overall Attendance</p>
                     </div>
-                    <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                      <p className="text-2xl font-bold text-blue-600">{att.summary.presentDays}</p>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-800 rounded-lg">
+                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-200">{att.summary.presentDays}</p>
                       <p className="text-sm text-muted-foreground">Days Present</p>
                     </div>
-                    <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
-                      <p className="text-2xl font-bold text-red-600">{att.summary.absentDays}</p>
+                    <div className="p-4 bg-red-50 dark:bg-red-800 rounded-lg">
+                      <p className="text-2xl font-bold text-red-600 dark:text-red-200">{att.summary.absentDays}</p>
                       <p className="text-sm text-muted-foreground">Days Absent</p>
                     </div>
                   </div>
@@ -387,6 +391,18 @@ export function StudentDetailPage() {
 
         <TabsContent value="idcard" className="space-y-4">
           <IDCardPreview studentId={id!} />
+        </TabsContent>
+
+        <TabsContent value="hostel" className="space-y-4">
+          <HostelStatusCard studentId={id!} />
+        </TabsContent>
+
+        <TabsContent value="alumni" className="space-y-4">
+          <AlumniStatusCard
+            studentId={id!}
+            studentStatus={student.status}
+            studentClass={student.class}
+          />
         </TabsContent>
       </Tabs>
 

@@ -13,6 +13,8 @@ import {
   Coffee,
   Shield,
   Sparkles,
+  TrendingDown,
+  Award,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,15 +22,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { cn, formatDate } from '@/lib/utils'
+import { cn, formatDate, getInitials } from '@/lib/utils'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const periodTypeConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
-  lecture: { icon: BookOpen, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-950' },
-  free: { icon: Coffee, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950' },
-  extra: { icon: Sparkles, color: 'text-purple-600', bg: 'bg-purple-50 dark:bg-purple-950' },
-  duty: { icon: Shield, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-950' },
+  lecture: { icon: BookOpen, color: 'text-blue-600 dark:text-blue-200', bg: 'bg-blue-50 dark:bg-blue-800' },
+  free: { icon: Coffee, color: 'text-green-600 dark:text-green-200', bg: 'bg-green-50 dark:bg-green-800' },
+  extra: { icon: Sparkles, color: 'text-purple-600 dark:text-purple-200', bg: 'bg-purple-50 dark:bg-purple-800' },
+  duty: { icon: Shield, color: 'text-orange-600 dark:text-orange-200', bg: 'bg-orange-50 dark:bg-orange-800' },
 }
 
 export function TeacherDashboard() {
@@ -79,6 +82,26 @@ export function TeacherDashboard() {
     },
   })
 
+  // Fetch struggling students
+  const { data: strugglingStudents } = useQuery({
+    queryKey: ['dashboard', 'struggling-students'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/struggling-students')
+      const json = await res.json()
+      return json.data
+    },
+  })
+
+  // Fetch pending grades
+  const { data: pendingGrades } = useQuery({
+    queryKey: ['dashboard', 'pending-grades'],
+    queryFn: async () => {
+      const res = await fetch('/api/dashboard/pending-grades')
+      const json = await res.json()
+      return json.data
+    },
+  })
+
   const attendanceProgress = stats
     ? Math.round((stats.attendanceMarked / (stats.attendanceMarked + stats.attendancePending)) * 100)
     : 0
@@ -109,7 +132,7 @@ export function TeacherDashboard() {
                     <p className="text-sm text-muted-foreground">Classes Today</p>
                     <p className="text-2xl font-bold">{stats?.classesToday || 0}</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-900">
+                  <div className="p-3 rounded-lg bg-blue-100 dark:bg-blue-800">
                     <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
@@ -126,7 +149,7 @@ export function TeacherDashboard() {
                         {stats?.attendanceMarked || 0}/{(stats?.attendanceMarked || 0) + (stats?.attendancePending || 0)}
                       </p>
                     </div>
-                    <div className="p-3 rounded-lg bg-green-100 dark:bg-green-900">
+                    <div className="p-3 rounded-lg bg-green-100 dark:bg-green-800">
                       <ClipboardCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
                   </div>
@@ -144,7 +167,7 @@ export function TeacherDashboard() {
                     <p className="text-2xl font-bold">{stats?.pendingMarksEntry || 0}</p>
                     <p className="text-xs text-muted-foreground">marks entries</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-900">
+                  <div className="p-3 rounded-lg bg-orange-100 dark:bg-orange-800">
                     <FileText className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   </div>
                 </div>
@@ -159,7 +182,7 @@ export function TeacherDashboard() {
                     <p className="text-2xl font-bold">{stats?.leaveBalance || 0}</p>
                     <p className="text-xs text-muted-foreground">days remaining</p>
                   </div>
-                  <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900">
+                  <div className="p-3 rounded-lg bg-purple-100 dark:bg-purple-800">
                     <Calendar className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                 </div>
@@ -311,8 +334,8 @@ export function TeacherDashboard() {
                   className={cn(
                     'flex items-center justify-between p-3 rounded-lg border',
                     cls.attendanceToday === 'marked'
-                      ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800'
-                      : 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800'
+                      ? 'bg-green-50 border-green-200 dark:bg-green-800 dark:border-green-800'
+                      : 'bg-yellow-50 border-yellow-200 dark:bg-yellow-800 dark:border-yellow-800'
                   )}
                 >
                   <div>
@@ -377,6 +400,115 @@ export function TeacherDashboard() {
                 <p className="text-[10px] text-muted-foreground">{item.createdBy}</p>
               </div>
             ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Struggling Students & Pending Grades */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Struggling Students */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingDown className="h-5 w-5 text-orange-500" />
+                Students Needing Attention
+              </CardTitle>
+              <CardDescription>Low performance or attendance alerts</CardDescription>
+            </div>
+            <Link to="/students">
+              <Button variant="ghost" size="sm">
+                View All
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {strugglingStudents && strugglingStudents.length > 0 ? (
+              <div className="space-y-3">
+                {strugglingStudents.slice(0, 4).map((student: any) => (
+                  <div
+                    key={student.id}
+                    className={cn(
+                      'flex items-center justify-between p-3 rounded-lg border',
+                      student.alertType === 'attendance' && 'border-red-200 bg-red-50 dark:bg-red-800',
+                      student.alertType === 'performance' && 'border-orange-200 bg-orange-50 dark:bg-orange-800'
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="text-xs">{getInitials(student.name)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium text-sm">{student.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {student.class} | {student.issue}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      variant={student.alertType === 'attendance' ? 'destructive' : 'secondary'}
+                      className="text-[10px]"
+                    >
+                      {student.alertType === 'attendance' ? `${student.value}%` : `Grade: ${student.value}`}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                <p className="text-sm">All students are doing well!</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Quick Grade Entry */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-purple-500" />
+                Pending Grades
+              </CardTitle>
+              <CardDescription>Exams requiring marks entry</CardDescription>
+            </div>
+            <Link to="/exams">
+              <Button variant="ghost" size="sm">
+                View All
+                <ArrowRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            {pendingGrades && pendingGrades.length > 0 ? (
+              <div className="space-y-3">
+                {pendingGrades.slice(0, 4).map((exam: any) => (
+                  <Link key={exam.id} to={`/exams/${exam.id}/marks`}>
+                    <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                      <div>
+                        <p className="font-medium text-sm">{exam.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {exam.class} | {exam.subject}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">
+                          {exam.enteredCount}/{exam.totalStudents} entered
+                        </p>
+                        <Progress value={(exam.enteredCount / exam.totalStudents) * 100} className="w-20 h-1.5 mt-1" />
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                <p className="text-sm">All grades are up to date!</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

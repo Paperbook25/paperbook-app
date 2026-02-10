@@ -290,7 +290,7 @@ export function StudentCoursePage() {
                       {formatDuration(selectedLesson.duration)}
                     </span>
                     {completedLessons.has(selectedLesson.id) && (
-                      <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      <Badge className="bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Completed
                       </Badge>

@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, FileSpreadsheet, ClipboardList, Settings } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useSearchParams, Link } from 'react-router-dom'
+import { Plus, FileSpreadsheet, ClipboardList, Settings, Download, Eye, CheckCircle2, Clock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import {
   Select,
   SelectContent,
@@ -27,6 +29,7 @@ import {
 } from '../hooks/useExams'
 import { EXAM_TYPES, EXAM_TYPE_LABELS, ACADEMIC_YEARS, EXAM_STATUS_LABELS } from '../types/exams.types'
 import type { ExamFilters, ExamStatus, ExamType } from '../types/exams.types'
+import { cn, formatDate } from '@/lib/utils'
 
 type TabValue = 'list' | 'marks' | 'reports' | 'grades'
 
@@ -56,6 +59,12 @@ export function ExamsPage() {
   // Queries
   const { data: examsData, isLoading: examsLoading } = useExams(filters)
   const { data: gradeScalesData, isLoading: gradeScalesLoading } = useGradeScales()
+
+  // Fetch exams needing marks entry (completed but not published)
+  const { data: marksEntryExams } = useExams({ status: 'completed', limit: 20 })
+
+  // Fetch exams with published results for report cards
+  const { data: publishedExams } = useExams({ status: 'results_published', limit: 20 })
 
   // Mutations
   const deleteExam = useDeleteExam()
@@ -251,25 +260,127 @@ export function ExamsPage() {
           </TabsContent>
 
           <TabsContent value="marks" className="mt-0">
-            <div className="text-center py-12 text-muted-foreground border rounded-lg">
-              <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Marks Entry</h3>
-              <p className="mb-4">Select an exam from the list to enter marks</p>
-              <Button variant="outline" onClick={() => handleTabChange('list')}>
-                View Exams
-              </Button>
-            </div>
+            {examsLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            ) : (marksEntryExams?.data || []).length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border rounded-lg">
+                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">All Caught Up!</h3>
+                <p className="mb-4">No exams are pending marks entry</p>
+                <Button variant="outline" onClick={() => handleTabChange('list')}>
+                  View All Exams
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {(marksEntryExams?.data || []).length} exam(s) ready for marks entry
+                </p>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {(marksEntryExams?.data || []).map((exam) => (
+                    <Card key={exam.id} className="hover:border-primary/50 transition-colors">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-base">{exam.name}</CardTitle>
+                            <CardDescription>{EXAM_TYPE_LABELS[exam.type]}</CardDescription>
+                          </div>
+                          <Badge variant="secondary">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Pending
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="text-sm text-muted-foreground">
+                            <p>Classes: {exam.applicableClasses?.join(', ') || 'All'}</p>
+                            <p>Subjects: {exam.subjects?.length || 0} subjects</p>
+                            <p>Ended: {formatDate(exam.endDate)}</p>
+                          </div>
+                          <Button asChild className="w-full" size="sm">
+                            <Link to={`/exams/${exam.id}/marks`}>
+                              <FileSpreadsheet className="h-4 w-4 mr-2" />
+                              Enter Marks
+                            </Link>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="reports" className="mt-0">
-            <div className="text-center py-12 text-muted-foreground border rounded-lg">
-              <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Report Cards</h3>
-              <p className="mb-4">Select an exam with published results to view/generate report cards</p>
-              <Button variant="outline" onClick={() => handleTabChange('list')}>
-                View Exams
-              </Button>
-            </div>
+            {examsLoading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </div>
+            ) : (publishedExams?.data || []).length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border rounded-lg">
+                <ClipboardList className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">No Published Results</h3>
+                <p className="mb-4">No exams with published results available for report cards</p>
+                <Button variant="outline" onClick={() => handleTabChange('list')}>
+                  View All Exams
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  {(publishedExams?.data || []).length} exam(s) with published results
+                </p>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {(publishedExams?.data || []).map((exam) => (
+                    <Card key={exam.id} className="hover:border-primary/50 transition-colors">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-base">{exam.name}</CardTitle>
+                            <CardDescription>{EXAM_TYPE_LABELS[exam.type]}</CardDescription>
+                          </div>
+                          <Badge variant="default" className="bg-green-600 text-white">
+                            <CheckCircle2 className="h-3 w-3 mr-1" />
+                            Published
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <div className="text-sm text-muted-foreground">
+                            <p>Classes: {exam.applicableClasses?.join(', ') || 'All'}</p>
+                            <p>Subjects: {exam.subjects?.length || 0} subjects</p>
+                            <p>Term: {exam.term}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button asChild variant="outline" size="sm" className="flex-1">
+                              <Link to={`/exams/${exam.id}/analytics`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Results
+                              </Link>
+                            </Button>
+                            <Button asChild size="sm" className="flex-1">
+                              <Link to={`/exams/${exam.id}/report-cards`}>
+                                <Download className="h-4 w-4 mr-2" />
+                                Report Cards
+                              </Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="grades" className="mt-0">

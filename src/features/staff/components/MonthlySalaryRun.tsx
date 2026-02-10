@@ -143,14 +143,14 @@ export function MonthlySalaryRun({ onProcess, isProcessing }: MonthlySalaryRunPr
                     <p className="text-2xl font-bold">{processedSlips.length}</p>
                   </div>
 
-                  <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                  <div className="p-4 bg-green-50 dark:bg-green-800 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Total Gross</p>
-                    <p className="text-2xl font-bold text-green-600">{formatCurrency(totalGross)}</p>
+                    <p className="text-2xl font-bold text-green-600 dark:text-green-200">{formatCurrency(totalGross)}</p>
                   </div>
 
-                  <div className="p-4 bg-red-50 dark:bg-red-950 rounded-lg">
+                  <div className="p-4 bg-red-50 dark:bg-red-800 rounded-lg">
                     <p className="text-sm text-muted-foreground mb-1">Total Deductions</p>
-                    <p className="text-2xl font-bold text-red-600">{formatCurrency(totalDeductions)}</p>
+                    <p className="text-2xl font-bold text-red-600 dark:text-red-200">{formatCurrency(totalDeductions)}</p>
                   </div>
 
                   <div className="p-4 bg-primary/10 rounded-lg">

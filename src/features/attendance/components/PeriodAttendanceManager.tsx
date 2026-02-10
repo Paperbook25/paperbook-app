@@ -11,43 +11,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
+import { getAttendanceBorderColor, getAttendanceBadgeVariant } from '@/lib/attendance-ui'
 import { usePeriodAttendance, usePeriodDefinitions, useMarkPeriodAttendance, useStudentPeriodSummary } from '../hooks/useAttendance'
 import { CLASSES, SECTIONS, ATTENDANCE_STATUS_LABELS, PERIOD_NAMES } from '../types/attendance.types'
 import type { AttendanceStatus, PeriodNumber } from '../types/attendance.types'
 
-// The three statuses that can be cycled through in the attendance grid
-const CYCLE_STATUSES: AttendanceStatus[] = ['present', 'absent', 'late']
+// The five statuses that can be cycled through in the attendance grid
+const CYCLE_STATUSES: AttendanceStatus[] = ['present', 'absent', 'late', 'half_day', 'excused']
 
 function getNextStatus(current: AttendanceStatus): AttendanceStatus {
   const idx = CYCLE_STATUSES.indexOf(current)
   if (idx === -1) return 'present'
   return CYCLE_STATUSES[(idx + 1) % CYCLE_STATUSES.length]
-}
-
-function getStatusColor(status: AttendanceStatus): string {
-  switch (status) {
-    case 'present':
-      return 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800'
-    case 'absent':
-      return 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800'
-    case 'late':
-      return 'bg-orange-50 border-orange-200 dark:bg-orange-950 dark:border-orange-800'
-    default:
-      return 'bg-muted border-border'
-  }
-}
-
-function getStatusBadgeVariant(status: AttendanceStatus): 'success' | 'destructive' | 'warning' | 'secondary' {
-  switch (status) {
-    case 'present':
-      return 'success'
-    case 'absent':
-      return 'destructive'
-    case 'late':
-      return 'warning'
-    default:
-      return 'secondary'
-  }
 }
 
 function getPercentageColor(pct: number): string {
@@ -362,8 +337,8 @@ export function PeriodAttendanceManager() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                  <Clock className="h-5 w-5 text-blue-600" />
+                <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                  <Clock className="h-5 w-5 text-blue-600 dark:text-blue-200" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.total}</p>
@@ -373,7 +348,7 @@ export function PeriodAttendanceManager() {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
                   <div className="h-5 w-5 rounded-full bg-green-500" />
                 </div>
                 <div>
@@ -384,7 +359,7 @@ export function PeriodAttendanceManager() {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
                   <div className="h-5 w-5 rounded-full bg-red-500" />
                 </div>
                 <div>
@@ -395,7 +370,7 @@ export function PeriodAttendanceManager() {
             </Card>
             <Card>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
+                <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
                   <div className="h-5 w-5 rounded-full bg-orange-500" />
                 </div>
                 <div>
@@ -460,32 +435,33 @@ export function PeriodAttendanceManager() {
                           }
                         }}
                         className={cn(
-                          'p-3 rounded-lg border transition-colors cursor-pointer select-none',
+                          'p-3 rounded-lg border bg-card transition-all cursor-pointer select-none hover:shadow-md',
+                          'border-l-4',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          getStatusColor(status),
+                          getAttendanceBorderColor(status),
                         )}
                         onClick={() => handleStatusToggle(student.studentId)}
                       >
-                        <div className="flex items-center gap-2 mb-2">
-                          <Avatar className="h-8 w-8">
+                        <div className="flex items-start gap-3">
+                          <Avatar className="h-10 w-10 shrink-0">
                             <AvatarImage src={undefined} />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-xs font-medium">
                               {student.rollNumber}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{student.studentName}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground line-clamp-1">{student.studentName}</p>
                             <p className="text-xs text-muted-foreground">
                               Roll {student.rollNumber}
                             </p>
                           </div>
+                          <Badge
+                            variant={getAttendanceBadgeVariant(status)}
+                            className="shrink-0 text-xs"
+                          >
+                            {ATTENDANCE_STATUS_LABELS[status]}
+                          </Badge>
                         </div>
-                        <Badge
-                          variant={getStatusBadgeVariant(status)}
-                          className="w-full justify-center"
-                        >
-                          {ATTENDANCE_STATUS_LABELS[status]}
-                        </Badge>
                       </div>
                     )
                   })}

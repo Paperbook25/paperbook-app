@@ -15,6 +15,10 @@ import { attendanceHandlers } from './handlers/attendance.handlers'
 import { studentsHandlers } from './handlers/students.handlers'
 import { transportHandlers } from './handlers/transport.handlers'
 import { lmsHandlers } from './handlers/lms.handlers'
+import { hostelHandlers } from './handlers/hostel.handlers'
+import { visitorsHandlers } from './handlers/visitors.handlers'
+import { inventoryHandlers } from './handlers/inventory.handlers'
+import { alumniHandlers } from './handlers/alumni.handlers'
 import { applications } from './data/admissions.data'
 import { getUserContext, isParent } from './utils/auth-context'
 import { studentFees } from './data/finance.data'
@@ -158,6 +162,246 @@ const handlers = [
     return HttpResponse.json({ data: teacherPendingTasks })
   }),
 
+  http.get('/api/dashboard/struggling-students', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 6 }, () => ({
+        id: faker.string.uuid(),
+        name: faker.person.fullName(),
+        class: `Class ${faker.number.int({ min: 8, max: 12 })}-${faker.helpers.arrayElement(['A', 'B', 'C'])}`,
+        alertType: faker.helpers.arrayElement(['attendance', 'performance']),
+        issue: faker.helpers.arrayElement([
+          'Low attendance this month',
+          'Declining test scores',
+          'Missed multiple assignments',
+          'Below average in recent exam',
+        ]),
+        value: faker.helpers.arrayElement(['C-', 'D', 'D+', '65', '58', '72']),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/pending-grades', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 5 }, () => {
+        const total = faker.number.int({ min: 30, max: 50 })
+        const entered = faker.number.int({ min: 0, max: total - 5 })
+        return {
+          id: faker.string.uuid(),
+          name: faker.helpers.arrayElement(['Unit Test 3', 'Mid-Term Exam', 'Quiz 4', 'Practical Exam']),
+          class: `Class ${faker.number.int({ min: 8, max: 12 })}-${faker.helpers.arrayElement(['A', 'B', 'C'])}`,
+          subject: faker.helpers.arrayElement(['Mathematics', 'Physics', 'Chemistry', 'English']),
+          totalStudents: total,
+          enteredCount: entered,
+        }
+      }),
+    })
+  }),
+
+  // ==================== ACCOUNTANT DASHBOARD ====================
+  http.get('/api/dashboard/accountant-stats', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: {
+        todayCollection: faker.number.int({ min: 50000, max: 200000 }),
+        todayReceipts: faker.number.int({ min: 5, max: 25 }),
+        totalPending: faker.number.int({ min: 500000, max: 2000000 }),
+        studentsWithDues: faker.number.int({ min: 50, max: 200 }),
+        monthCollection: faker.number.int({ min: 1000000, max: 5000000 }),
+        monthGrowth: faker.number.int({ min: -10, max: 20 }),
+        collectionRate: faker.number.int({ min: 65, max: 90 }),
+      },
+    })
+  }),
+
+  http.get('/api/dashboard/today-collection', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: {
+        total: faker.number.int({ min: 50000, max: 200000 }),
+        receipts: faker.number.int({ min: 5, max: 25 }),
+        cash: faker.number.int({ min: 10000, max: 50000 }),
+        online: faker.number.int({ min: 20000, max: 100000 }),
+        cheque: faker.number.int({ min: 5000, max: 50000 }),
+      },
+    })
+  }),
+
+  http.get('/api/dashboard/collection-trends', async () => {
+    await delay(200)
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    return HttpResponse.json({
+      data: days.map((day) => ({
+        day,
+        amount: faker.number.int({ min: 20000, max: 150000 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/pending-dues', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 10 }, () => ({
+        studentId: faker.string.uuid(),
+        studentName: faker.person.fullName(),
+        className: `Class ${faker.number.int({ min: 1, max: 12 })}`,
+        section: faker.helpers.arrayElement(['A', 'B', 'C']),
+        amount: faker.number.int({ min: 5000, max: 50000 }),
+        daysOverdue: faker.number.int({ min: 1, max: 90 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/recent-transactions', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 10 }, () => ({
+        id: faker.string.uuid(),
+        studentName: faker.person.fullName(),
+        feeType: faker.helpers.arrayElement(['Tuition Fee', 'Transport Fee', 'Lab Fee', 'Library Fee']),
+        amount: faker.number.int({ min: 1000, max: 25000 }),
+        mode: faker.helpers.arrayElement(['Cash', 'Online', 'Cheque', 'UPI']),
+        date: faker.date.recent({ days: 1 }).toISOString(),
+      })),
+    })
+  }),
+
+  // ==================== LIBRARIAN DASHBOARD ====================
+  http.get('/api/dashboard/librarian-stats', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: {
+        totalBooks: faker.number.int({ min: 5000, max: 15000 }),
+        totalTitles: faker.number.int({ min: 2000, max: 5000 }),
+        issuedBooks: faker.number.int({ min: 200, max: 500 }),
+        activeMembers: faker.number.int({ min: 100, max: 300 }),
+        overdueBooks: faker.number.int({ min: 5, max: 30 }),
+        overdueMembers: faker.number.int({ min: 3, max: 20 }),
+        pendingReservations: faker.number.int({ min: 0, max: 15 }),
+      },
+    })
+  }),
+
+  http.get('/api/dashboard/circulation-stats', async () => {
+    await delay(200)
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    return HttpResponse.json({
+      data: days.map((day) => ({
+        day,
+        issued: faker.number.int({ min: 5, max: 25 }),
+        returned: faker.number.int({ min: 3, max: 20 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/overdue-books', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 8 }, () => ({
+        id: faker.string.uuid(),
+        bookTitle: faker.lorem.words(3),
+        memberName: faker.person.fullName(),
+        dueDate: faker.date.recent({ days: 10 }).toISOString(),
+        daysOverdue: faker.number.int({ min: 1, max: 14 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/pending-reservations', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 5 }, () => ({
+        id: faker.string.uuid(),
+        bookTitle: faker.lorem.words(3),
+        memberName: faker.person.fullName(),
+        reservedAt: faker.date.recent({ days: 3 }).toISOString(),
+        status: faker.helpers.arrayElement(['available', 'waiting']),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/library-activity', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 10 }, () => ({
+        id: faker.string.uuid(),
+        action: faker.helpers.arrayElement(['Issue', 'Return', 'Reserve', 'Renew']),
+        bookTitle: faker.lorem.words(3),
+        memberName: faker.person.fullName(),
+        timestamp: faker.date.recent({ days: 1 }).toISOString(),
+      })),
+    })
+  }),
+
+  // ==================== TRANSPORT MANAGER DASHBOARD ====================
+  http.get('/api/dashboard/transport-stats', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: {
+        totalVehicles: faker.number.int({ min: 10, max: 30 }),
+        activeVehicles: faker.number.int({ min: 8, max: 25 }),
+        activeRoutes: faker.number.int({ min: 8, max: 20 }),
+        totalStudents: faker.number.int({ min: 300, max: 800 }),
+        maintenanceDue: faker.number.int({ min: 0, max: 5 }),
+        totalDrivers: faker.number.int({ min: 10, max: 30 }),
+        availableDrivers: faker.number.int({ min: 8, max: 25 }),
+      },
+    })
+  }),
+
+  http.get('/api/dashboard/fleet-status', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 12 }, () => ({
+        id: faker.string.uuid(),
+        registrationNumber: `KA ${faker.number.int({ min: 10, max: 99 })} ${faker.string.alpha({ length: 2, casing: 'upper' })} ${faker.number.int({ min: 1000, max: 9999 })}`,
+        routeName: `Route ${faker.number.int({ min: 1, max: 15 })} - ${faker.location.street()}`,
+        driverName: faker.person.fullName(),
+        status: faker.helpers.arrayElement(['active', 'active', 'active', 'maintenance', 'inactive']),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/maintenance-alerts', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 5 }, () => ({
+        id: faker.string.uuid(),
+        vehicleNumber: `KA ${faker.number.int({ min: 10, max: 99 })} ${faker.string.alpha({ length: 2, casing: 'upper' })} ${faker.number.int({ min: 1000, max: 9999 })}`,
+        issue: faker.helpers.arrayElement(['Oil Change', 'Tire Replacement', 'Brake Service', 'AC Service', 'Engine Check']),
+        dueDate: faker.date.soon({ days: 10 }).toISOString(),
+        priority: faker.helpers.arrayElement(['high', 'medium', 'low']),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/route-performance', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 8 }, (_, i) => ({
+        id: faker.string.uuid(),
+        name: `Route ${i + 1} - ${faker.location.street()}`,
+        onTimeRate: faker.number.int({ min: 70, max: 98 }),
+        totalStudents: faker.number.int({ min: 25, max: 60 }),
+        totalStops: faker.number.int({ min: 8, max: 15 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/driver-status', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 10 }, () => ({
+        id: faker.string.uuid(),
+        name: faker.person.fullName(),
+        phone: faker.phone.number(),
+        status: faker.helpers.arrayElement(['on_duty', 'available', 'on_leave']),
+        assignedVehicle: `KA ${faker.number.int({ min: 10, max: 99 })} ${faker.string.alpha({ length: 2, casing: 'upper' })} ${faker.number.int({ min: 1000, max: 9999 })}`,
+      })),
+    })
+  }),
+
   // ==================== NOTIFICATION CENTER ====================
   http.get('/api/notifications', async () => {
     await delay(200)
@@ -175,6 +419,110 @@ const handlers = [
     await delay(100)
     appNotifications.forEach((n) => (n.read = true))
     return HttpResponse.json({ success: true })
+  }),
+
+  // ==================== STUDENT DASHBOARD ENHANCEMENTS ====================
+  http.get('/api/dashboard/student-courses', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 6 }, () => ({
+        id: faker.string.uuid(),
+        name: faker.helpers.arrayElement([
+          'Mathematics Advanced',
+          'Physics Fundamentals',
+          'Chemistry Lab',
+          'English Literature',
+          'Computer Science',
+          'Biology Basics',
+        ]),
+        progress: faker.number.int({ min: 20, max: 95 }),
+        lastAccessed: faker.date.recent({ days: 3 }).toISOString(),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/student-assignments', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 6 }, () => ({
+        id: faker.string.uuid(),
+        title: faker.helpers.arrayElement([
+          'Chapter 5 Problems',
+          'Lab Report',
+          'Essay Assignment',
+          'Practice Questions',
+          'Project Work',
+        ]),
+        courseName: faker.helpers.arrayElement(['Mathematics', 'Physics', 'Chemistry', 'English']),
+        dueDate: faker.date.soon({ days: 10 }).toISOString(),
+        daysUntilDue: faker.number.int({ min: -2, max: 10 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/student-transport', async () => {
+    await delay(200)
+    // 80% chance of having transport assigned
+    if (Math.random() > 0.2) {
+      return HttpResponse.json({
+        data: {
+          routeName: `Route ${faker.number.int({ min: 1, max: 10 })} - ${faker.location.street()}`,
+          vehicleNumber: `KA ${faker.number.int({ min: 10, max: 99 })} ${faker.string.alpha({ length: 2, casing: 'upper' })} ${faker.number.int({ min: 1000, max: 9999 })}`,
+          driverName: faker.person.fullName(),
+          driverPhone: faker.phone.number(),
+          stopName: faker.location.streetAddress(),
+          pickupTime: `${faker.number.int({ min: 6, max: 8 })}:${faker.helpers.arrayElement(['00', '15', '30', '45'])} AM`,
+          dropTime: `${faker.number.int({ min: 2, max: 4 })}:${faker.helpers.arrayElement(['00', '15', '30', '45'])} PM`,
+        },
+      })
+    }
+    return HttpResponse.json({ data: null })
+  }),
+
+  // ==================== PARENT DASHBOARD ENHANCEMENTS ====================
+  http.get('/api/dashboard/child-timetable', async () => {
+    await delay(200)
+    const periods = [
+      { period: 1, time: '8:00 - 8:45', subject: 'Mathematics', teacherName: 'Mrs. Sharma', room: 'Room 101' },
+      { period: 2, time: '8:45 - 9:30', subject: 'English', teacherName: 'Mr. Gupta', room: 'Room 102' },
+      { period: 3, time: '9:45 - 10:30', subject: 'Science', teacherName: 'Dr. Patel', room: 'Lab 1' },
+      { period: 4, time: '10:30 - 11:15', subject: 'Hindi', teacherName: 'Mrs. Singh', room: 'Room 103' },
+      { period: 5, time: '11:30 - 12:15', subject: 'Social Studies', teacherName: 'Mr. Verma', room: 'Room 104' },
+      { period: 6, time: '12:15 - 1:00', subject: 'Computer Science', teacherName: 'Mr. Kumar', room: 'Computer Lab' },
+    ]
+    return HttpResponse.json({ data: periods })
+  }),
+
+  http.get('/api/dashboard/child-assignments', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: Array.from({ length: 6 }, () => ({
+        id: faker.string.uuid(),
+        title: faker.helpers.arrayElement([
+          'Chapter 5 Problems',
+          'Lab Report',
+          'Essay Assignment',
+          'Practice Questions',
+          'Project Work',
+        ]),
+        courseName: faker.helpers.arrayElement(['Mathematics', 'Physics', 'Chemistry', 'English']),
+        dueDate: faker.date.soon({ days: 10 }).toISOString(),
+        daysUntilDue: faker.number.int({ min: -2, max: 10 }),
+      })),
+    })
+  }),
+
+  http.get('/api/dashboard/child-teachers', async () => {
+    await delay(200)
+    return HttpResponse.json({
+      data: [
+        { id: '1', name: 'Mrs. Priya Sharma', subject: 'Mathematics', email: 'priya.sharma@school.edu' },
+        { id: '2', name: 'Mr. Rajesh Gupta', subject: 'English', email: 'rajesh.gupta@school.edu' },
+        { id: '3', name: 'Dr. Anita Patel', subject: 'Science', email: 'anita.patel@school.edu' },
+        { id: '4', name: 'Mrs. Sunita Singh', subject: 'Hindi', email: 'sunita.singh@school.edu' },
+        { id: '5', name: 'Mr. Arun Kumar', subject: 'Computer Science', email: 'arun.kumar@school.edu' },
+      ],
+    })
   }),
 
   // ==================== USER-SCOPED ====================
@@ -536,4 +884,4 @@ const handlers = [
   }),
 ]
 
-export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers, ...studentsHandlers, ...transportHandlers, ...lmsHandlers)
+export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers, ...studentsHandlers, ...transportHandlers, ...lmsHandlers, ...hostelHandlers, ...visitorsHandlers, ...inventoryHandlers, ...alumniHandlers)

@@ -301,12 +301,12 @@ export function PromotionDialog({ open, onOpenChange }: PromotionDialogProps) {
               </div>
               <div className="space-y-2">
                 <Label>Target Section</Label>
-                <Select value={targetSection} onValueChange={setTargetSection}>
+                <Select value={targetSection || 'keep'} onValueChange={(v) => setTargetSection(v === 'keep' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Keep existing" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Keep Existing</SelectItem>
+                    <SelectItem value="keep">Keep Existing</SelectItem>
                     {SECTIONS.map((sec) => (
                       <SelectItem key={sec} value={sec}>
                         Section {sec}

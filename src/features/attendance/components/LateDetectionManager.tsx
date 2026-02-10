@@ -118,16 +118,16 @@ export function LateDetectionManager() {
   }
 
   const getLateRowClass = (minutes: number) => {
-    if (minutes > 30) return 'bg-red-50 dark:bg-red-950/30'
-    if (minutes > 15) return 'bg-yellow-50 dark:bg-yellow-950/30'
+    if (minutes > 30) return 'bg-red-50 dark:bg-red-900/40'
+    if (minutes > 15) return 'bg-yellow-50 dark:bg-yellow-900/40'
     return ''
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-lg">
-          <Clock className="h-5 w-5 text-orange-600" />
+        <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
+          <Clock className="h-5 w-5 text-orange-600 dark:text-orange-200" />
         </div>
         <div>
           <h2 className="text-lg font-semibold">Late Detection Manager</h2>

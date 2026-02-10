@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { ChevronLeft, ChevronRight, Check, X, Clock, Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { ATTENDANCE_COLORS } from '@/lib/attendance-ui'
 import type { StaffAttendanceRecord, StaffAttendanceStatus } from '../types/staff.types'
 
 interface AttendanceCalendarProps {
@@ -18,10 +19,10 @@ const MONTHS = [
 ]
 
 const STATUS_COLORS: Record<StaffAttendanceStatus, string> = {
-  present: 'bg-green-500 text-white',
-  absent: 'bg-red-500 text-white',
-  half_day: 'bg-yellow-500 text-white',
-  on_leave: 'bg-blue-500 text-white',
+  present: `${ATTENDANCE_COLORS.present.bgSolid} text-white`,
+  absent: `${ATTENDANCE_COLORS.absent.bgSolid} text-white`,
+  half_day: `${ATTENDANCE_COLORS.half_day.bgSolid} text-white`,
+  on_leave: `${ATTENDANCE_COLORS.on_leave.bgSolid} text-white`,
 }
 
 const STATUS_ICONS: Record<StaffAttendanceStatus, React.ReactNode> = {

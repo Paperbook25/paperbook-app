@@ -68,6 +68,7 @@ export function SiblingCard({ studentId }: SiblingCardProps) {
     name: string
   } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [linkingStudentId, setLinkingStudentId] = useState<string | null>(null)
 
   const { toast } = useToast()
   const {
@@ -94,6 +95,7 @@ export function SiblingCard({ studentId }: SiblingCardProps) {
     )
 
   const handleLink = async (siblingId: string) => {
+    setLinkingStudentId(siblingId)
     try {
       await linkMutation.mutateAsync({ studentId, siblingId })
       toast({ title: 'Sibling linked successfully' })
@@ -104,6 +106,8 @@ export function SiblingCard({ studentId }: SiblingCardProps) {
         title: 'Failed to link sibling',
         variant: 'destructive',
       })
+    } finally {
+      setLinkingStudentId(null)
     }
   }
 
@@ -268,14 +272,10 @@ export function SiblingCard({ studentId }: SiblingCardProps) {
                         variant="outline"
                         size="sm"
                         className="h-8 shrink-0"
-                        disabled={
-                          linkMutation.isPending &&
-                          linkMutation.variables?.siblingId === student.id
-                        }
+                        disabled={linkingStudentId === student.id}
                         onClick={() => handleLink(student.id)}
                       >
-                        {linkMutation.isPending &&
-                        linkMutation.variables?.siblingId === student.id ? (
+                        {linkingStudentId === student.id ? (
                           <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                         ) : (
                           <Link2 className="h-3 w-3 mr-1" />

@@ -3,7 +3,6 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { CommandPalette } from './CommandPalette'
 import { useUIStore } from '@/stores/useUIStore'
-import { cn } from '@/lib/utils'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
 interface AppShellProps {
@@ -11,7 +10,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children }: AppShellProps) {
-  const { sidebarCollapsed, theme } = useUIStore()
+  const { theme } = useUIStore()
 
   // Apply theme on mount and change
   useEffect(() => {
@@ -41,18 +40,11 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background">
-        {/* Sidebar - hidden on mobile */}
-        <div className="hidden lg:block">
-          <Sidebar />
-        </div>
+        {/* Sidebar */}
+        <Sidebar />
 
         {/* Main content area */}
-        <div
-          className={cn(
-            'flex flex-col transition-all duration-300',
-            sidebarCollapsed ? 'lg:ml-16' : 'lg:ml-64'
-          )}
-        >
+        <div className="flex flex-col lg:ml-20">
           <Header />
           <main className="flex-1 p-4 lg:p-6">{children}</main>
         </div>

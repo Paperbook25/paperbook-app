@@ -89,6 +89,8 @@ export interface StudentMark {
 export interface SubmitMarksRequest {
   examId: string
   subjectId: string
+  className: string
+  section: string
   marks: {
     studentId: string
     marksObtained: number

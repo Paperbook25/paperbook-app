@@ -402,8 +402,8 @@ export function NotificationManager() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <Send className="h-5 w-5 text-blue-600" />
+                  <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                    <Send className="h-5 w-5 text-blue-600 dark:text-blue-200" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.totalSent}</p>
@@ -413,8 +413,8 @@ export function NotificationManager() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-200" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.delivered}</p>
@@ -424,8 +424,8 @@ export function NotificationManager() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
-                    <XCircle className="h-5 w-5 text-red-600" />
+                  <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
+                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-200" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.failed}</p>
@@ -435,8 +435,8 @@ export function NotificationManager() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <div className="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                    <Clock className="h-5 w-5 text-yellow-600" />
+                  <div className="p-2 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
+                    <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-200" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats.pending}</p>

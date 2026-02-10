@@ -168,7 +168,7 @@ export function LibraryPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
               <BookOpen className="h-5 w-5 text-blue-600" />
             </div>
             <div>
@@ -183,7 +183,7 @@ export function LibraryPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
               <BookOpen className="h-5 w-5 text-green-600" />
             </div>
             <div>
@@ -198,7 +198,7 @@ export function LibraryPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
+            <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg">
               <BookMarked className="h-5 w-5 text-purple-600" />
             </div>
             <div>
@@ -213,7 +213,7 @@ export function LibraryPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+            <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
               <AlertTriangle className="h-5 w-5 text-red-600" />
             </div>
             <div>
@@ -429,7 +429,7 @@ export function LibraryPage() {
                         className={cn(
                           'flex items-center justify-between p-3 rounded-lg border',
                           item.status === 'overdue' &&
-                            'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950'
+                            'border-red-200 bg-red-50 dark:border-red-700 dark:bg-red-800'
                         )}
                       >
                         <div>
