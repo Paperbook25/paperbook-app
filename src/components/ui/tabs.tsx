@@ -4,14 +4,32 @@ import { cn } from '@/lib/utils'
 
 const Tabs = TabsPrimitive.Root
 
+type TabsListVariant = 'default' | 'secondary'
+
+interface TabsListProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> {
+  variant?: TabsListVariant
+}
+
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
+  TabsListProps
+>(({ className, variant = 'default', ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      'inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground',
+      // Base styles
+      'inline-flex items-center justify-center text-muted-foreground mx-auto',
+
+      // Default variant (Parent tabs - Gold theme)
+      variant === 'default' && [
+        'h-11 bg-card border border-border shadow-sm rounded-xl p-1.5 gap-1',
+      ],
+
+      // Secondary variant (Child tabs - Purple theme)
+      variant === 'secondary' && [
+        'h-10 bg-muted/40 border border-border rounded-lg p-1 gap-0.5',
+      ],
+
       className
     )}
     {...props}
@@ -19,14 +37,37 @@ const TabsList = React.forwardRef<
 ))
 TabsList.displayName = TabsPrimitive.List.displayName
 
+interface TabsTriggerProps extends React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> {
+  variant?: TabsListVariant
+}
+
 const TabsTrigger = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
+  TabsTriggerProps
+>(({ className, variant = 'default', ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
+      // Base styles
+      'inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium',
+      'ring-offset-background transition-all duration-200',
+      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+      'disabled:pointer-events-none disabled:opacity-50',
+
+      // Default variant (Parent tabs - GOLD active state)
+      variant === 'default' && [
+        'text-muted-foreground hover:text-foreground hover:bg-gold/10',
+        'data-[state=active]:bg-gold data-[state=active]:text-gold-foreground',
+        'data-[state=active]:shadow-md data-[state=active]:font-semibold',
+      ],
+
+      // Secondary variant (Child tabs - PURPLE active state)
+      variant === 'secondary' && [
+        'text-muted-foreground hover:text-foreground hover:bg-primary/10',
+        'data-[state=active]:bg-primary data-[state=active]:text-primary-foreground',
+        'data-[state=active]:shadow-sm',
+      ],
+
       className
     )}
     {...props}
@@ -41,7 +82,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      'mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+      'mt-3 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       className
     )}
     {...props}
