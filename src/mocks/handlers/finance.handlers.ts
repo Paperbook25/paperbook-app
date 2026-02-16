@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   feeTypes,
   feeStructures,
@@ -78,7 +79,7 @@ export const financeHandlers = [
 
   // Get student's own fees
   http.get('/api/finance/my-fees', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -109,7 +110,7 @@ export const financeHandlers = [
 
   // Get parent's children fees
   http.get('/api/finance/my-children-fees', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -154,7 +155,7 @@ export const financeHandlers = [
 
   // Get student/parent payment history
   http.get('/api/finance/my-payments', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -184,13 +185,13 @@ export const financeHandlers = [
 
   // Get all fee types
   http.get('/api/finance/fee-types', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: feeTypes.filter(ft => ft.isActive) })
   }),
 
   // Get single fee type
   http.get('/api/finance/fee-types/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const feeType = feeTypes.find(ft => ft.id === params.id)
 
     if (!feeType) {
@@ -202,7 +203,7 @@ export const financeHandlers = [
 
   // Create fee type
   http.post('/api/finance/fee-types', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateFeeTypeRequest
 
     const newFeeType: FeeType = {
@@ -221,7 +222,7 @@ export const financeHandlers = [
 
   // Update fee type
   http.put('/api/finance/fee-types/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const feeTypeIndex = feeTypes.findIndex(ft => ft.id === params.id)
 
     if (feeTypeIndex === -1) {
@@ -241,7 +242,7 @@ export const financeHandlers = [
 
   // Delete fee type
   http.delete('/api/finance/fee-types/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const feeTypeIndex = feeTypes.findIndex(ft => ft.id === params.id)
 
     if (feeTypeIndex === -1) {
@@ -266,7 +267,7 @@ export const financeHandlers = [
 
   // Get fee structures
   http.get('/api/finance/fee-structures', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear')
     const feeTypeId = url.searchParams.get('feeTypeId')
@@ -296,7 +297,7 @@ export const financeHandlers = [
 
   // Create fee structure
   http.post('/api/finance/fee-structures', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateFeeStructureRequest
 
     const feeType = feeTypes.find(ft => ft.id === body.feeTypeId)
@@ -325,7 +326,7 @@ export const financeHandlers = [
 
   // Update fee structure
   http.put('/api/finance/fee-structures/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const structureIndex = feeStructures.findIndex(fs => fs.id === params.id)
 
     if (structureIndex === -1) {
@@ -355,7 +356,7 @@ export const financeHandlers = [
 
   // Delete fee structure
   http.delete('/api/finance/fee-structures/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const structureIndex = feeStructures.findIndex(fs => fs.id === params.id)
 
     if (structureIndex === -1) {
@@ -371,7 +372,7 @@ export const financeHandlers = [
 
   // Get student fees
   http.get('/api/finance/student-fees', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const studentId = url.searchParams.get('studentId')
     const academicYear = url.searchParams.get('academicYear')
@@ -432,7 +433,7 @@ export const financeHandlers = [
 
   // Get student fees by student ID
   http.get('/api/finance/students/:id/fees', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const filtered = studentFees.filter(sf => sf.studentId === params.id)
     return HttpResponse.json({ data: filtered })
   }),
@@ -441,7 +442,7 @@ export const financeHandlers = [
 
   // Get payments
   http.get('/api/finance/payments', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const studentId = url.searchParams.get('studentId')
     const dateFrom = url.searchParams.get('dateFrom')
@@ -497,7 +498,7 @@ export const financeHandlers = [
 
   // Collect payment
   http.post('/api/finance/payments/collect', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CollectPaymentRequest
 
     if (!body.payments || body.payments.length === 0) {
@@ -607,7 +608,7 @@ export const financeHandlers = [
 
   // Get receipt
   http.get('/api/finance/receipts/:number', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const receipt = receipts.find(r => r.receiptNumber === params.number)
 
     if (!receipt) {
@@ -617,11 +618,24 @@ export const financeHandlers = [
     return HttpResponse.json({ data: receipt })
   }),
 
+  // Delete receipt
+  http.delete('/api/finance/receipts/:number', async ({ params }) => {
+    await mockDelay('write')
+    const index = receipts.findIndex(r => r.receiptNumber === params.number)
+
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Receipt not found' }, { status: 404 })
+    }
+
+    receipts.splice(index, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
   // ==================== OUTSTANDING DUES HANDLERS ====================
 
   // Get outstanding dues
   http.get('/api/finance/outstanding', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className')
     const section = url.searchParams.get('section')
@@ -667,7 +681,7 @@ export const financeHandlers = [
 
   // Get outstanding summary
   http.get('/api/finance/outstanding/summary', async () => {
-    await delay(200)
+    await mockDelay('read')
     const outstanding = getOutstandingDues()
     const totalOutstanding = outstanding.reduce((sum, o) => sum + o.totalDue, 0)
     const totalStudents = outstanding.length
@@ -683,7 +697,7 @@ export const financeHandlers = [
 
   // Send reminders
   http.post('/api/finance/reminders/send', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = (await request.json()) as SendReminderRequest
 
     // Simulate sending reminders
@@ -705,7 +719,7 @@ export const financeHandlers = [
 
   // Get expenses
   http.get('/api/finance/expenses', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const category = url.searchParams.get('category')
     const status = url.searchParams.get('status')
@@ -761,7 +775,7 @@ export const financeHandlers = [
 
   // Get single expense
   http.get('/api/finance/expenses/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const expense = expenses.find(e => e.id === params.id)
 
     if (!expense) {
@@ -773,7 +787,7 @@ export const financeHandlers = [
 
   // Create expense
   http.post('/api/finance/expenses', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateExpenseRequest
 
     const newExpense: Expense = {
@@ -797,7 +811,7 @@ export const financeHandlers = [
 
   // Update expense
   http.put('/api/finance/expenses/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const expenseIndex = expenses.findIndex(e => e.id === params.id)
 
     if (expenseIndex === -1) {
@@ -824,7 +838,7 @@ export const financeHandlers = [
 
   // Approve expense
   http.patch('/api/finance/expenses/:id/approve', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const expenseIndex = expenses.findIndex(e => e.id === params.id)
 
     if (expenseIndex === -1) {
@@ -850,7 +864,7 @@ export const financeHandlers = [
 
   // Reject expense
   http.patch('/api/finance/expenses/:id/reject', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const expenseIndex = expenses.findIndex(e => e.id === params.id)
 
     if (expenseIndex === -1) {
@@ -879,7 +893,7 @@ export const financeHandlers = [
 
   // Mark expense as paid
   http.patch('/api/finance/expenses/:id/mark-paid', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const expenseIndex = expenses.findIndex(e => e.id === params.id)
 
     if (expenseIndex === -1) {
@@ -923,7 +937,7 @@ export const financeHandlers = [
 
   // Delete expense
   http.delete('/api/finance/expenses/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const expenseIndex = expenses.findIndex(e => e.id === params.id)
 
     if (expenseIndex === -1) {
@@ -946,7 +960,7 @@ export const financeHandlers = [
 
   // Get ledger entries
   http.get('/api/finance/ledger', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
     const dateFrom = url.searchParams.get('dateFrom')
@@ -985,15 +999,28 @@ export const financeHandlers = [
 
   // Get ledger balance
   http.get('/api/finance/ledger/balance', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: getLedgerBalance() })
+  }),
+
+  // Delete ledger entry
+  http.delete('/api/finance/ledger/:id', async ({ params }) => {
+    await mockDelay('write')
+    const index = ledgerEntries.findIndex(e => e.id === params.id)
+
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Ledger entry not found' }, { status: 404 })
+    }
+
+    ledgerEntries.splice(index, 1)
+    return HttpResponse.json({ success: true })
   }),
 
   // ==================== REPORT HANDLERS ====================
 
   // Collection report
   http.get('/api/finance/reports/collection', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const url = new URL(request.url)
     const dateFrom = url.searchParams.get('dateFrom') || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
     const dateTo = url.searchParams.get('dateTo') || new Date().toISOString()
@@ -1003,13 +1030,13 @@ export const financeHandlers = [
 
   // Due report
   http.get('/api/finance/reports/dues', async () => {
-    await delay(400)
+    await mockDelay('write')
     return HttpResponse.json({ data: getDueReport() })
   }),
 
   // Financial summary
   http.get('/api/finance/reports/summary', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear') || '2024-25'
 
@@ -1020,13 +1047,13 @@ export const financeHandlers = [
 
   // Get finance stats
   http.get('/api/finance/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: getFinanceStats() })
   }),
 
   // Get students for fee collection dropdown
   http.get('/api/finance/students', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase() || ''
 
@@ -1047,7 +1074,7 @@ export const financeHandlers = [
 
   // Get installment plans
   http.get('/api/finance/installment-plans', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear')
 
@@ -1061,7 +1088,7 @@ export const financeHandlers = [
 
   // Get single installment plan
   http.get('/api/finance/installment-plans/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const plan = installmentPlans.find(p => p.id === params.id)
     if (!plan) {
       return HttpResponse.json({ error: 'Installment plan not found' }, { status: 404 })
@@ -1071,7 +1098,7 @@ export const financeHandlers = [
 
   // Create installment plan
   http.post('/api/finance/installment-plans', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateInstallmentPlanRequest
 
     const structure = feeStructures.find(fs => fs.id === body.feeStructureId)
@@ -1109,7 +1136,7 @@ export const financeHandlers = [
 
   // Toggle installment plan active status
   http.patch('/api/finance/installment-plans/:id/toggle', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const plan = installmentPlans.find(p => p.id === params.id)
     if (!plan) {
       return HttpResponse.json({ error: 'Installment plan not found' }, { status: 404 })
@@ -1120,7 +1147,7 @@ export const financeHandlers = [
 
   // Delete installment plan
   http.delete('/api/finance/installment-plans/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const idx = installmentPlans.findIndex(p => p.id === params.id)
     if (idx === -1) {
       return HttpResponse.json({ error: 'Installment plan not found' }, { status: 404 })
@@ -1133,13 +1160,13 @@ export const financeHandlers = [
 
   // Get discount rules
   http.get('/api/finance/discount-rules', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: discountRules })
   }),
 
   // Get single discount rule
   http.get('/api/finance/discount-rules/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const rule = discountRules.find(r => r.id === params.id)
     if (!rule) {
       return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
@@ -1149,7 +1176,7 @@ export const financeHandlers = [
 
   // Create discount rule
   http.post('/api/finance/discount-rules', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateDiscountRuleRequest
 
     const newRule: DiscountRule = {
@@ -1166,7 +1193,7 @@ export const financeHandlers = [
 
   // Update discount rule
   http.put('/api/finance/discount-rules/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const idx = discountRules.findIndex(r => r.id === params.id)
     if (idx === -1) {
       return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
@@ -1179,7 +1206,7 @@ export const financeHandlers = [
 
   // Toggle discount rule active
   http.patch('/api/finance/discount-rules/:id/toggle', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const rule = discountRules.find(r => r.id === params.id)
     if (!rule) {
       return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
@@ -1190,7 +1217,7 @@ export const financeHandlers = [
 
   // Delete discount rule
   http.delete('/api/finance/discount-rules/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const idx = discountRules.findIndex(r => r.id === params.id)
     if (idx === -1) {
       return HttpResponse.json({ error: 'Discount rule not found' }, { status: 404 })
@@ -1201,7 +1228,7 @@ export const financeHandlers = [
 
   // Get applied discounts
   http.get('/api/finance/applied-discounts', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const studentId = url.searchParams.get('studentId')
     const ruleId = url.searchParams.get('ruleId')
@@ -1217,7 +1244,7 @@ export const financeHandlers = [
 
   // Get concession requests
   http.get('/api/finance/concessions', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
 
@@ -1231,7 +1258,7 @@ export const financeHandlers = [
 
   // Get single concession request
   http.get('/api/finance/concessions/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const req = concessionRequests.find(c => c.id === params.id)
     if (!req) {
       return HttpResponse.json({ error: 'Concession request not found' }, { status: 404 })
@@ -1241,7 +1268,7 @@ export const financeHandlers = [
 
   // Create concession request
   http.post('/api/finance/concessions', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateConcessionRequest
 
     const student = studentFees.find(sf => sf.studentId === body.studentId)
@@ -1272,7 +1299,7 @@ export const financeHandlers = [
 
   // Approve concession request
   http.patch('/api/finance/concessions/:id/approve', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const idx = concessionRequests.findIndex(c => c.id === params.id)
     if (idx === -1) {
       return HttpResponse.json({ error: 'Concession request not found' }, { status: 404 })
@@ -1293,7 +1320,7 @@ export const financeHandlers = [
 
   // Reject concession request
   http.patch('/api/finance/concessions/:id/reject', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const idx = concessionRequests.findIndex(c => c.id === params.id)
     if (idx === -1) {
       return HttpResponse.json({ error: 'Concession request not found' }, { status: 404 })
@@ -1319,13 +1346,13 @@ export const financeHandlers = [
 
   // Get escalation config
   http.get('/api/finance/escalation-config', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: escalationConfig })
   }),
 
   // Update escalation config
   http.put('/api/finance/escalation-config', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as UpdateEscalationConfigRequest
 
     escalationConfig.enabled = body.enabled
@@ -1339,7 +1366,7 @@ export const financeHandlers = [
 
   // Get reminder logs
   http.get('/api/finance/reminder-logs', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const channel = url.searchParams.get('channel')
     const status = url.searchParams.get('status')
@@ -1371,13 +1398,13 @@ export const financeHandlers = [
 
   // Get online payment config
   http.get('/api/finance/online-payment/config', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: onlinePaymentConfig })
   }),
 
   // Update online payment config
   http.put('/api/finance/online-payment/config', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Partial<typeof onlinePaymentConfig>
     Object.assign(onlinePaymentConfig, body)
     return HttpResponse.json({ data: onlinePaymentConfig })
@@ -1385,7 +1412,7 @@ export const financeHandlers = [
 
   // Get online payment orders
   http.get('/api/finance/online-payment/orders', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const page = parseInt(url.searchParams.get('page') || '1')
@@ -1411,7 +1438,7 @@ export const financeHandlers = [
 
   // Create payment order (generate payment link)
   http.post('/api/finance/online-payment/orders', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreatePaymentOrderRequest
 
     const student = studentFees.find(sf => sf.studentId === body.studentId)
@@ -1441,7 +1468,7 @@ export const financeHandlers = [
 
   // Get parent fee dashboard
   http.get('/api/finance/parent-dashboard', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
     let childIds: string[] = []

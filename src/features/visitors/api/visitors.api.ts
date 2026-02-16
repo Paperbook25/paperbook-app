@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiPatch } from '@/lib/api-client'
+import { apiGet, apiPost, apiPut, apiPatch, apiDelete } from '@/lib/api-client'
 import type {
   Visitor,
   CreateVisitorRequest,
@@ -26,6 +26,14 @@ export async function fetchVisitor(id: string) {
 
 export async function createVisitor(data: CreateVisitorRequest) {
   return apiPost<{ data: Visitor }>(`${BASE}`, data)
+}
+
+export async function updateVisitor(id: string, data: Partial<Visitor>) {
+  return apiPut<{ data: Visitor }>(`${BASE}/${id}`, data)
+}
+
+export async function deleteVisitor(id: string) {
+  return apiDelete<{ success: boolean }>(`${BASE}/${id}`)
 }
 
 // ==================== VISITOR PASSES ====================
@@ -65,6 +73,10 @@ export async function checkOutVisitor(id: string) {
 
 export async function cancelPass(id: string) {
   return apiPatch<{ data: VisitorPass }>(`${BASE}/passes/${id}/cancel`, {})
+}
+
+export async function deletePass(id: string) {
+  return apiDelete<{ success: boolean }>(`${BASE}/passes/${id}`)
 }
 
 // ==================== PRE-APPROVED VISITORS ====================

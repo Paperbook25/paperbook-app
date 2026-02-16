@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   visitors,
   visitorPasses,
@@ -15,7 +16,7 @@ export const visitorsHandlers = [
   // ==================== STATS (MUST come before /api/visitors/:id) ====================
 
   http.get('/api/visitors/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     const today = new Date().toISOString().split('T')[0]
     const todayPasses = visitorPasses.filter((p) => p.checkInTime.startsWith(today))
 
@@ -62,7 +63,7 @@ export const visitorsHandlers = [
   // ==================== REPORTS (MUST come before /api/visitors/:id) ====================
 
   http.get('/api/visitors/reports', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const startDate = url.searchParams.get('startDate')
     const endDate = url.searchParams.get('endDate')
@@ -135,7 +136,7 @@ export const visitorsHandlers = [
 
   // Get all passes
   http.get('/api/visitors/passes', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const purpose = url.searchParams.get('purpose')
@@ -174,7 +175,7 @@ export const visitorsHandlers = [
 
   // Get active passes (today)
   http.get('/api/visitors/passes/active', async () => {
-    await delay(200)
+    await mockDelay('read')
     const today = new Date().toISOString().split('T')[0]
     const active = visitorPasses.filter(
       (p) => p.status === 'active' && p.checkInTime.startsWith(today)
@@ -184,7 +185,7 @@ export const visitorsHandlers = [
 
   // Create pass (check-in)
   http.post('/api/visitors/passes', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const today = new Date().toISOString().split('T')[0]
 
@@ -234,7 +235,7 @@ export const visitorsHandlers = [
 
   // Check-out visitor
   http.patch('/api/visitors/passes/:id/checkout', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = visitorPasses.findIndex((p) => p.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Pass not found' }, { status: 404 })
@@ -248,7 +249,7 @@ export const visitorsHandlers = [
 
   // Cancel pass
   http.patch('/api/visitors/passes/:id/cancel', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = visitorPasses.findIndex((p) => p.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Pass not found' }, { status: 404 })
@@ -258,11 +259,23 @@ export const visitorsHandlers = [
     return HttpResponse.json({ data: visitorPasses[index] })
   }),
 
+  // Delete pass
+  http.delete('/api/visitors/passes/:id', async ({ params }) => {
+    await mockDelay('write')
+    const index = visitorPasses.findIndex((p) => p.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Pass not found' }, { status: 404 })
+    }
+
+    visitorPasses.splice(index, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
   // ==================== PRE-APPROVED VISITORS (MUST come before /api/visitors/:id) ====================
 
   // Get all pre-approved
   http.get('/api/visitors/pre-approved', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
 
@@ -274,7 +287,7 @@ export const visitorsHandlers = [
 
   // Create pre-approved
   http.post('/api/visitors/pre-approved', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
 
     // Find or create visitor
@@ -315,7 +328,7 @@ export const visitorsHandlers = [
 
   // Revoke pre-approved
   http.patch('/api/visitors/pre-approved/:id/revoke', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = preApprovedVisitors.findIndex((p) => p.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Pre-approved visitor not found' }, { status: 404 })
@@ -329,7 +342,7 @@ export const visitorsHandlers = [
 
   // Get all visitors
   http.get('/api/visitors', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')
 
@@ -350,7 +363,7 @@ export const visitorsHandlers = [
 
   // Get single visitor
   http.get('/api/visitors/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const visitor = visitors.find((v) => v.id === params.id)
     if (!visitor) {
       return HttpResponse.json({ error: 'Visitor not found' }, { status: 404 })
@@ -360,7 +373,7 @@ export const visitorsHandlers = [
 
   // Create visitor
   http.post('/api/visitors', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
 
     const newVisitor: Visitor = {
@@ -378,5 +391,30 @@ export const visitorsHandlers = [
 
     visitors.push(newVisitor)
     return HttpResponse.json({ data: newVisitor }, { status: 201 })
+  }),
+
+  // Update visitor
+  http.put('/api/visitors/:id', async ({ params, request }) => {
+    await mockDelay('write')
+    const index = visitors.findIndex((v) => v.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Visitor not found' }, { status: 404 })
+    }
+
+    const body = await request.json() as Partial<Visitor>
+    visitors[index] = { ...visitors[index], ...body }
+    return HttpResponse.json({ data: visitors[index] })
+  }),
+
+  // Delete visitor
+  http.delete('/api/visitors/:id', async ({ params }) => {
+    await mockDelay('write')
+    const index = visitors.findIndex((v) => v.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Visitor not found' }, { status: 404 })
+    }
+
+    visitors.splice(index, 1)
+    return HttpResponse.json({ success: true })
   }),
 ]

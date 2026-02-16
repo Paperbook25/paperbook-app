@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   transportRoutes,
   vehicles,
@@ -15,7 +16,7 @@ export const transportHandlers = [
 
   // Get all routes
   http.get('/api/transport/routes', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const search = url.searchParams.get('search')
@@ -37,7 +38,7 @@ export const transportHandlers = [
 
   // Get single route
   http.get('/api/transport/routes/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const route = transportRoutes.find((r) => r.id === params.id)
     if (!route) {
       return HttpResponse.json({ error: 'Route not found' }, { status: 404 })
@@ -47,7 +48,7 @@ export const transportHandlers = [
 
   // Create route
   http.post('/api/transport/routes', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
     const now = new Date().toISOString()
     const stops = (body.stops as Array<Record<string, unknown>>).map((stop, i) => ({
@@ -78,7 +79,7 @@ export const transportHandlers = [
 
   // Update route
   http.put('/api/transport/routes/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = transportRoutes.findIndex((r) => r.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Route not found' }, { status: 404 })
@@ -94,7 +95,7 @@ export const transportHandlers = [
 
   // Delete route
   http.delete('/api/transport/routes/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = transportRoutes.findIndex((r) => r.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Route not found' }, { status: 404 })
@@ -107,7 +108,7 @@ export const transportHandlers = [
 
   // Get all vehicles
   http.get('/api/transport/vehicles', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const type = url.searchParams.get('type')
@@ -121,7 +122,7 @@ export const transportHandlers = [
 
   // Get single vehicle
   http.get('/api/transport/vehicles/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const vehicle = vehicles.find((v) => v.id === params.id)
     if (!vehicle) {
       return HttpResponse.json({ error: 'Vehicle not found' }, { status: 404 })
@@ -131,7 +132,7 @@ export const transportHandlers = [
 
   // Create vehicle
   http.post('/api/transport/vehicles', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
     const newVehicle: Vehicle = {
       id: `v-${Date.now()}`,
@@ -162,7 +163,7 @@ export const transportHandlers = [
 
   // Update vehicle
   http.put('/api/transport/vehicles/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = vehicles.findIndex((v) => v.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Vehicle not found' }, { status: 404 })
@@ -174,7 +175,7 @@ export const transportHandlers = [
 
   // Delete vehicle
   http.delete('/api/transport/vehicles/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = vehicles.findIndex((v) => v.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Vehicle not found' }, { status: 404 })
@@ -187,7 +188,7 @@ export const transportHandlers = [
 
   // Get all drivers
   http.get('/api/transport/drivers', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const search = url.searchParams.get('search')
@@ -206,7 +207,7 @@ export const transportHandlers = [
 
   // Get single driver
   http.get('/api/transport/drivers/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const driver = drivers.find((d) => d.id === params.id)
     if (!driver) {
       return HttpResponse.json({ error: 'Driver not found' }, { status: 404 })
@@ -216,7 +217,7 @@ export const transportHandlers = [
 
   // Create driver
   http.post('/api/transport/drivers', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
     const newDriver: Driver = {
       id: `d-${Date.now()}`,
@@ -244,7 +245,7 @@ export const transportHandlers = [
 
   // Update driver
   http.put('/api/transport/drivers/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = drivers.findIndex((d) => d.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Driver not found' }, { status: 404 })
@@ -256,7 +257,7 @@ export const transportHandlers = [
 
   // Delete driver
   http.delete('/api/transport/drivers/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = drivers.findIndex((d) => d.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Driver not found' }, { status: 404 })
@@ -269,7 +270,7 @@ export const transportHandlers = [
 
   // Get assignments by route
   http.get('/api/transport/assignments', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const routeId = url.searchParams.get('routeId')
     const stopId = url.searchParams.get('stopId')
@@ -290,7 +291,7 @@ export const transportHandlers = [
 
   // Assign student to stop
   http.post('/api/transport/assignments', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
     const route = transportRoutes.find((r) => r.id === body.routeId)
     const stop = route?.stops.find((s) => s.id === body.stopId)
@@ -321,7 +322,7 @@ export const transportHandlers = [
 
   // Remove student assignment
   http.delete('/api/transport/assignments/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = studentAssignments.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Assignment not found' }, { status: 404 })
@@ -340,7 +341,7 @@ export const transportHandlers = [
   // ==================== GPS TRACKING ====================
 
   http.get('/api/transport/tracking', async () => {
-    await delay(200)
+    await mockDelay('read')
     const positions = generateGPSPositions()
     return HttpResponse.json({ data: positions })
   }),
@@ -349,7 +350,7 @@ export const transportHandlers = [
 
   // Get all maintenance records
   http.get('/api/transport/maintenance', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const vehicleId = url.searchParams.get('vehicleId')
     const status = url.searchParams.get('status')
@@ -367,7 +368,7 @@ export const transportHandlers = [
 
   // Create maintenance record
   http.post('/api/transport/maintenance', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
     const vehicle = vehicles.find((v) => v.id === body.vehicleId)
 
@@ -393,7 +394,7 @@ export const transportHandlers = [
 
   // Update maintenance record (mark complete, etc.)
   http.patch('/api/transport/maintenance/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = maintenanceRecords.findIndex((m) => m.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Record not found' }, { status: 404 })
@@ -403,11 +404,22 @@ export const transportHandlers = [
     return HttpResponse.json({ data: maintenanceRecords[index] })
   }),
 
+  // Delete maintenance record
+  http.delete('/api/transport/maintenance/:id', async ({ params }) => {
+    await mockDelay('write')
+    const index = maintenanceRecords.findIndex((m) => m.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Record not found' }, { status: 404 })
+    }
+    maintenanceRecords.splice(index, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
   // ==================== NOTIFICATIONS ====================
 
   // Get transport notifications
   http.get('/api/transport/notifications', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const routeId = url.searchParams.get('routeId')
     const eventType = url.searchParams.get('eventType')
@@ -432,7 +444,7 @@ export const transportHandlers = [
 
   // Send manual notification
   http.post('/api/transport/notifications/send', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
 
     const notification = {
@@ -457,7 +469,7 @@ export const transportHandlers = [
   // ==================== STATS ====================
 
   http.get('/api/transport/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     const stats = {
       totalRoutes: transportRoutes.length,
       activeRoutes: transportRoutes.filter((r) => r.status === 'active').length,

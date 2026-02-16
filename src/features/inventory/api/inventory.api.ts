@@ -121,6 +121,10 @@ export async function updatePOStatus(id: string, status: PurchaseOrder['status']
   return apiPatch<{ data: PurchaseOrder }>(`${BASE}/purchase-orders/${id}/status`, { status })
 }
 
+export async function deletePurchaseOrder(id: string) {
+  return apiDelete<{ success: boolean }>(`${BASE}/purchase-orders/${id}`)
+}
+
 // ==================== STATS ====================
 
 export async function fetchInventoryStats() {

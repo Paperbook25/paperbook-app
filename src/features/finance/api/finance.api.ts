@@ -196,6 +196,10 @@ export async function fetchReceipt(receiptNumber: string): Promise<{ data: Recei
   return apiGet<{ data: Receipt }>(`${API_BASE}/receipts/${receiptNumber}`)
 }
 
+export async function deleteReceipt(receiptNumber: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/receipts/${receiptNumber}`)
+}
+
 // ==================== OUTSTANDING DUES ====================
 
 export async function fetchOutstandingDues(
@@ -311,6 +315,10 @@ export async function fetchLedger(
 
 export async function fetchLedgerBalance(): Promise<{ data: LedgerBalance }> {
   return apiGet<{ data: LedgerBalance }>(`${API_BASE}/ledger/balance`)
+}
+
+export async function deleteLedgerEntry(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/ledger/${id}`)
 }
 
 // ==================== REPORTS ====================

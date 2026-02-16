@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   books,
   issuedBooks,
@@ -27,7 +28,10 @@ import type {
   DigitalBook,
   OverdueNotification,
   NotificationConfig,
+  RenewBookRequest,
+  RenewalRecord,
 } from '@/features/library/types/library.types'
+import { MAX_RENEWALS } from '@/features/library/types/library.types'
 
 // Helper to generate IDs
 function generateId(): string {
@@ -39,7 +43,7 @@ export const libraryHandlers = [
 
   // Get student's own issued books
   http.get('/api/library/my-books', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -66,7 +70,7 @@ export const libraryHandlers = [
 
   // Get parent's children issued books
   http.get('/api/library/my-children-books', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -113,7 +117,7 @@ export const libraryHandlers = [
 
   // Get student/parent library fines
   http.get('/api/library/my-fines', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -161,7 +165,7 @@ export const libraryHandlers = [
 
   // Get all books with pagination and filters
   http.get('/api/library/books', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase() || ''
     const category = url.searchParams.get('category')
@@ -215,7 +219,7 @@ export const libraryHandlers = [
 
   // Get single book
   http.get('/api/library/books/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const book = books.find((b) => b.id === params.id)
 
     if (!book) {
@@ -227,7 +231,7 @@ export const libraryHandlers = [
 
   // Create new book
   http.post('/api/library/books', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateBookRequest
 
     const newBook: Book = {
@@ -253,7 +257,7 @@ export const libraryHandlers = [
 
   // Update book
   http.put('/api/library/books/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const bookIndex = books.findIndex((b) => b.id === params.id)
 
     if (bookIndex === -1) {
@@ -283,7 +287,7 @@ export const libraryHandlers = [
 
   // Delete book
   http.delete('/api/library/books/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const bookIndex = books.findIndex((b) => b.id === params.id)
 
     if (bookIndex === -1) {
@@ -311,7 +315,7 @@ export const libraryHandlers = [
 
   // Get all issued books with filters
   http.get('/api/library/issued', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase() || ''
     const status = url.searchParams.get('status')
@@ -366,7 +370,7 @@ export const libraryHandlers = [
 
   // Issue a book to a student
   http.post('/api/library/issue', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as IssueBookRequest
 
     const book = books.find((b) => b.id === body.bookId)
@@ -411,6 +415,8 @@ export const libraryHandlers = [
       issueDate: new Date().toISOString(),
       dueDate: body.dueDate,
       status: 'issued',
+      renewalCount: 0,
+      renewalHistory: [],
     }
 
     // Update book availability
@@ -424,7 +430,7 @@ export const libraryHandlers = [
 
   // Return a book
   http.post('/api/library/return/:id', async ({ params }) => {
-    await delay(400)
+    await mockDelay('write')
     const issuedBookIndex = issuedBooks.findIndex((ib) => ib.id === params.id)
 
     if (issuedBookIndex === -1) {
@@ -485,11 +491,70 @@ export const libraryHandlers = [
     })
   }),
 
+  // Renew a book (extend due date)
+  http.post('/api/library/renew/:id', async ({ params, request }) => {
+    await mockDelay('write')
+    const issuedBookIndex = issuedBooks.findIndex((ib) => ib.id === params.id)
+
+    if (issuedBookIndex === -1) {
+      return HttpResponse.json({ error: 'Issued book record not found' }, { status: 404 })
+    }
+
+    const issuedBook = issuedBooks[issuedBookIndex]
+
+    if (issuedBook.status === 'returned') {
+      return HttpResponse.json({ error: 'Cannot renew a returned book' }, { status: 400 })
+    }
+
+    // Check renewal count
+    const renewalCount = issuedBook.renewalCount || 0
+    if (renewalCount >= MAX_RENEWALS) {
+      return HttpResponse.json(
+        { error: `Maximum renewals (${MAX_RENEWALS}) reached. Please return and re-issue the book.` },
+        { status: 400 }
+      )
+    }
+
+    // Check if book is overdue - allow renewal but note it
+    const today = new Date()
+    const dueDate = new Date(issuedBook.dueDate)
+    const isOverdue = today > dueDate
+
+    // Get new due date from request or default to 14 days from today
+    const body = (await request.json()) as RenewBookRequest
+    const newDueDate = body.newDueDate || new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString()
+
+    // Create renewal record
+    const renewalRecord: RenewalRecord = {
+      renewedAt: today.toISOString(),
+      previousDueDate: issuedBook.dueDate,
+      newDueDate: newDueDate,
+      renewedBy: 'librarian', // In real app, get from auth context
+    }
+
+    // Update issued book
+    const renewalHistory = issuedBook.renewalHistory || []
+    issuedBooks[issuedBookIndex] = {
+      ...issuedBook,
+      dueDate: newDueDate,
+      status: 'issued', // Reset to issued if was overdue
+      renewalCount: renewalCount + 1,
+      renewalHistory: [...renewalHistory, renewalRecord],
+    }
+
+    return HttpResponse.json({
+      data: issuedBooks[issuedBookIndex],
+      message: isOverdue
+        ? 'Book renewed successfully. Note: Book was overdue, fines may still apply.'
+        : 'Book renewed successfully.',
+    })
+  }),
+
   // ==================== FINES HANDLERS ====================
 
   // Get all fines with filters
   http.get('/api/library/fines', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase() || ''
     const status = url.searchParams.get('status')
@@ -534,7 +599,7 @@ export const libraryHandlers = [
 
   // Update fine (mark as paid or waived)
   http.patch('/api/library/fines/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const fineIndex = fines.findIndex((f) => f.id === params.id)
 
     if (fineIndex === -1) {
@@ -566,18 +631,31 @@ export const libraryHandlers = [
     return HttpResponse.json({ data: updatedFine })
   }),
 
+  // Delete fine
+  http.delete('/api/library/fines/:id', async ({ params }) => {
+    await mockDelay('write')
+    const fineIndex = fines.findIndex((f) => f.id === params.id)
+
+    if (fineIndex === -1) {
+      return HttpResponse.json({ error: 'Fine not found' }, { status: 404 })
+    }
+
+    fines.splice(fineIndex, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
   // ==================== STATS & UTILITY HANDLERS ====================
 
   // Get library statistics
   http.get('/api/library/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     const stats = getLibraryStats()
     return HttpResponse.json({ data: stats })
   }),
 
   // Get available students for dropdown
   http.get('/api/library/students', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase() || ''
 
@@ -600,7 +678,7 @@ export const libraryHandlers = [
 
   // Get all reservations
   http.get('/api/library/reservations', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const search = url.searchParams.get('search')?.toLowerCase() || ''
@@ -635,7 +713,7 @@ export const libraryHandlers = [
 
   // Create reservation
   http.post('/api/library/reservations', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateReservationRequest
 
     const book = books.find((b) => b.id === body.bookId)
@@ -685,7 +763,7 @@ export const libraryHandlers = [
 
   // Cancel reservation
   http.patch('/api/library/reservations/:id/cancel', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const idx = reservations.findIndex((r) => r.id === params.id)
 
     if (idx === -1) {
@@ -709,7 +787,7 @@ export const libraryHandlers = [
 
   // Get reading history (paginated)
   http.get('/api/library/reading-history', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const studentId = url.searchParams.get('studentId')
     const category = url.searchParams.get('category')
@@ -739,7 +817,7 @@ export const libraryHandlers = [
 
   // Get student reading report
   http.get('/api/library/reading-report/:studentId', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const report = getStudentReadingReport(params.studentId as string)
 
     if (!report) {
@@ -751,7 +829,7 @@ export const libraryHandlers = [
 
   // Get book recommendations for student
   http.get('/api/library/recommendations/:studentId', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const recommendations = getBookRecommendations(params.studentId as string)
     return HttpResponse.json({ data: recommendations })
   }),
@@ -760,7 +838,7 @@ export const libraryHandlers = [
 
   // Get digital books
   http.get('/api/library/digital', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')?.toLowerCase() || ''
     const category = url.searchParams.get('category')
@@ -798,7 +876,7 @@ export const libraryHandlers = [
 
   // Record digital book access
   http.post('/api/library/digital/:id/access', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const idx = digitalBooks.findIndex((b) => b.id === params.id)
     if (idx === -1) {
       return HttpResponse.json({ error: 'Digital book not found' }, { status: 404 })
@@ -811,7 +889,7 @@ export const libraryHandlers = [
 
   // Get overdue notifications
   http.get('/api/library/notifications', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const channel = url.searchParams.get('channel')
     const status = url.searchParams.get('status')
@@ -841,13 +919,13 @@ export const libraryHandlers = [
 
   // Get notification config
   http.get('/api/library/notifications/config', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: notificationConfig })
   }),
 
   // Update notification config
   http.put('/api/library/notifications/config', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Partial<NotificationConfig>
     Object.assign(notificationConfig, body)
     return HttpResponse.json({ data: notificationConfig })
@@ -855,7 +933,7 @@ export const libraryHandlers = [
 
   // Send manual notification
   http.post('/api/library/notifications/send', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = (await request.json()) as { issuedBookId: string; channel: string }
 
     const issuedBook = issuedBooks.find((ib) => ib.id === body.issuedBookId)
@@ -887,9 +965,33 @@ export const libraryHandlers = [
 
   // ==================== BARCODE/QR HANDLERS ====================
 
+  // Generate barcode for a book
+  http.post('/api/library/books/:id/generate-barcode', async ({ params }) => {
+    await mockDelay('read')
+    const book = books.find((b) => b.id === params.id)
+
+    if (!book) {
+      return HttpResponse.json({ error: 'Book not found' }, { status: 404 })
+    }
+
+    // Generate a barcode image URL (mock)
+    const barcodeUrl = `https://barcodeapi.org/api/128/${book.isbn}`
+
+    return HttpResponse.json({
+      data: {
+        bookId: book.id,
+        isbn: book.isbn,
+        title: book.title,
+        barcodeUrl,
+        format: 'CODE128',
+        generatedAt: new Date().toISOString(),
+      },
+    })
+  }),
+
   // Lookup book by ISBN (barcode scan simulation)
   http.get('/api/library/scan/:isbn', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const isbn = params.isbn as string
     const book = books.find((b) => b.isbn === isbn)
 

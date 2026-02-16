@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import { faker } from '@faker-js/faker'
 import {
   exams,
@@ -38,7 +39,7 @@ export const examsHandlers = [
 
   // Get student's own marks across all exams
   http.get('/api/exams/my-marks', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -76,7 +77,7 @@ export const examsHandlers = [
 
   // Get parent's children marks
   http.get('/api/exams/my-children-marks', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -134,7 +135,7 @@ export const examsHandlers = [
 
   // Get student's own report card
   http.get('/api/exams/my-report-card', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -162,7 +163,7 @@ export const examsHandlers = [
 
   // Get all exams
   http.get('/api/exams', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
     const status = url.searchParams.get('status')
@@ -207,7 +208,7 @@ export const examsHandlers = [
 
   // Get single exam
   http.get('/api/exams/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const exam = exams.find((e) => e.id === params.id)
     if (!exam) {
       return HttpResponse.json({ error: 'Exam not found' }, { status: 404 })
@@ -217,7 +218,7 @@ export const examsHandlers = [
 
   // Create exam
   http.post('/api/exams', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateExamRequest
 
     const newExam: Exam = {
@@ -244,7 +245,7 @@ export const examsHandlers = [
 
   // Update exam
   http.put('/api/exams/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as UpdateExamRequest
     const index = exams.findIndex((e) => e.id === params.id)
 
@@ -271,7 +272,7 @@ export const examsHandlers = [
 
   // Delete exam
   http.delete('/api/exams/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = exams.findIndex((e) => e.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Exam not found' }, { status: 404 })
@@ -282,7 +283,7 @@ export const examsHandlers = [
 
   // Publish exam results
   http.post('/api/exams/:id/publish', async ({ params }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const exam = exams.find((e) => e.id === params.id)
     if (!exam) {
       return HttpResponse.json({ error: 'Exam not found' }, { status: 404 })
@@ -298,7 +299,7 @@ export const examsHandlers = [
 
   // Get students for marks entry
   http.get('/api/exams/:examId/students', async ({ request, params }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className')
     const section = url.searchParams.get('section')
@@ -334,7 +335,7 @@ export const examsHandlers = [
 
   // Get exam marks
   http.get('/api/exams/:examId/marks', async ({ request, params }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const subjectId = url.searchParams.get('subjectId')
     const classId = url.searchParams.get('classId')
@@ -354,7 +355,7 @@ export const examsHandlers = [
 
   // Submit marks
   http.post('/api/exams/:examId/marks', async ({ request, params }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = (await request.json()) as SubmitMarksRequest
     const exam = exams.find((e) => e.id === params.examId)
 
@@ -420,7 +421,7 @@ export const examsHandlers = [
 
   // Get student marks
   http.get('/api/students/:studentId/marks', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear')
 
@@ -439,7 +440,7 @@ export const examsHandlers = [
 
   // Get report cards for exam
   http.get('/api/exams/:examId/report-cards', async ({ params, request }) => {
-    await delay(400)
+    await mockDelay('write')
     const url = new URL(request.url)
     const classId = url.searchParams.get('classId')
 
@@ -466,7 +467,7 @@ export const examsHandlers = [
 
   // Get student report card
   http.get('/api/students/:studentId/report-card', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const examId = url.searchParams.get('examId')
 
@@ -485,7 +486,7 @@ export const examsHandlers = [
 
   // Generate report cards
   http.post('/api/report-cards/generate', async ({ request }) => {
-    await delay(1000)
+    await mockDelay('heavy')
     const body = (await request.json()) as {
       examId: string
       classId?: string
@@ -510,17 +511,25 @@ export const examsHandlers = [
     return HttpResponse.json({ success: true, generatedCount })
   }),
 
+  // Delete report card
+  http.delete('/api/report-cards/:id', async ({ params }) => {
+    await mockDelay('write')
+    // Report cards are generated dynamically, so we just return success
+    // In a real implementation, this would delete from a persistent store
+    return HttpResponse.json({ success: true })
+  }),
+
   // ==================== GRADE SCALES ====================
 
   // Get all grade scales
   http.get('/api/grade-scales', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: gradeScales })
   }),
 
   // Get single grade scale
   http.get('/api/grade-scales/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const scale = gradeScales.find((s) => s.id === params.id)
     if (!scale) {
       return HttpResponse.json({ error: 'Grade scale not found' }, { status: 404 })
@@ -530,7 +539,7 @@ export const examsHandlers = [
 
   // Create grade scale
   http.post('/api/grade-scales', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateGradeScaleRequest
 
     // If setting as default, unset other defaults
@@ -555,7 +564,7 @@ export const examsHandlers = [
 
   // Update grade scale
   http.put('/api/grade-scales/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as UpdateGradeScaleRequest
     const index = gradeScales.findIndex((s) => s.id === params.id)
 
@@ -581,7 +590,7 @@ export const examsHandlers = [
 
   // Delete grade scale
   http.delete('/api/grade-scales/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = gradeScales.findIndex((s) => s.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Grade scale not found' }, { status: 404 })
@@ -603,7 +612,7 @@ export const examsHandlers = [
 
   // Get exam timetable
   http.get('/api/exams/:examId/timetable', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const examId = params.examId as string
     const exam = exams.find((e) => e.id === examId)
     const slots = examTimetables[examId] || []
@@ -619,7 +628,7 @@ export const examsHandlers = [
 
   // Create exam timetable slot
   http.post('/api/exams/:examId/timetable', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const examId = params.examId as string
     const body = (await request.json()) as CreateExamSlotRequest
     const exam = exams.find((e) => e.id === examId)
@@ -651,7 +660,7 @@ export const examsHandlers = [
 
   // Get class analytics for an exam
   http.get('/api/exams/:examId/analytics', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const examId = params.examId as string
     const url = new URL(request.url)
     const className = url.searchParams.get('class') || 'Class 10'
@@ -664,7 +673,7 @@ export const examsHandlers = [
 
   // Get student progress
   http.get('/api/students/:studentId/progress', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const studentId = params.studentId as string
     const progress = generateStudentProgress(studentId)
 
@@ -679,7 +688,7 @@ export const examsHandlers = [
 
   // Get co-scholastic records
   http.get('/api/exams/co-scholastic', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const studentId = url.searchParams.get('studentId')
     const term = url.searchParams.get('term')
@@ -712,7 +721,7 @@ export const examsHandlers = [
 
   // Submit co-scholastic records
   http.post('/api/exams/co-scholastic', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as SubmitCoScholasticRequest
 
     const newRecords: CoScholasticRecord[] = body.records.map((record) => {
@@ -741,7 +750,7 @@ export const examsHandlers = [
 
   // Get question papers
   http.get('/api/exams/question-papers', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const examId = url.searchParams.get('examId')
     const subjectId = url.searchParams.get('subjectId')
@@ -764,7 +773,7 @@ export const examsHandlers = [
 
   // Get single question paper
   http.get('/api/exams/question-papers/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const paper = questionPapers.find((qp) => qp.id === params.id)
     if (!paper) {
       return HttpResponse.json({ error: 'Question paper not found' }, { status: 404 })
@@ -774,7 +783,7 @@ export const examsHandlers = [
 
   // Create question paper
   http.post('/api/exams/question-papers', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as CreateQuestionPaperRequest
     const exam = body.examId ? exams.find((e) => e.id === body.examId) : undefined
 
@@ -803,7 +812,7 @@ export const examsHandlers = [
 
   // Delete question paper
   http.delete('/api/exams/question-papers/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = questionPapers.findIndex((qp) => qp.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Question paper not found' }, { status: 404 })

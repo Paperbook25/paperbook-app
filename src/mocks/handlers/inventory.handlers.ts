@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   assets,
   stockItems,
@@ -20,7 +21,7 @@ export const inventoryHandlers = [
 
   // Get all assets
   http.get('/api/inventory/assets', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const category = url.searchParams.get('category')
     const status = url.searchParams.get('status')
@@ -45,7 +46,7 @@ export const inventoryHandlers = [
 
   // Get single asset
   http.get('/api/inventory/assets/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const asset = assets.find((a) => a.id === params.id)
     if (!asset) {
       return HttpResponse.json({ error: 'Asset not found' }, { status: 404 })
@@ -55,7 +56,7 @@ export const inventoryHandlers = [
 
   // Create asset
   http.post('/api/inventory/assets', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const categoryPrefix = {
       furniture: 'FRN',
@@ -92,7 +93,7 @@ export const inventoryHandlers = [
 
   // Update asset
   http.put('/api/inventory/assets/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = assets.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Asset not found' }, { status: 404 })
@@ -104,7 +105,7 @@ export const inventoryHandlers = [
 
   // Delete asset
   http.delete('/api/inventory/assets/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = assets.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Asset not found' }, { status: 404 })
@@ -117,7 +118,7 @@ export const inventoryHandlers = [
 
   // Get all stock items
   http.get('/api/inventory/stock', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const category = url.searchParams.get('category')
     const lowStock = url.searchParams.get('lowStock')
@@ -138,7 +139,7 @@ export const inventoryHandlers = [
 
   // Get single stock item
   http.get('/api/inventory/stock/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const item = stockItems.find((s) => s.id === params.id)
     if (!item) {
       return HttpResponse.json({ error: 'Stock item not found' }, { status: 404 })
@@ -148,7 +149,7 @@ export const inventoryHandlers = [
 
   // Create stock item
   http.post('/api/inventory/stock', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const categoryPrefix = {
       stationery: 'STN',
@@ -180,7 +181,7 @@ export const inventoryHandlers = [
 
   // Stock adjustment
   http.post('/api/inventory/stock/:id/adjust', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = stockItems.findIndex((s) => s.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Stock item not found' }, { status: 404 })
@@ -214,7 +215,7 @@ export const inventoryHandlers = [
 
   // Get stock adjustments
   http.get('/api/inventory/stock/:id/adjustments', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const adjustments = stockAdjustments.filter((a) => a.stockItemId === params.id)
     adjustments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     return HttpResponse.json({ data: adjustments })
@@ -222,7 +223,7 @@ export const inventoryHandlers = [
 
   // Delete stock item
   http.delete('/api/inventory/stock/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = stockItems.findIndex((s) => s.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Stock item not found' }, { status: 404 })
@@ -235,7 +236,7 @@ export const inventoryHandlers = [
 
   // Get all vendors
   http.get('/api/inventory/vendors', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const category = url.searchParams.get('category')
@@ -249,7 +250,7 @@ export const inventoryHandlers = [
 
   // Get single vendor
   http.get('/api/inventory/vendors/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const vendor = vendors.find((v) => v.id === params.id)
     if (!vendor) {
       return HttpResponse.json({ error: 'Vendor not found' }, { status: 404 })
@@ -259,7 +260,7 @@ export const inventoryHandlers = [
 
   // Create vendor
   http.post('/api/inventory/vendors', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
 
     const newVendor: Vendor = {
@@ -283,7 +284,7 @@ export const inventoryHandlers = [
 
   // Update vendor
   http.put('/api/inventory/vendors/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = vendors.findIndex((v) => v.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Vendor not found' }, { status: 404 })
@@ -295,7 +296,7 @@ export const inventoryHandlers = [
 
   // Delete vendor
   http.delete('/api/inventory/vendors/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = vendors.findIndex((v) => v.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Vendor not found' }, { status: 404 })
@@ -308,7 +309,7 @@ export const inventoryHandlers = [
 
   // Get all purchase orders
   http.get('/api/inventory/purchase-orders', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const vendorId = url.searchParams.get('vendorId')
@@ -324,7 +325,7 @@ export const inventoryHandlers = [
 
   // Get single purchase order
   http.get('/api/inventory/purchase-orders/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const po = purchaseOrders.find((p) => p.id === params.id)
     if (!po) {
       return HttpResponse.json({ error: 'Purchase order not found' }, { status: 404 })
@@ -334,7 +335,7 @@ export const inventoryHandlers = [
 
   // Create purchase order
   http.post('/api/inventory/purchase-orders', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const vendor = vendors.find((v) => v.id === body.vendorId)
     const items = (body.items as Omit<PurchaseOrderItem, 'id'>[]).map((item, i) => ({
@@ -364,7 +365,7 @@ export const inventoryHandlers = [
 
   // Update PO status
   http.patch('/api/inventory/purchase-orders/:id/status', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = purchaseOrders.findIndex((po) => po.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Purchase order not found' }, { status: 404 })
@@ -392,10 +393,22 @@ export const inventoryHandlers = [
     return HttpResponse.json({ data: purchaseOrders[index] })
   }),
 
+  // Delete purchase order
+  http.delete('/api/inventory/purchase-orders/:id', async ({ params }) => {
+    await mockDelay('write')
+    const index = purchaseOrders.findIndex((po) => po.id === params.id)
+    if (index === -1) {
+      return HttpResponse.json({ error: 'Purchase order not found' }, { status: 404 })
+    }
+
+    purchaseOrders.splice(index, 1)
+    return HttpResponse.json({ success: true })
+  }),
+
   // ==================== STATS ====================
 
   http.get('/api/inventory/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
 
     const totalAssetValue = assets.filter((a) => a.status === 'active').reduce((sum, a) => sum + a.purchasePrice, 0)
     const totalDepreciation = assets.filter((a) => a.status === 'active').reduce((sum, a) => sum + (a.purchasePrice - a.currentValue), 0)

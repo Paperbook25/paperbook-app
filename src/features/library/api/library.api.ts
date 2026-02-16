@@ -23,6 +23,8 @@ import type {
   OverdueNotification,
   NotificationConfig,
   BarcodeScanResult,
+  RenewBookRequest,
+  RenewBookResponse,
 } from '../types/library.types'
 
 const API_BASE = '/api/library'
@@ -119,6 +121,16 @@ export async function returnBook(
   return apiPost<{ data: IssuedBook; fine: Fine | null }>(`${API_BASE}/return/${issuedBookId}`)
 }
 
+export async function renewBook(
+  issuedBookId: string,
+  newDueDate?: string
+): Promise<RenewBookResponse> {
+  return apiPost<RenewBookResponse>(`${API_BASE}/renew/${issuedBookId}`, {
+    issuedBookId,
+    newDueDate,
+  })
+}
+
 // ==================== FINES ====================
 
 export async function fetchFines(filters: FineFilters = {}): Promise<PaginatedResponse<Fine>> {
@@ -134,6 +146,10 @@ export async function fetchFines(filters: FineFilters = {}): Promise<PaginatedRe
 
 export async function updateFine(id: string, data: UpdateFineRequest): Promise<{ data: Fine }> {
   return apiPatch<{ data: Fine }>(`${API_BASE}/fines/${id}`, data)
+}
+
+export async function deleteFine(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/fines/${id}`)
 }
 
 // ==================== STATS & UTILITY ====================

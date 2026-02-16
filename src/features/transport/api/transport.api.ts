@@ -134,6 +134,10 @@ export async function updateMaintenanceRecord(id: string, data: Partial<Maintena
   return apiPatch<{ data: MaintenanceRecord }>(`${BASE}/maintenance/${id}`, data)
 }
 
+export async function deleteMaintenanceRecord(id: string) {
+  return apiDelete<{ success: boolean }>(`${BASE}/maintenance/${id}`)
+}
+
 // ==================== NOTIFICATIONS ====================
 
 export async function fetchTransportNotifications(params?: { routeId?: string; eventType?: string; page?: number; limit?: number }) {
