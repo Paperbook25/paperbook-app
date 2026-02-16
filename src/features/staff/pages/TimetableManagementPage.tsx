@@ -20,7 +20,8 @@ const CLASSES = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6
 const SECTIONS = ['A', 'B', 'C']
 
 function ClassTimetableGrid({ cls, section }: { cls: string; section: string }) {
-  const { data: timetable, isLoading } = useClassTimetable(cls, section)
+  const { data: timetableResponse, isLoading } = useClassTimetable(cls, section)
+  const timetable = timetableResponse?.data
 
   if (isLoading) {
     return <Skeleton className="h-[400px] w-full" />
@@ -29,7 +30,7 @@ function ClassTimetableGrid({ cls, section }: { cls: string; section: string }) 
   const entries = timetable?.entries ?? []
 
   const getEntry = (day: DayOfWeek, period: number): TimetableEntry | undefined => {
-    return entries.find((e) => e.day === day && e.periodNumber === period)
+    return entries.find((e: TimetableEntry) => e.day === day && e.periodNumber === period)
   }
 
   return (

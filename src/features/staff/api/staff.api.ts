@@ -129,7 +129,7 @@ export async function updateLeaveRequest(
   requestId: string,
   data: { status: 'approved' | 'rejected'; rejectionReason?: string }
 ): Promise<{ data: LeaveRequest }> {
-  return apiPatch<{ data: LeaveRequest }>(`/api/leave-requests/${requestId}`, data)
+  return apiPatch<{ data: LeaveRequest }>(`${API_BASE}/leave-requests/${requestId}`, data)
 }
 
 // ==================== SALARY ====================
@@ -156,24 +156,21 @@ export async function processMonthlySalary(
 }
 
 export async function markSalaryPaid(slipId: string): Promise<{ data: SalarySlip }> {
-  return apiPatch<{ data: SalarySlip }>(`/api/salary-slips/${slipId}/pay`)
+  return apiPatch<{ data: SalarySlip }>(`${API_BASE}/salary-slips/${slipId}/pay`)
 }
 
 // ==================== TIMETABLE ====================
 
-export async function fetchStaffTimetable(staffId: string): Promise<StaffTimetable> {
-  const result = await apiGet<{ data: StaffTimetable }>(`${API_BASE}/${staffId}/timetable`)
-  return result.data
+export async function fetchStaffTimetable(staffId: string): Promise<{ data: StaffTimetable }> {
+  return apiGet<{ data: StaffTimetable }>(`${API_BASE}/${staffId}/timetable`)
 }
 
-export async function fetchClassTimetable(cls: string, section: string): Promise<ClassTimetable> {
-  const result = await apiGet<{ data: ClassTimetable }>(`/api/timetable/class?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`)
-  return result.data
+export async function fetchClassTimetable(cls: string, section: string): Promise<{ data: ClassTimetable }> {
+  return apiGet<{ data: ClassTimetable }>(`/api/timetable/class?class=${encodeURIComponent(cls)}&section=${encodeURIComponent(section)}`)
 }
 
-export async function createTimetableEntry(data: Omit<TimetableEntry, 'id' | 'staffName'>): Promise<TimetableEntry> {
-  const result = await apiPost<{ data: TimetableEntry }>('/api/timetable', data)
-  return result.data
+export async function createTimetableEntry(data: Omit<TimetableEntry, 'id' | 'staffName'>): Promise<{ data: TimetableEntry }> {
+  return apiPost<{ data: TimetableEntry }>('/api/timetable', data)
 }
 
 export async function deleteTimetableEntry(id: string): Promise<{ success: boolean }> {
@@ -182,73 +179,62 @@ export async function deleteTimetableEntry(id: string): Promise<{ success: boole
 
 // ==================== SUBSTITUTIONS ====================
 
-export async function fetchSubstitutions(filters?: { date?: string; status?: string }): Promise<Substitution[]> {
+export async function fetchSubstitutions(filters?: { date?: string; status?: string }): Promise<{ data: Substitution[] }> {
   const params = new URLSearchParams()
   if (filters?.date) params.set('date', filters.date)
   if (filters?.status) params.set('status', filters.status)
-  const result = await apiGet<{ data: Substitution[] }>(`${API_BASE}/substitutions?${params}`)
-  return result.data
+  return apiGet<{ data: Substitution[] }>(`${API_BASE}/substitutions?${params}`)
 }
 
-export async function createSubstitution(data: CreateSubstitutionRequest): Promise<Substitution> {
-  const result = await apiPost<{ data: Substitution }>(`${API_BASE}/substitutions`, data)
-  return result.data
+export async function createSubstitution(data: CreateSubstitutionRequest): Promise<{ data: Substitution }> {
+  return apiPost<{ data: Substitution }>(`${API_BASE}/substitutions`, data)
 }
 
-export async function updateSubstitutionStatus(id: string, status: string): Promise<Substitution> {
-  const result = await apiPatch<{ data: Substitution }>(`${API_BASE}/substitutions/${id}`, { status })
-  return result.data
+export async function updateSubstitutionStatus(id: string, status: string): Promise<{ data: Substitution }> {
+  return apiPatch<{ data: Substitution }>(`${API_BASE}/substitutions/${id}`, { status })
 }
 
 // ==================== PERFORMANCE REVIEWS ====================
 
-export async function fetchPerformanceReviews(filters?: { staffId?: string; period?: string; year?: number }): Promise<PerformanceReview[]> {
+export async function fetchPerformanceReviews(filters?: { staffId?: string; period?: string; year?: number }): Promise<{ data: PerformanceReview[] }> {
   const params = new URLSearchParams()
   if (filters?.staffId) params.set('staffId', filters.staffId)
   if (filters?.period) params.set('period', filters.period)
   if (filters?.year) params.set('year', String(filters.year))
-  const result = await apiGet<{ data: PerformanceReview[] }>(`${API_BASE}/performance-reviews?${params}`)
-  return result.data
+  return apiGet<{ data: PerformanceReview[] }>(`${API_BASE}/performance-reviews?${params}`)
 }
 
-export async function fetchStaffPerformanceReviews(staffId: string): Promise<PerformanceReview[]> {
-  const result = await apiGet<{ data: PerformanceReview[] }>(`${API_BASE}/${staffId}/performance-reviews`)
-  return result.data
+export async function fetchStaffPerformanceReviews(staffId: string): Promise<{ data: PerformanceReview[] }> {
+  return apiGet<{ data: PerformanceReview[] }>(`${API_BASE}/${staffId}/performance-reviews`)
 }
 
-export async function createPerformanceReview(data: CreatePerformanceReview): Promise<PerformanceReview> {
-  const result = await apiPost<{ data: PerformanceReview }>(`${API_BASE}/performance-reviews`, data)
-  return result.data
+export async function createPerformanceReview(data: CreatePerformanceReview): Promise<{ data: PerformanceReview }> {
+  return apiPost<{ data: PerformanceReview }>(`${API_BASE}/performance-reviews`, data)
 }
 
-export async function acknowledgeReview(id: string): Promise<PerformanceReview> {
-  const result = await apiPatch<{ data: PerformanceReview }>(`${API_BASE}/performance-reviews/${id}/acknowledge`)
-  return result.data
+export async function acknowledgeReview(id: string): Promise<{ data: PerformanceReview }> {
+  return apiPatch<{ data: PerformanceReview }>(`${API_BASE}/performance-reviews/${id}/acknowledge`)
 }
 
 // ==================== PROFESSIONAL DEVELOPMENT ====================
 
-export async function fetchStaffPD(staffId: string): Promise<ProfessionalDevelopment[]> {
-  const result = await apiGet<{ data: ProfessionalDevelopment[] }>(`${API_BASE}/${staffId}/professional-development`)
-  return result.data
+export async function fetchStaffPD(staffId: string): Promise<{ data: ProfessionalDevelopment[] }> {
+  return apiGet<{ data: ProfessionalDevelopment[] }>(`${API_BASE}/${staffId}/professional-development`)
 }
 
-export async function fetchAllPD(filters?: { type?: string; status?: string }): Promise<ProfessionalDevelopment[]> {
+export async function fetchAllPD(filters?: { type?: string; status?: string }): Promise<{ data: ProfessionalDevelopment[] }> {
   const params = new URLSearchParams()
   if (filters?.type) params.set('type', filters.type)
   if (filters?.status) params.set('status', filters.status)
-  const result = await apiGet<{ data: ProfessionalDevelopment[] }>(`${API_BASE}/professional-development?${params}`)
-  return result.data
+  return apiGet<{ data: ProfessionalDevelopment[] }>(`${API_BASE}/professional-development?${params}`)
 }
 
-export async function createPD(staffId: string, data: Omit<CreatePDRequest, 'staffId'>): Promise<ProfessionalDevelopment> {
-  const result = await apiPost<{ data: ProfessionalDevelopment }>(`${API_BASE}/${staffId}/professional-development`, data)
-  return result.data
+export async function createPD(staffId: string, data: Omit<CreatePDRequest, 'staffId'>): Promise<{ data: ProfessionalDevelopment }> {
+  return apiPost<{ data: ProfessionalDevelopment }>(`${API_BASE}/${staffId}/professional-development`, data)
 }
 
-export async function updatePD(id: string, data: Partial<ProfessionalDevelopment>): Promise<ProfessionalDevelopment> {
-  const result = await apiPut<{ data: ProfessionalDevelopment }>(`${API_BASE}/professional-development/${id}`, data)
-  return result.data
+export async function updatePD(id: string, data: Partial<ProfessionalDevelopment>): Promise<{ data: ProfessionalDevelopment }> {
+  return apiPut<{ data: ProfessionalDevelopment }>(`${API_BASE}/professional-development/${id}`, data)
 }
 
 export async function deletePD(id: string): Promise<{ success: boolean }> {
@@ -259,10 +245,9 @@ export async function deletePD(id: string): Promise<{ success: boolean }> {
 
 export async function exportStaff(
   filters?: { department?: string; status?: string }
-): Promise<Record<string, string | number>[]> {
+): Promise<{ data: Record<string, string | number>[] }> {
   const params = new URLSearchParams()
   if (filters?.department) params.set('department', filters.department)
   if (filters?.status) params.set('status', filters.status)
-  const result = await apiGet<{ data: Record<string, string | number>[] }>(`${API_BASE}/export?${params}`)
-  return result.data
+  return apiGet<{ data: Record<string, string | number>[] }>(`${API_BASE}/export?${params}`)
 }

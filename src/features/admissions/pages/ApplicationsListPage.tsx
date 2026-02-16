@@ -108,10 +108,11 @@ export function ApplicationsListPage() {
   const handleExport = async () => {
     setIsExporting(true)
     try {
-      const exportData = await exportApplications({
+      const exportResponse = await exportApplications({
         status: statusFilter !== 'all' ? statusFilter : undefined,
         class: classFilter || undefined,
       })
+      const exportData = exportResponse.data
 
       if (exportData.length === 0) {
         toast({

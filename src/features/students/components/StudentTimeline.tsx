@@ -108,7 +108,8 @@ function TimelineSkeleton() {
 }
 
 export function StudentTimeline({ studentId }: StudentTimelineProps) {
-  const { data: events, isLoading, isError } = useStudentTimeline(studentId)
+  const { data: eventsResponse, isLoading, isError } = useStudentTimeline(studentId)
+  const events = eventsResponse?.data
 
   return (
     <Card>
@@ -132,7 +133,7 @@ export function StudentTimeline({ studentId }: StudentTimelineProps) {
           </div>
         ) : (
           <div>
-            {events.map((event) => (
+            {events.map((event: TimelineEvent) => (
               <TimelineItem key={event.id} event={event} />
             ))}
           </div>

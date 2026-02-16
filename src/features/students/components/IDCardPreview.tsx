@@ -177,7 +177,8 @@ function IDCardBack({ data }: { data: IDCardData }) {
 
 export function IDCardPreview({ studentId }: IDCardPreviewProps) {
   const printRef = useRef<HTMLDivElement>(null)
-  const { data, isLoading, isError } = useIDCardData(studentId)
+  const { data: dataResponse, isLoading, isError } = useIDCardData(studentId)
+  const data = dataResponse?.data
 
   const handlePrint = () => {
     if (!printRef.current) return

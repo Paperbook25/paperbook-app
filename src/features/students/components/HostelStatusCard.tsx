@@ -24,7 +24,8 @@ interface HostelStatusCardProps {
 }
 
 export function HostelStatusCard({ studentId }: HostelStatusCardProps) {
-  const { data: allocation, isLoading } = useStudentHostelAllocation(studentId)
+  const { data: allocationResponse, isLoading } = useStudentHostelAllocation(studentId)
+  const allocation = allocationResponse?.data
   const { data: feesResult, isLoading: feesLoading } = useHostelFees({ studentId })
   const payFee = usePayHostelFee()
   const { toast } = useToast()

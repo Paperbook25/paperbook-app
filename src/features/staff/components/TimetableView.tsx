@@ -80,7 +80,8 @@ function BreakRow({ label, time }: { label: string; time: string }) {
 }
 
 export function TimetableView({ staffId }: TimetableViewProps) {
-  const { data: timetableData, isLoading } = useStaffTimetable(staffId)
+  const { data: timetableResponse, isLoading } = useStaffTimetable(staffId)
+  const timetableData = timetableResponse?.data
 
   // Build a lookup map: day -> periodNumber -> entry
   const entryMap = useMemo(() => {

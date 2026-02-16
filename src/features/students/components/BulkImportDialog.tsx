@@ -291,7 +291,8 @@ export function BulkImportDialog({ open, onOpenChange }: BulkImportDialogProps) 
     setStep('import')
 
     try {
-      const result = await bulkImport.mutateAsync(validRows)
+      const response = await bulkImport.mutateAsync(validRows)
+      const result = response.data
       setImportResult(result)
 
       if (result.failed === 0) {

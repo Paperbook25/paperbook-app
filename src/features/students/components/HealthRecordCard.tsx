@@ -293,7 +293,8 @@ export function HealthRecordCard({ studentId }: HealthRecordCardProps) {
   const [editOpen, setEditOpen] = useState(false)
 
   const { toast } = useToast()
-  const { data: health, isLoading, isError } = useStudentHealth(studentId)
+  const { data: healthResponse, isLoading, isError } = useStudentHealth(studentId)
+  const health = healthResponse?.data
   const updateMutation = useUpdateHealth()
 
   const hasRecord =

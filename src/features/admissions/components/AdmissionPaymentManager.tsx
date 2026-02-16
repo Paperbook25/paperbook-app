@@ -73,9 +73,10 @@ export function AdmissionPaymentManager() {
   const [paymentMethod, setPaymentMethod] = useState('')
   const [transactionId, setTransactionId] = useState('')
 
-  const { data: payments = [], isLoading } = useAdmissionPayments(
+  const { data: paymentsResponse, isLoading } = useAdmissionPayments(
     statusFilter !== 'all' ? statusFilter : undefined
   )
+  const payments = paymentsResponse?.data ?? []
   const recordPayment = useRecordPayment()
 
   const filteredPayments = payments.filter((payment) => {

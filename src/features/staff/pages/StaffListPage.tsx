@@ -102,10 +102,11 @@ export function StaffListPage() {
   const handleExport = async () => {
     setIsExporting(true)
     try {
-      const exportData = await exportStaff({
+      const exportResponse = await exportStaff({
         department: departmentFilter !== 'All Departments' ? departmentFilter : undefined,
         status: statusFilter !== 'All Status' ? statusFilter : undefined,
       })
+      const exportData = exportResponse.data
 
       // Convert to CSV
       if (exportData.length === 0) {

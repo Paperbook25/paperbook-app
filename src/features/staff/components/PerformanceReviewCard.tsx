@@ -362,7 +362,8 @@ export function PerformanceReviewCard({ staffId }: PerformanceReviewCardProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const { toast } = useToast()
-  const { data: reviews, isLoading, isError } = useStaffPerformanceReviews(staffId)
+  const { data: reviewsResponse, isLoading, isError } = useStaffPerformanceReviews(staffId)
+  const reviews = reviewsResponse?.data
   const createMutation = useCreatePerformanceReview()
   const acknowledgeMutation = useAcknowledgeReview()
 

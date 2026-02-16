@@ -209,7 +209,7 @@ export const auditLogs: AuditLogEntry[] = auditActions.map((entry, i) => {
       { field: 'value', oldValue: 'Previous', newValue: 'Updated' },
     ] : undefined,
     ipAddress: `192.168.1.${10 + i}`,
-    timestamp: faker.date.recent({ days: 30 - i }).toISOString(),
+    timestamp: faker.date.recent({ days: Math.max(1, 30 - i) }).toISOString(),
   }
 })
 

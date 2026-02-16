@@ -438,11 +438,11 @@ export function CommunicationManager() {
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
 
   const logsFilters = typeFilter !== 'all' ? { type: typeFilter } : undefined
-  const { data: logs, isLoading: logsLoading } = useCommunicationLogs(logsFilters)
-  const { data: templates, isLoading: templatesLoading } = useCommunicationTemplates()
+  const { data: logsResponse, isLoading: logsLoading } = useCommunicationLogs(logsFilters)
+  const { data: templatesResponse, isLoading: templatesLoading } = useCommunicationTemplates()
 
-  const communicationLogs: CommunicationLog[] = logs ?? []
-  const communicationTemplates: CommunicationTemplate[] = templates ?? []
+  const communicationLogs: CommunicationLog[] = logsResponse?.data ?? []
+  const communicationTemplates: CommunicationTemplate[] = templatesResponse?.data ?? []
 
   return (
     <Card>

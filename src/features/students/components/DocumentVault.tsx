@@ -177,7 +177,8 @@ export function DocumentVault({ studentId }: DocumentVaultProps) {
   const [docName, setDocName] = useState('')
 
   const { toast } = useToast()
-  const { data: documents, isLoading, isError } = useStudentDocuments(studentId)
+  const { data: documentsResponse, isLoading, isError } = useStudentDocuments(studentId)
+  const documents = documentsResponse?.data
   const uploadMutation = useUploadDocument()
   const deleteMutation = useDeleteDocument()
   const verifyMutation = useVerifyDocument()

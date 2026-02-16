@@ -104,8 +104,10 @@ export function WaitlistManager() {
   const [selectedClass, setSelectedClass] = useState<string>('all')
 
   const filterClass = selectedClass === 'all' ? undefined : selectedClass
-  const { data: waitlistEntries, isLoading: isLoadingWaitlist } = useWaitlist(filterClass)
-  const { data: classCapacities, isLoading: isLoadingCapacity } = useClassCapacity()
+  const { data: waitlistResponse, isLoading: isLoadingWaitlist } = useWaitlist(filterClass)
+  const { data: capacityResponse, isLoading: isLoadingCapacity } = useClassCapacity()
+  const waitlistEntries = waitlistResponse?.data
+  const classCapacities = capacityResponse?.data
 
   const sortedWaitlist = useMemo(() => {
     if (!waitlistEntries) return []

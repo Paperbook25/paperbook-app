@@ -101,7 +101,8 @@ export function SubstitutionManager({ staffId }: SubstitutionManagerProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [form, setForm] = useState<CreateSubstitutionFormState>(initialFormState)
 
-  const { data: substitutionsData, isLoading } = useSubstitutions()
+  const { data: substitutionsResponse, isLoading } = useSubstitutions()
+  const substitutionsData = substitutionsResponse?.data
   const { data: staffData } = useStaffList({ limit: 200 })
   const createSubstitution = useCreateSubstitution()
   const updateStatus = useUpdateSubstitutionStatus()

@@ -332,7 +332,8 @@ export function ProfessionalDevCard({ staffId }: ProfessionalDevCardProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const { toast } = useToast()
-  const { data: records, isLoading, isError } = useStaffPD(staffId)
+  const { data: recordsResponse, isLoading, isError } = useStaffPD(staffId)
+  const records = recordsResponse?.data
   const createMutation = useCreatePD()
   const deleteMutation = useDeletePD()
 

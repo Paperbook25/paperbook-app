@@ -49,14 +49,14 @@ export function MessageParentDialog({ open, onOpenChange, student }: MessagePare
     }
 
     try {
-      const result = await sendMutation.mutateAsync({
+      const response = await sendMutation.mutateAsync({
         studentId: student.id,
         channel,
         subject: channel === 'email' || channel === 'all' ? subject : undefined,
         message,
       })
 
-      const sentChannels = result.sentVia.join(', ').toUpperCase()
+      const sentChannels = response.data.sentVia.join(', ').toUpperCase()
       toast({
         title: 'Message Sent',
         description: `Message sent successfully via ${sentChannels}.`,

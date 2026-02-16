@@ -90,9 +90,10 @@ export function ExportDialog({ open, onOpenChange }: ExportDialogProps) {
     }
 
     try {
-      const result = await exportMutation.mutateAsync(
+      const response = await exportMutation.mutateAsync(
         Object.keys(filters).length > 0 ? filters : undefined
       )
+      const result = response.data
 
       if (!result || result.length === 0) {
         toast({

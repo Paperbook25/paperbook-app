@@ -360,7 +360,8 @@ function TopPerformersList({ performers }: TopPerformersListProps) {
 }
 
 export function AdmissionAnalyticsView() {
-  const { data: analytics, isLoading } = useAdmissionAnalytics()
+  const { data: analyticsResponse, isLoading } = useAdmissionAnalytics()
+  const analytics = analyticsResponse?.data
 
   if (isLoading) {
     return (

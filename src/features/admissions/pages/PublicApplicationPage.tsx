@@ -189,9 +189,9 @@ export function PublicApplicationPage() {
     }
 
     submitApplication.mutate({ ...request, source: 'website' }, {
-      onSuccess: (data) => {
+      onSuccess: (response) => {
         setSubmitted(true)
-        setSubmissionResult(data)
+        setSubmissionResult(response.data)
       },
     })
   }

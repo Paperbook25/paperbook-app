@@ -106,7 +106,7 @@ export function PromotionDialog({ open, onOpenChange }: PromotionDialogProps) {
     if (selectedStudentIds.length === 0 || !sourceClass || !targetClass) return
 
     try {
-      const result = await promoteMutation.mutateAsync({
+      const response = await promoteMutation.mutateAsync({
         studentIds: selectedStudentIds,
         fromClass: sourceClass,
         toClass: targetClass,
@@ -114,7 +114,7 @@ export function PromotionDialog({ open, onOpenChange }: PromotionDialogProps) {
         newSection: targetSection || undefined,
         autoAssignRollNumbers: autoAssignRoll,
       })
-      setPromotionResult(result)
+      setPromotionResult(response.data)
       setStep(4)
     } catch {
       // Error handled by mutation

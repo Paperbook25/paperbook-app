@@ -119,56 +119,48 @@ export async function deleteApplication(id: string): Promise<{ success: boolean 
 
 // ==================== WAITLIST API ====================
 
-export async function fetchWaitlist(cls?: string): Promise<WaitlistEntry[]> {
+export async function fetchWaitlist(cls?: string): Promise<{ data: WaitlistEntry[] }> {
   const params = new URLSearchParams()
   if (cls) params.set('class', cls)
-  const result = await apiGet<{ data: WaitlistEntry[] }>(`${API_BASE}/waitlist?${params}`)
-  return result.data
+  return apiGet<{ data: WaitlistEntry[] }>(`${API_BASE}/waitlist?${params}`)
 }
 
-export async function fetchClassCapacity(): Promise<ClassCapacity[]> {
-  const result = await apiGet<{ data: ClassCapacity[] }>(`${API_BASE}/class-capacity`)
-  return result.data
+export async function fetchClassCapacity(): Promise<{ data: ClassCapacity[] }> {
+  return apiGet<{ data: ClassCapacity[] }>(`${API_BASE}/class-capacity`)
 }
 
 // ==================== ENTRANCE EXAM API ====================
 
-export async function fetchExamSchedules(): Promise<EntranceExamSchedule[]> {
-  const result = await apiGet<{ data: EntranceExamSchedule[] }>(`${API_BASE}/exam-schedules`)
-  return result.data
+export async function fetchExamSchedules(): Promise<{ data: EntranceExamSchedule[] }> {
+  return apiGet<{ data: EntranceExamSchedule[] }>(`${API_BASE}/exam-schedules`)
 }
 
-export async function createExamSchedule(data: ScheduleExamRequest): Promise<EntranceExamSchedule> {
-  const result = await apiPost<{ data: EntranceExamSchedule }>(`${API_BASE}/exam-schedules`, data)
-  return result.data
+export async function createExamSchedule(data: ScheduleExamRequest): Promise<{ data: EntranceExamSchedule }> {
+  return apiPost<{ data: EntranceExamSchedule }>(`${API_BASE}/exam-schedules`, data)
 }
 
-export async function fetchExamResults(filters?: { class?: string; scheduleId?: string }): Promise<ExamResult[]> {
+export async function fetchExamResults(filters?: { class?: string; scheduleId?: string }): Promise<{ data: ExamResult[] }> {
   const params = new URLSearchParams()
   if (filters?.class) params.set('class', filters.class)
   if (filters?.scheduleId) params.set('scheduleId', filters.scheduleId)
-  const result = await apiGet<{ data: ExamResult[] }>(`${API_BASE}/exam-results?${params}`)
-  return result.data
+  return apiGet<{ data: ExamResult[] }>(`${API_BASE}/exam-results?${params}`)
 }
 
-export async function recordExamScore(applicationId: string, data: Omit<RecordExamScoreRequest, 'applicationId'>): Promise<Application> {
-  const result = await apiPost<{ data: Application }>(`${API_BASE}/${applicationId}/exam-score`, data)
-  return result.data
+export async function recordExamScore(applicationId: string, data: Omit<RecordExamScoreRequest, 'applicationId'>): Promise<{ data: Application }> {
+  return apiPost<{ data: Application }>(`${API_BASE}/${applicationId}/exam-score`, data)
 }
 
 // ==================== COMMUNICATION API ====================
 
-export async function fetchCommunicationLogs(filters?: { applicationId?: string; type?: string }): Promise<CommunicationLog[]> {
+export async function fetchCommunicationLogs(filters?: { applicationId?: string; type?: string }): Promise<{ data: CommunicationLog[] }> {
   const params = new URLSearchParams()
   if (filters?.applicationId) params.set('applicationId', filters.applicationId)
   if (filters?.type) params.set('type', filters.type)
-  const result = await apiGet<{ data: CommunicationLog[] }>(`${API_BASE}/communications?${params}`)
-  return result.data
+  return apiGet<{ data: CommunicationLog[] }>(`${API_BASE}/communications?${params}`)
 }
 
-export async function fetchCommunicationTemplates(): Promise<CommunicationTemplate[]> {
-  const result = await apiGet<{ data: CommunicationTemplate[] }>(`${API_BASE}/communication-templates`)
-  return result.data
+export async function fetchCommunicationTemplates(): Promise<{ data: CommunicationTemplate[] }> {
+  return apiGet<{ data: CommunicationTemplate[] }>(`${API_BASE}/communication-templates`)
 }
 
 export async function sendCommunication(data: SendCommunicationRequest): Promise<{ count: number }> {
@@ -177,45 +169,39 @@ export async function sendCommunication(data: SendCommunicationRequest): Promise
 
 // ==================== PAYMENT API ====================
 
-export async function fetchAdmissionPayments(status?: string): Promise<AdmissionPayment[]> {
+export async function fetchAdmissionPayments(status?: string): Promise<{ data: AdmissionPayment[] }> {
   const params = new URLSearchParams()
   if (status) params.set('status', status)
-  const result = await apiGet<{ data: AdmissionPayment[] }>(`${API_BASE}/payments?${params}`)
-  return result.data
+  return apiGet<{ data: AdmissionPayment[] }>(`${API_BASE}/payments?${params}`)
 }
 
-export async function fetchApplicationPayment(applicationId: string): Promise<AdmissionPayment> {
-  const result = await apiGet<{ data: AdmissionPayment }>(`${API_BASE}/${applicationId}/payment`)
-  return result.data
+export async function fetchApplicationPayment(applicationId: string): Promise<{ data: AdmissionPayment }> {
+  return apiGet<{ data: AdmissionPayment }>(`${API_BASE}/${applicationId}/payment`)
 }
 
-export async function recordPayment(data: RecordPaymentRequest): Promise<AdmissionPayment> {
-  const result = await apiPost<{ data: AdmissionPayment }>(`${API_BASE}/${data.applicationId}/payment`, data)
-  return result.data
+export async function recordPayment(data: RecordPaymentRequest): Promise<{ data: AdmissionPayment }> {
+  return apiPost<{ data: AdmissionPayment }>(`${API_BASE}/${data.applicationId}/payment`, data)
 }
 
 // ==================== ANALYTICS API ====================
 
-export async function fetchAdmissionAnalytics(): Promise<AdmissionAnalytics> {
-  const result = await apiGet<{ data: AdmissionAnalytics }>(`${API_BASE}/analytics`)
-  return result.data
+export async function fetchAdmissionAnalytics(): Promise<{ data: AdmissionAnalytics }> {
+  return apiGet<{ data: AdmissionAnalytics }>(`${API_BASE}/analytics`)
 }
 
 // ==================== PUBLIC API ====================
 
-export async function submitPublicApplication(data: CreateApplicationRequest & { source?: string }): Promise<{ applicationNumber: string; message: string }> {
-  const result = await apiPost<{ data: { applicationNumber: string; message: string } }>('/api/public/admissions/apply', data)
-  return result.data
+export async function submitPublicApplication(data: CreateApplicationRequest & { source?: string }): Promise<{ data: { applicationNumber: string; message: string } }> {
+  return apiPost<{ data: { applicationNumber: string; message: string } }>('/api/public/admissions/apply', data)
 }
 
 // ==================== EXPORT ====================
 
 export async function exportApplications(
   filters?: { status?: string; class?: string }
-): Promise<Record<string, string | number>[]> {
+): Promise<{ data: Record<string, string | number>[] }> {
   const params = new URLSearchParams()
   if (filters?.status) params.set('status', filters.status)
   if (filters?.class) params.set('class', filters.class)
-  const result = await apiGet<{ data: Record<string, string | number>[] }>(`${API_BASE}/export?${params}`)
-  return result.data
+  return apiGet<{ data: Record<string, string | number>[] }>(`${API_BASE}/export?${params}`)
 }

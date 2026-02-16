@@ -72,10 +72,11 @@ export function SiblingCard({ studentId }: SiblingCardProps) {
 
   const { toast } = useToast()
   const {
-    data: siblingGroup,
+    data: siblingResponse,
     isLoading,
     isError,
   } = useStudentSiblings(studentId)
+  const siblingGroup = siblingResponse?.data
   const linkMutation = useLinkSibling()
   const unlinkMutation = useUnlinkSibling()
 

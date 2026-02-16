@@ -70,11 +70,13 @@ export function EntranceExamManager() {
   const [resultsClassFilter, setResultsClassFilter] = useState<string>('')
 
   // Data hooks
-  const { data: schedules, isLoading: schedulesLoading } = useExamSchedules()
+  const { data: schedulesResponse, isLoading: schedulesLoading } = useExamSchedules()
+  const schedules = schedulesResponse?.data
   const createSchedule = useCreateExamSchedule()
-  const { data: results, isLoading: resultsLoading } = useExamResults(
+  const { data: resultsResponse, isLoading: resultsLoading } = useExamResults(
     resultsClassFilter ? { class: resultsClassFilter } : undefined
   )
+  const results = resultsResponse?.data
 
   const handleOpenDialog = () => {
     setFormData(INITIAL_FORM_STATE)

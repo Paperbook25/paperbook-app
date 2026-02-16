@@ -43,7 +43,8 @@ interface AlumniStatusCardProps {
 }
 
 export function AlumniStatusCard({ studentId, studentStatus, studentClass }: AlumniStatusCardProps) {
-  const { data: alumni, isLoading } = useStudentAlumniRecord(studentId)
+  const { data: alumniResponse, isLoading } = useStudentAlumniRecord(studentId)
+  const alumni = alumniResponse?.data
   const graduateStudent = useGraduateStudent()
   const { toast } = useToast()
 
