@@ -4,6 +4,7 @@ import { Header } from './Header'
 import { CommandPalette } from './CommandPalette'
 import { useUIStore } from '@/stores/useUIStore'
 import { TooltipProvider } from '@/components/ui/tooltip'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 
 interface AppShellProps {
   children: ReactNode
@@ -44,9 +45,11 @@ export function AppShell({ children }: AppShellProps) {
         <Sidebar />
 
         {/* Main content area */}
-        <div className="flex flex-col lg:ml-20">
+        <div className="flex flex-col lg:ml-[96px]">
           <Header />
-          <main className="flex-1 p-4 lg:p-6">{children}</main>
+          <main className="flex-1 p-4 lg:p-6">
+            <ErrorBoundary>{children}</ErrorBoundary>
+          </main>
         </div>
 
         {/* Command Palette */}
