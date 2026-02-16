@@ -22,6 +22,7 @@ import {
   fetchMaintenanceRecords,
   createMaintenanceRecord,
   updateMaintenanceRecord,
+  deleteMaintenanceRecord,
   fetchTransportNotifications,
   sendTransportNotification,
   fetchTransportStats,
@@ -243,6 +244,17 @@ export function useUpdateMaintenance() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<MaintenanceRecord> }) => updateMaintenanceRecord(id, data),
     onSuccess: () => qc.invalidateQueries({ queryKey: transportKeys.maintenance() }),
+  })
+}
+
+export function useDeleteMaintenance() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteMaintenanceRecord(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: transportKeys.maintenance() })
+      qc.invalidateQueries({ queryKey: transportKeys.stats() })
+    },
   })
 }
 

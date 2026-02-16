@@ -18,6 +18,7 @@ import {
   fetchPurchaseOrder,
   createPurchaseOrder,
   updatePOStatus,
+  deletePurchaseOrder,
   fetchInventoryStats,
 } from '../api/inventory.api'
 import type {
@@ -232,6 +233,17 @@ export function useUpdatePOStatus() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: inventoryKeys.purchaseOrders() })
       qc.invalidateQueries({ queryKey: inventoryKeys.vendors() })
+      qc.invalidateQueries({ queryKey: inventoryKeys.stats() })
+    },
+  })
+}
+
+export function useDeletePurchaseOrder() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deletePurchaseOrder(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: inventoryKeys.purchaseOrders() })
       qc.invalidateQueries({ queryKey: inventoryKeys.stats() })
     },
   })

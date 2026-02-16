@@ -11,8 +11,10 @@ import {
   fetchIssuedBooks,
   issueBook,
   returnBook,
+  renewBook,
   fetchFines,
   updateFine,
+  deleteFine,
   fetchLibraryStats,
   fetchAvailableStudents,
   fetchReservations,
@@ -188,6 +190,21 @@ export function useReturnBook() {
   })
 }
 
+export function useRenewBook() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ issuedBookId, newDueDate }: { issuedBookId: string; newDueDate?: string }) =>
+      renewBook(issuedBookId, newDueDate),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.issued() })
+      queryClient.invalidateQueries({ queryKey: libraryKeys.myBooks() })
+      queryClient.invalidateQueries({ queryKey: libraryKeys.myChildrenBooks() })
+      queryClient.invalidateQueries({ queryKey: libraryKeys.stats() })
+    },
+  })
+}
+
 // ==================== FINES HOOKS ====================
 
 export function useFines(filters: FineFilters = {}) {
@@ -202,6 +219,18 @@ export function useUpdateFine() {
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateFineRequest }) => updateFine(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: libraryKeys.fines() })
+      queryClient.invalidateQueries({ queryKey: libraryKeys.stats() })
+    },
+  })
+}
+
+export function useDeleteFine() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteFine(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: libraryKeys.fines() })
       queryClient.invalidateQueries({ queryKey: libraryKeys.stats() })

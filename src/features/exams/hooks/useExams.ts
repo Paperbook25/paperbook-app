@@ -16,6 +16,7 @@ import {
   fetchReportCards,
   fetchStudentReportCard,
   generateReportCards,
+  deleteReportCard,
   fetchGradeScales,
   fetchGradeScale,
   createGradeScale,
@@ -257,6 +258,17 @@ export function useGenerateReportCards() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: examKeys.reportCards() })
       queryClient.invalidateQueries({ queryKey: examKeys.examReportCards(variables.examId) })
+    },
+  })
+}
+
+export function useDeleteReportCard() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteReportCard(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: examKeys.reportCards() })
     },
   })
 }

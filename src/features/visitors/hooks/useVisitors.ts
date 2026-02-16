@@ -3,11 +3,14 @@ import {
   fetchVisitors,
   fetchVisitor,
   createVisitor,
+  updateVisitor,
+  deleteVisitor,
   fetchPasses,
   fetchActivePasses,
   createPass,
   checkOutVisitor,
   cancelPass,
+  deletePass,
   fetchPreApproved,
   createPreApproved,
   revokePreApproved,
@@ -15,6 +18,7 @@ import {
   fetchVisitorReports,
 } from '../api/visitors.api'
 import type {
+  Visitor,
   CreateVisitorRequest,
   CreateVisitorPassRequest,
   CreatePreApprovedRequest,
@@ -52,6 +56,22 @@ export function useCreateVisitor() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateVisitorRequest) => createVisitor(data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: visitorKeys.all }),
+  })
+}
+
+export function useUpdateVisitor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Visitor> }) => updateVisitor(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: visitorKeys.all }),
+  })
+}
+
+export function useDeleteVisitor() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deleteVisitor(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: visitorKeys.all }),
   })
 }
@@ -108,6 +128,18 @@ export function useCancelPass() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => cancelPass(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: visitorKeys.passes() })
+      qc.invalidateQueries({ queryKey: visitorKeys.activePasses() })
+      qc.invalidateQueries({ queryKey: visitorKeys.stats() })
+    },
+  })
+}
+
+export function useDeletePass() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => deletePass(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: visitorKeys.passes() })
       qc.invalidateQueries({ queryKey: visitorKeys.activePasses() })

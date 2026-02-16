@@ -16,6 +16,7 @@ import {
   fetchPayments,
   collectPayment,
   fetchReceipt,
+  deleteReceipt,
   fetchOutstandingDues,
   fetchOutstandingSummary,
   sendReminders,
@@ -29,6 +30,7 @@ import {
   deleteExpense,
   fetchLedger,
   fetchLedgerBalance,
+  deleteLedgerEntry,
   fetchCollectionReport,
   fetchDueReport,
   fetchFinancialSummary,
@@ -339,6 +341,20 @@ export function useReceipt(receiptNumber: string) {
   })
 }
 
+export function useDeleteReceipt() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (receiptNumber: string) => deleteReceipt(receiptNumber),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.payments() })
+      queryClient.invalidateQueries({ queryKey: financeKeys.studentFees() })
+      queryClient.invalidateQueries({ queryKey: financeKeys.ledger() })
+      queryClient.invalidateQueries({ queryKey: financeKeys.stats() })
+    },
+  })
+}
+
 // ==================== OUTSTANDING HOOKS ====================
 
 export function useOutstandingDues(filters: OutstandingFilters = {}) {
@@ -476,6 +492,18 @@ export function useLedgerBalance() {
   return useQuery({
     queryKey: financeKeys.ledgerBalance(),
     queryFn: fetchLedgerBalance,
+  })
+}
+
+export function useDeleteLedgerEntry() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => deleteLedgerEntry(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: financeKeys.ledger() })
+      queryClient.invalidateQueries({ queryKey: financeKeys.stats() })
+    },
   })
 }
 
