@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams, Link } from 'react-router-dom'
-import { Plus, FileSpreadsheet, ClipboardList, Settings, Download, Eye, CheckCircle2, Clock } from 'lucide-react'
+import { Plus, FileSpreadsheet, ClipboardList, Settings, Download, Eye, CheckCircle2, Clock, Monitor } from 'lucide-react'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -18,6 +19,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { useToast } from '@/hooks/use-toast'
 import { ExamList } from '../components/ExamList'
 import { GradeScaleEditor } from '../components/GradeScaleEditor'
+import { OnlineExamCard } from '../components/OnlineExamCard'
 import {
   useExams,
   useDeleteExam,
@@ -27,16 +29,19 @@ import {
   useUpdateGradeScale,
   useDeleteGradeScale,
 } from '../hooks/useExams'
+import { useOnlineExams } from '@/features/lms/hooks/useQuestionBank'
 import { EXAM_TYPES, EXAM_TYPE_LABELS, ACADEMIC_YEARS, EXAM_STATUS_LABELS } from '../types/exams.types'
 import type { ExamFilters, ExamStatus, ExamType } from '../types/exams.types'
 import { cn, formatDate } from '@/lib/utils'
 
-type TabValue = 'list' | 'marks' | 'reports' | 'grades'
+type TabValue = 'list' | 'online' | 'marks' | 'reports' | 'grades'
 
 export function ExamsPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const { toast } = useToast()
+  const { hasRole } = useAuthStore()
+  const canManageExams = hasRole(['admin', 'principal', 'teacher'])
 
   const activeTab = (searchParams.get('tab') as TabValue) || 'list'
 
@@ -65,6 +70,9 @@ export function ExamsPage() {
 
   // Fetch exams with published results for report cards
   const { data: publishedExams } = useExams({ status: 'results_published', limit: 20 })
+
+  // Fetch online exams
+  const { data: onlineExamsData, isLoading: onlineExamsLoading } = useOnlineExams({ limit: 20 })
 
   // Mutations
   const deleteExam = useDeleteExam()
@@ -120,18 +128,24 @@ export function ExamsPage() {
         description={`Manage exams, marks, and report cards`}
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Exams' }]}
         actions={
-          <Button onClick={() => navigate('/exams/new')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Exam
-          </Button>
+          canManageExams ? (
+            <Button onClick={() => navigate('/exams/new')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Exam
+            </Button>
+          ) : undefined
         }
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="list" className="flex items-center gap-2">
             <ClipboardList className="h-4 w-4 hidden sm:block" />
             All Exams
+          </TabsTrigger>
+          <TabsTrigger value="online" className="flex items-center gap-2">
+            <Monitor className="h-4 w-4 hidden sm:block" />
+            Online Exams
           </TabsTrigger>
           <TabsTrigger value="marks" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4 hidden sm:block" />
@@ -142,7 +156,7 @@ export function ExamsPage() {
           </TabsTrigger>
           <TabsTrigger value="grades" className="flex items-center gap-2">
             <Settings className="h-4 w-4 hidden sm:block" />
-            Grade Settings
+            Grades
           </TabsTrigger>
         </TabsList>
 
@@ -227,6 +241,7 @@ export function ExamsPage() {
                 onPublish={handlePublishResults}
                 isDeleting={deleteExam.isPending}
                 isPublishing={publishResults.isPending}
+                canManageExams={canManageExams}
               />
             )}
 
@@ -257,6 +272,49 @@ export function ExamsPage() {
                 </div>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="online" className="mt-0">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {onlineExamsData?.meta.total || 0} online exam(s)
+                </p>
+                <Button onClick={() => navigate('/lms/question-bank')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Online Exam
+                </Button>
+              </div>
+
+              {onlineExamsLoading ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-48 w-full" />
+                  ))}
+                </div>
+              ) : (onlineExamsData?.data || []).length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground border rounded-lg">
+                  <Monitor className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium mb-2">No Online Exams</h3>
+                  <p className="mb-4">Create online exams for students to take remotely</p>
+                  <Button variant="outline" onClick={() => navigate('/lms/question-bank')}>
+                    Go to Question Bank
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {(onlineExamsData?.data || []).map((exam) => (
+                    <OnlineExamCard
+                      key={exam.id}
+                      exam={exam}
+                      onTakeExam={(id) => navigate(`/lms/online-exam/${id}`)}
+                      onEdit={(e) => navigate(`/lms/online-exam/${e.id}/edit`)}
+                      onViewResults={(id) => navigate(`/lms/online-exam/${id}/results`)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="marks" className="mt-0">

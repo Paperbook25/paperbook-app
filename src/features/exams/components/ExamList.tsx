@@ -47,6 +47,7 @@ interface ExamListProps {
   onPublish: (id: string) => void
   isDeleting?: boolean
   isPublishing?: boolean
+  canManageExams?: boolean
 }
 
 const statusVariants: Record<ExamStatus, 'default' | 'secondary' | 'success' | 'warning'> = {
@@ -56,7 +57,7 @@ const statusVariants: Record<ExamStatus, 'default' | 'secondary' | 'success' | '
   results_published: 'success',
 }
 
-export function ExamList({ exams, onDelete, onPublish, isDeleting, isPublishing }: ExamListProps) {
+export function ExamList({ exams, onDelete, onPublish, isDeleting, isPublishing, canManageExams = true }: ExamListProps) {
   const navigate = useNavigate()
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [publishId, setPublishId] = useState<string | null>(null)
@@ -143,28 +144,32 @@ export function ExamList({ exams, onDelete, onPublish, isDeleting, isPublishing 
                             <Eye className="h-4 w-4 mr-2" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/exams/${exam.id}/edit`)}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/exams/${exam.id}/marks`)}>
-                            <FileSpreadsheet className="h-4 w-4 mr-2" />
-                            Enter Marks
-                          </DropdownMenuItem>
-                          {exam.status === 'completed' && (
-                            <DropdownMenuItem onClick={() => setPublishId(exam.id)}>
-                              <Send className="h-4 w-4 mr-2" />
-                              Publish Results
-                            </DropdownMenuItem>
+                          {canManageExams && (
+                            <>
+                              <DropdownMenuItem onClick={() => navigate(`/exams/${exam.id}/edit`)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/exams/${exam.id}/marks`)}>
+                                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                                Enter Marks
+                              </DropdownMenuItem>
+                              {exam.status === 'completed' && (
+                                <DropdownMenuItem onClick={() => setPublishId(exam.id)}>
+                                  <Send className="h-4 w-4 mr-2" />
+                                  Publish Results
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => setDeleteId(exam.id)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </>
                           )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => setDeleteId(exam.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
