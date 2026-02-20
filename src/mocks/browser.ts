@@ -1,8 +1,9 @@
 import { setupWorker } from 'msw/browser'
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from './utils/delay-config'
 import { students, type Student } from './data/students.data'
 import { staff } from './data/staff.data'
-import { dashboardStats, feeCollectionData, attendanceData, announcements, upcomingEvents, recentActivities, quickStats, classWiseStudents, teacherSchedule, teacherStats, teacherClasses, teacherPendingTasks } from './data/dashboard.data'
+import { dashboardStats, feeCollectionData, attendanceData, announcements, upcomingEvents, recentActivities, quickStats, classWiseStudents, teacherSchedule, teacherStats, teacherClasses, teacherPendingTasks, paymentMethodsData, recentFeeTransactions, classWiseCollection } from './data/dashboard.data'
 import { faker } from '@faker-js/faker'
 import { admissionsHandlers } from './handlers/admissions.handlers'
 import { staffHandlers } from './handlers/staff.handlers'
@@ -19,6 +20,17 @@ import { hostelHandlers } from './handlers/hostel.handlers'
 import { visitorsHandlers } from './handlers/visitors.handlers'
 import { inventoryHandlers } from './handlers/inventory.handlers'
 import { alumniHandlers } from './handlers/alumni.handlers'
+import { questionBankHandlers } from './handlers/question-bank.handlers'
+import { communicationHandlers } from './handlers/communication.handlers'
+import { behaviorHandlers } from './handlers/behavior.handlers'
+import { reportsHandlers } from './handlers/reports.handlers'
+import { timetableHandlers } from './handlers/timetable.handlers'
+import { parentPortalHandlers } from './handlers/parent-portal.handlers'
+import { documentsHandlers } from './handlers/documents.handlers'
+import { clubsHandlers } from './handlers/clubs.handlers'
+import { complaintsHandlers } from './handlers/complaints.handlers'
+import { facilitiesHandlers } from './handlers/facilities.handlers'
+import { scholarshipsHandlers } from './handlers/scholarships.handlers'
 import { applications } from './data/admissions.data'
 import { getUserContext, isParent } from './utils/auth-context'
 import { studentFees } from './data/finance.data'
@@ -102,68 +114,83 @@ const appNotifications = [
 const handlers = [
   // Dashboard
   http.get('/api/dashboard/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: dashboardStats })
   }),
 
   http.get('/api/dashboard/fee-collection', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: feeCollectionData })
   }),
 
   http.get('/api/dashboard/attendance', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: attendanceData })
   }),
 
   http.get('/api/dashboard/class-wise-students', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: classWiseStudents })
   }),
 
   http.get('/api/dashboard/announcements', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: announcements })
   }),
 
   http.get('/api/dashboard/events', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: upcomingEvents })
   }),
 
   http.get('/api/dashboard/activities', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: recentActivities })
   }),
 
   http.get('/api/dashboard/quick-stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: quickStats })
+  }),
+
+  http.get('/api/dashboard/payment-methods', async () => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: paymentMethodsData })
+  }),
+
+  http.get('/api/dashboard/fee-transactions', async () => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: recentFeeTransactions })
+  }),
+
+  http.get('/api/dashboard/class-wise-collection', async () => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: classWiseCollection })
   }),
 
   // Teacher Dashboard
   http.get('/api/dashboard/teacher-stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: teacherStats })
   }),
 
   http.get('/api/dashboard/teacher-schedule', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: teacherSchedule })
   }),
 
   http.get('/api/dashboard/teacher-classes', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: teacherClasses })
   }),
 
   http.get('/api/dashboard/teacher-tasks', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: teacherPendingTasks })
   }),
 
   http.get('/api/dashboard/struggling-students', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 6 }, () => ({
         id: faker.string.uuid(),
@@ -182,7 +209,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/pending-grades', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 5 }, () => {
         const total = faker.number.int({ min: 30, max: 50 })
@@ -201,7 +228,7 @@ const handlers = [
 
   // ==================== ACCOUNTANT DASHBOARD ====================
   http.get('/api/dashboard/accountant-stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: {
         todayCollection: faker.number.int({ min: 50000, max: 200000 }),
@@ -216,7 +243,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/today-collection', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: {
         total: faker.number.int({ min: 50000, max: 200000 }),
@@ -229,7 +256,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/collection-trends', async () => {
-    await delay(200)
+    await mockDelay('read')
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     return HttpResponse.json({
       data: days.map((day) => ({
@@ -240,7 +267,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/pending-dues', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 10 }, () => ({
         studentId: faker.string.uuid(),
@@ -254,7 +281,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/recent-transactions', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 10 }, () => ({
         id: faker.string.uuid(),
@@ -269,7 +296,7 @@ const handlers = [
 
   // ==================== LIBRARIAN DASHBOARD ====================
   http.get('/api/dashboard/librarian-stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: {
         totalBooks: faker.number.int({ min: 5000, max: 15000 }),
@@ -284,7 +311,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/circulation-stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     return HttpResponse.json({
       data: days.map((day) => ({
@@ -296,7 +323,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/overdue-books', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 8 }, () => ({
         id: faker.string.uuid(),
@@ -309,7 +336,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/pending-reservations', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 5 }, () => ({
         id: faker.string.uuid(),
@@ -322,7 +349,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/library-activity', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 10 }, () => ({
         id: faker.string.uuid(),
@@ -336,7 +363,7 @@ const handlers = [
 
   // ==================== TRANSPORT MANAGER DASHBOARD ====================
   http.get('/api/dashboard/transport-stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: {
         totalVehicles: faker.number.int({ min: 10, max: 30 }),
@@ -351,7 +378,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/fleet-status', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 12 }, () => ({
         id: faker.string.uuid(),
@@ -364,7 +391,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/maintenance-alerts', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 5 }, () => ({
         id: faker.string.uuid(),
@@ -377,7 +404,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/route-performance', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 8 }, (_, i) => ({
         id: faker.string.uuid(),
@@ -390,7 +417,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/driver-status', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 10 }, () => ({
         id: faker.string.uuid(),
@@ -404,26 +431,26 @@ const handlers = [
 
   // ==================== NOTIFICATION CENTER ====================
   http.get('/api/notifications', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: appNotifications })
   }),
 
   http.patch('/api/notifications/:id/read', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
     const notification = appNotifications.find((n) => n.id === params.id)
     if (notification) notification.read = true
     return HttpResponse.json({ success: true })
   }),
 
   http.patch('/api/notifications/mark-all-read', async () => {
-    await delay(100)
+    await mockDelay('read')
     appNotifications.forEach((n) => (n.read = true))
     return HttpResponse.json({ success: true })
   }),
 
   // ==================== STUDENT DASHBOARD ENHANCEMENTS ====================
   http.get('/api/dashboard/student-courses', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 6 }, () => ({
         id: faker.string.uuid(),
@@ -442,7 +469,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/student-assignments', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 6 }, () => ({
         id: faker.string.uuid(),
@@ -461,7 +488,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/student-transport', async () => {
-    await delay(200)
+    await mockDelay('read')
     // 80% chance of having transport assigned
     if (Math.random() > 0.2) {
       return HttpResponse.json({
@@ -481,7 +508,7 @@ const handlers = [
 
   // ==================== PARENT DASHBOARD ENHANCEMENTS ====================
   http.get('/api/dashboard/child-timetable', async () => {
-    await delay(200)
+    await mockDelay('read')
     const periods = [
       { period: 1, time: '8:00 - 8:45', subject: 'Mathematics', teacherName: 'Mrs. Sharma', room: 'Room 101' },
       { period: 2, time: '8:45 - 9:30', subject: 'English', teacherName: 'Mr. Gupta', room: 'Room 102' },
@@ -494,7 +521,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/child-assignments', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: Array.from({ length: 6 }, () => ({
         id: faker.string.uuid(),
@@ -513,7 +540,7 @@ const handlers = [
   }),
 
   http.get('/api/dashboard/child-teachers', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({
       data: [
         { id: '1', name: 'Mrs. Priya Sharma', subject: 'Mathematics', email: 'priya.sharma@school.edu' },
@@ -529,7 +556,7 @@ const handlers = [
 
   // Get parent's children with aggregated stats
   http.get('/api/users/my-children', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
 
     const context = getUserContext(request)
 
@@ -584,7 +611,7 @@ const handlers = [
 
   // Students
   http.get('/api/students', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
@@ -633,7 +660,7 @@ const handlers = [
   }),
 
   http.get('/api/students/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
 
     if (!student) {
@@ -645,7 +672,7 @@ const handlers = [
 
   // Create student (used by enrollment)
   http.post('/api/students', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = await request.json() as Partial<Student> & { firstName?: string; lastName?: string }
 
     const now = new Date()
@@ -681,7 +708,7 @@ const handlers = [
 
   // Update student
   http.put('/api/students/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const studentIndex = students.findIndex((s) => s.id === params.id)
 
     if (studentIndex === -1) {
@@ -713,7 +740,7 @@ const handlers = [
 
   // Delete student
   http.delete('/api/students/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const studentIndex = students.findIndex((s) => s.id === params.id)
 
     if (studentIndex === -1) {
@@ -727,7 +754,7 @@ const handlers = [
 
   // Enroll student from application
   http.post('/api/students/enroll', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = await request.json() as {
       applicationId: string
       section: string
@@ -809,7 +836,7 @@ const handlers = [
 
   // Get next roll number for a class/section
   http.get('/api/students/next-roll-number', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('class') || ''
     const section = url.searchParams.get('section') || ''
@@ -829,7 +856,7 @@ const handlers = [
 
   // Staff
   http.get('/api/staff', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
@@ -873,7 +900,7 @@ const handlers = [
   }),
 
   http.get('/api/staff/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const member = staff.find((s) => s.id === params.id)
 
     if (!member) {
@@ -884,4 +911,4 @@ const handlers = [
   }),
 ]
 
-export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers, ...studentsHandlers, ...transportHandlers, ...lmsHandlers, ...hostelHandlers, ...visitorsHandlers, ...inventoryHandlers, ...alumniHandlers)
+export const worker = setupWorker(...handlers, ...admissionsHandlers, ...staffHandlers, ...libraryHandlers, ...financeHandlers, ...settingsHandlers, ...integrationsHandlers, ...examsHandlers, ...attendanceHandlers, ...studentsHandlers, ...transportHandlers, ...lmsHandlers, ...hostelHandlers, ...visitorsHandlers, ...inventoryHandlers, ...alumniHandlers, ...questionBankHandlers, ...communicationHandlers, ...behaviorHandlers, ...reportsHandlers, ...timetableHandlers, ...parentPortalHandlers, ...documentsHandlers, ...clubsHandlers, ...complaintsHandlers, ...facilitiesHandlers, ...scholarshipsHandlers)
