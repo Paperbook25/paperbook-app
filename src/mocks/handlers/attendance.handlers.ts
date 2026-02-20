@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import { faker } from '@faker-js/faker'
 import {
   generateStudentsForClass,
@@ -36,7 +37,7 @@ export const attendanceHandlers = [
 
   // Get students for attendance marking
   http.get('/api/attendance/students', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className') || 'Class 10'
     const section = url.searchParams.get('section') || 'A'
@@ -61,7 +62,7 @@ export const attendanceHandlers = [
 
   // Get class attendance for a date
   http.get('/api/attendance', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
     const className = url.searchParams.get('className') || 'Class 10'
@@ -94,7 +95,7 @@ export const attendanceHandlers = [
 
   // Mark attendance
   http.post('/api/attendance', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as {
       date: string
       className: string
@@ -112,7 +113,7 @@ export const attendanceHandlers = [
 
   // Get attendance history
   http.get('/api/attendance/history', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className')
     const section = url.searchParams.get('section')
@@ -147,7 +148,7 @@ export const attendanceHandlers = [
 
   // Get student's own attendance
   http.get('/api/attendance/my', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear') || '2024-25'
 
@@ -166,7 +167,7 @@ export const attendanceHandlers = [
 
   // Get attendance for parent's children
   http.get('/api/attendance/my-children', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear') || '2024-25'
 
@@ -190,7 +191,7 @@ export const attendanceHandlers = [
 
   // Get specific student's attendance
   http.get('/api/students/:studentId/attendance', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const { studentId } = params
     const url = new URL(request.url)
     const academicYear = url.searchParams.get('academicYear') || '2024-25'
@@ -204,7 +205,7 @@ export const attendanceHandlers = [
 
   // Get attendance report
   http.get('/api/attendance/report', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const url = new URL(request.url)
     const className = url.searchParams.get('className') || 'Class 10'
     const section = url.searchParams.get('section') || 'A'
@@ -242,7 +243,7 @@ export const attendanceHandlers = [
 
   // Get attendance summary
   http.get('/api/attendance/summary', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className') || 'Class 10'
     const section = url.searchParams.get('section') || 'A'
@@ -286,7 +287,7 @@ export const attendanceHandlers = [
 
   // Get leave requests
   http.get('/api/attendance/leaves', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     const className = url.searchParams.get('className')
@@ -309,7 +310,7 @@ export const attendanceHandlers = [
 
   // Create leave request
   http.post('/api/attendance/leaves', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as {
       studentId: string
       leaveType: string
@@ -340,7 +341,7 @@ export const attendanceHandlers = [
 
   // Update leave request (approve/reject)
   http.put('/api/attendance/leaves/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const { id } = params
     const body = (await request.json()) as {
       status: LeaveStatus
@@ -365,7 +366,7 @@ export const attendanceHandlers = [
 
   // Get student's leave requests
   http.get('/api/students/:studentId/leaves', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const { studentId } = params
 
     const studentLeaves = leaveRequests.filter((l) => l.studentId === studentId)
@@ -377,7 +378,7 @@ export const attendanceHandlers = [
 
   // Get period definitions for a class
   http.get('/api/attendance/periods/definitions', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className') || 'Class 10'
     const section = url.searchParams.get('section') || 'A'
@@ -388,7 +389,7 @@ export const attendanceHandlers = [
 
   // Get period attendance for a date/class/section/period
   http.get('/api/attendance/periods', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const date = url.searchParams.get('date') || new Date().toISOString().split('T')[0]
     const className = url.searchParams.get('className') || 'Class 10'
@@ -411,7 +412,7 @@ export const attendanceHandlers = [
 
   // Mark period attendance
   http.post('/api/attendance/periods', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as {
       date: string
       className: string
@@ -429,7 +430,7 @@ export const attendanceHandlers = [
 
   // Get student period-wise summary
   http.get('/api/attendance/periods/summary', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className') || 'Class 10'
     const section = url.searchParams.get('section') || 'A'
@@ -442,13 +443,13 @@ export const attendanceHandlers = [
 
   // Get threshold config
   http.get('/api/attendance/thresholds', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: attendanceThreshold })
   }),
 
   // Update threshold config
   http.put('/api/attendance/thresholds', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Partial<typeof attendanceThreshold>
     Object.assign(attendanceThreshold, body)
     return HttpResponse.json({ data: attendanceThreshold })
@@ -456,7 +457,7 @@ export const attendanceHandlers = [
 
   // Get active alerts
   http.get('/api/attendance/alerts', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const severity = url.searchParams.get('severity')
     const type = url.searchParams.get('type')
@@ -470,7 +471,7 @@ export const attendanceHandlers = [
 
   // Acknowledge an alert
   http.post('/api/attendance/alerts/:id/acknowledge', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const { id } = params
     const alert = attendanceAlerts.find((a) => a.id === id)
     if (!alert) {
@@ -485,13 +486,13 @@ export const attendanceHandlers = [
 
   // Get late policy
   http.get('/api/attendance/late-policy', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: latePolicy })
   }),
 
   // Update late policy
   http.put('/api/attendance/late-policy', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Partial<typeof latePolicy>
     Object.assign(latePolicy, body)
     return HttpResponse.json({ data: latePolicy })
@@ -499,7 +500,7 @@ export const attendanceHandlers = [
 
   // Get late records
   http.get('/api/attendance/late-records', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const className = url.searchParams.get('className')
     const date = url.searchParams.get('date')
@@ -513,7 +514,7 @@ export const attendanceHandlers = [
 
   // Get habitual latecomers / late patterns
   http.get('/api/attendance/late-patterns', async () => {
-    await delay(400)
+    await mockDelay('write')
     const patterns = generateLatePatterns()
     return HttpResponse.json({ data: patterns })
   }),
@@ -522,13 +523,13 @@ export const attendanceHandlers = [
 
   // Get notification configs
   http.get('/api/attendance/notifications/config', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: notificationConfigs })
   }),
 
   // Update notification config
   http.put('/api/attendance/notifications/config/:channel', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const { channel } = params
     const body = (await request.json()) as {
       enabled: boolean
@@ -550,7 +551,7 @@ export const attendanceHandlers = [
 
   // Get notification history
   http.get('/api/attendance/notifications/history', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const channel = url.searchParams.get('channel')
     const eventType = url.searchParams.get('eventType')
@@ -567,14 +568,14 @@ export const attendanceHandlers = [
 
   // Get notification stats
   http.get('/api/attendance/notifications/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     const stats = generateNotificationStats()
     return HttpResponse.json({ data: stats })
   }),
 
   // Send test notification
   http.post('/api/attendance/notifications/test', async ({ request }) => {
-    await delay(1000)
+    await mockDelay('heavy')
     const body = (await request.json()) as { channel: NotificationChannel; recipient: string }
 
     return HttpResponse.json({
@@ -592,13 +593,13 @@ export const attendanceHandlers = [
 
   // Get all devices
   http.get('/api/biometric/devices', async () => {
-    await delay(300)
+    await mockDelay('read')
     return HttpResponse.json({ data: biometricDevices })
   }),
 
   // Register a new device
   http.post('/api/biometric/devices', async ({ request }) => {
-    await delay(500)
+    await mockDelay('write')
     const body = (await request.json()) as {
       name: string
       type: BiometricDeviceType
@@ -624,7 +625,7 @@ export const attendanceHandlers = [
 
   // Update device status
   http.put('/api/biometric/devices/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const { id } = params
     const body = (await request.json()) as Partial<typeof biometricDevices[0]>
 
@@ -639,7 +640,7 @@ export const attendanceHandlers = [
 
   // Get sync logs
   http.get('/api/biometric/sync-logs', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const deviceId = url.searchParams.get('deviceId')
 
@@ -653,7 +654,7 @@ export const attendanceHandlers = [
 
   // Trigger sync for a device
   http.post('/api/biometric/devices/:id/sync', async ({ params }) => {
-    await delay(2000)
+    await mockDelay('heavy')
     const { id } = params
 
     const device = biometricDevices.find((d) => d.id === id)

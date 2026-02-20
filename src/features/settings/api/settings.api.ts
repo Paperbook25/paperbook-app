@@ -22,6 +22,44 @@ import type {
   EmailTemplate,
   CreateEmailTemplateRequest,
   UpdateEmailTemplateRequest,
+  // Multi-campus
+  Campus,
+  CreateCampusRequest,
+  UpdateCampusRequest,
+  Branch,
+  CreateBranchRequest,
+  UpdateBranchRequest,
+  CampusConfig,
+  UpdateCampusConfigRequest,
+  // Data Retention
+  RetentionPolicy,
+  CreateRetentionPolicyRequest,
+  UpdateRetentionPolicyRequest,
+  RetentionSchedule,
+  CreateRetentionScheduleRequest,
+  UpdateRetentionScheduleRequest,
+  // GDPR/Compliance
+  ComplianceRule,
+  GDPRRequest,
+  CreateGDPRRequestRequest,
+  UpdateGDPRRequestRequest,
+  ConsentRecord,
+  UpdateConsentRequest,
+  // System Health
+  SystemHealth,
+  SystemAlert,
+  AcknowledgeAlertRequest,
+  ResolveAlertRequest,
+  // Feature Flags
+  FeatureFlag,
+  CreateFeatureFlagRequest,
+  UpdateFeatureFlagRequest,
+  FlagCondition,
+  CreateFlagConditionRequest,
+  FlagOverride,
+  CreateFlagOverrideRequest,
+  EvaluateFlagRequest,
+  EvaluateFlagResponse,
 } from '../types/settings.types'
 
 const API_BASE = '/api/settings'

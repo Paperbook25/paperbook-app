@@ -270,3 +270,220 @@ export interface BulkImportRow {
   motherName: string
   guardianPhone: string
 }
+
+// ==================== PORTFOLIO & SKILLS ====================
+
+export type SkillCategory = 'academic' | 'sports' | 'arts' | 'leadership' | 'technical' | 'communication' | 'other'
+
+export interface StudentSkill {
+  id: string
+  studentId: string
+  name: string
+  category: SkillCategory
+  proficiencyLevel: 1 | 2 | 3 | 4 | 5
+  certifications?: string[]
+  endorsedBy?: string[]
+  acquiredDate: string
+  notes?: string
+}
+
+export interface PortfolioItem {
+  id: string
+  studentId: string
+  title: string
+  type: 'project' | 'achievement' | 'certificate' | 'publication' | 'competition' | 'other'
+  description: string
+  date: string
+  attachments: { name: string; url: string; type: string }[]
+  tags: string[]
+  visibility: 'public' | 'school' | 'private'
+  featured: boolean
+}
+
+export interface StudentPortfolio {
+  studentId: string
+  bio?: string
+  interests: string[]
+  careerGoals?: string
+  skills: StudentSkill[]
+  items: PortfolioItem[]
+  lastUpdated: string
+}
+
+// ==================== LEARNING STYLE ASSESSMENT ====================
+
+export type LearningStyleType = 'visual' | 'auditory' | 'reading_writing' | 'kinesthetic'
+export type IntelligenceType = 'linguistic' | 'logical' | 'spatial' | 'musical' | 'bodily' | 'interpersonal' | 'intrapersonal' | 'naturalist'
+
+export interface LearningStyleAssessment {
+  id: string
+  studentId: string
+  assessmentDate: string
+  assessedBy: string
+  primaryStyle: LearningStyleType
+  secondaryStyle?: LearningStyleType
+  styleScores: Record<LearningStyleType, number>
+  multipleIntelligences: Record<IntelligenceType, number>
+  recommendations: string[]
+  accommodations?: string[]
+  notes?: string
+}
+
+export interface LearningPreferences {
+  studentId: string
+  preferredStudyTime: 'morning' | 'afternoon' | 'evening' | 'night'
+  preferredGroupSize: 'individual' | 'pair' | 'small_group' | 'large_group'
+  attentionSpan: 'short' | 'medium' | 'long'
+  motivators: string[]
+  challenges: string[]
+  accommodationsNeeded: string[]
+}
+
+// ==================== RISK INDICATORS ====================
+
+export type RiskLevel = 'low' | 'moderate' | 'high' | 'critical'
+export type RiskCategory = 'academic' | 'attendance' | 'behavioral' | 'social' | 'health' | 'financial'
+
+export interface RiskIndicator {
+  id: string
+  studentId: string
+  category: RiskCategory
+  level: RiskLevel
+  indicator: string
+  description: string
+  detectedDate: string
+  dataPoints: { metric: string; value: number | string; threshold?: number | string }[]
+  trend: 'improving' | 'stable' | 'declining'
+  interventions: RiskIntervention[]
+  status: 'active' | 'monitoring' | 'resolved'
+  resolvedDate?: string
+  resolvedBy?: string
+}
+
+export interface RiskIntervention {
+  id: string
+  riskId: string
+  type: 'counseling' | 'tutoring' | 'parent_meeting' | 'mentoring' | 'accommodation' | 'referral' | 'other'
+  description: string
+  assignedTo: string
+  startDate: string
+  endDate?: string
+  status: 'planned' | 'in_progress' | 'completed' | 'cancelled'
+  outcome?: string
+  notes?: string
+}
+
+export interface StudentRiskProfile {
+  studentId: string
+  overallRiskLevel: RiskLevel
+  riskScore: number
+  indicators: RiskIndicator[]
+  watchList: boolean
+  lastAssessment: string
+  nextReview?: string
+}
+
+// ==================== GRADUATION & PROMOTION TRACKING ====================
+
+export interface GraduationRequirement {
+  id: string
+  category: string
+  name: string
+  description: string
+  required: boolean
+  credits?: number
+  minimumGrade?: string
+}
+
+export interface StudentGraduationProgress {
+  studentId: string
+  expectedGraduationYear: string
+  currentCredits: number
+  requiredCredits: number
+  gpa: number
+  requirements: {
+    requirementId: string
+    name: string
+    status: 'completed' | 'in_progress' | 'not_started' | 'waived'
+    completedDate?: string
+    grade?: string
+    credits?: number
+  }[]
+  certifications: { name: string; date: string; issuer: string }[]
+  extracurriculars: { activity: string; role: string; years: string }[]
+  communityService: { hours: number; organization: string; description: string }[]
+  onTrack: boolean
+  projectedGraduationDate: string
+  notes?: string
+}
+
+export interface PromotionHistory {
+  id: string
+  studentId: string
+  academicYear: string
+  fromClass: string
+  toClass: string
+  fromSection: string
+  toSection: string
+  promotionDate: string
+  promotionType: 'regular' | 'conditional' | 'retained' | 'accelerated'
+  conditions?: string[]
+  approvedBy: string
+  remarks?: string
+}
+
+// ==================== STUDENT-TEACHER RELATIONSHIPS ====================
+
+export type RelationshipType = 'class_teacher' | 'subject_teacher' | 'mentor' | 'counselor' | 'club_advisor' | 'sports_coach'
+
+export interface StudentTeacherRelationship {
+  id: string
+  studentId: string
+  teacherId: string
+  teacherName: string
+  relationshipType: RelationshipType
+  subject?: string
+  academicYear: string
+  startDate: string
+  endDate?: string
+  isActive: boolean
+  notes?: string
+}
+
+export interface TeacherFeedback {
+  id: string
+  studentId: string
+  teacherId: string
+  teacherName: string
+  subject?: string
+  term: string
+  academicYear: string
+  feedbackDate: string
+  areas: {
+    category: 'academic' | 'behavior' | 'participation' | 'effort' | 'social'
+    rating: 1 | 2 | 3 | 4 | 5
+    comments?: string
+  }[]
+  overallComments: string
+  recommendations?: string
+  parentAcknowledged: boolean
+  parentAcknowledgedDate?: string
+}
+
+export interface MentorshipRecord {
+  studentId: string
+  mentorId: string
+  mentorName: string
+  startDate: string
+  endDate?: string
+  goals: string[]
+  meetingFrequency: 'weekly' | 'biweekly' | 'monthly'
+  sessions: {
+    date: string
+    duration: number
+    topics: string[]
+    notes: string
+    actionItems: string[]
+  }[]
+  status: 'active' | 'completed' | 'paused'
+}

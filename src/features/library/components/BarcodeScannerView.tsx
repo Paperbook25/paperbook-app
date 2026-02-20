@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useBarcodeScan } from '../hooks/useLibrary'
+import { statusColors } from '@/lib/design-tokens'
 
 export function BarcodeScannerView() {
   const [isbn, setIsbn] = useState('')
@@ -56,9 +57,9 @@ export function BarcodeScannerView() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               {scanResult.found ? (
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5" style={{ color: statusColors.success }} />
               ) : (
-                <XCircle className="h-5 w-5 text-red-600" />
+                <XCircle className="h-5 w-5" style={{ color: statusColors.error }} />
               )}
               Scan Result for: <span className="font-mono">{scanResult.isbn}</span>
             </CardTitle>

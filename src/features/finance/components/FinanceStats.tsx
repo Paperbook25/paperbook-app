@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useFinanceStats } from '../hooks/useFinance'
 import { formatCurrency } from '@/lib/utils'
+import { financeStatColors } from '@/lib/design-tokens'
 
 export function FinanceStats() {
   const { data, isLoading, error } = useFinanceStats()
@@ -37,8 +38,11 @@ export function FinanceStats() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
-              <IndianRupee className="h-5 w-5 text-green-600" />
+            <div
+              className="icon-box"
+              style={{ backgroundColor: financeStatColors.collected.bg }}
+            >
+              <IndianRupee className="h-5 w-5" style={{ color: financeStatColors.collected.icon }} />
             </div>
             <div>
               <p className="text-2xl font-bold">{formatCurrency(stats.totalCollected)}</p>
@@ -52,8 +56,11 @@ export function FinanceStats() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-red-600" />
+            <div
+              className="icon-box"
+              style={{ backgroundColor: financeStatColors.pending.bg }}
+            >
+              <AlertCircle className="h-5 w-5" style={{ color: financeStatColors.pending.icon }} />
             </div>
             <div>
               <p className="text-2xl font-bold">{formatCurrency(stats.totalPending)}</p>
@@ -67,8 +74,11 @@ export function FinanceStats() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+            <div
+              className="icon-box"
+              style={{ backgroundColor: financeStatColors.thisMonth.bg }}
+            >
+              <TrendingUp className="h-5 w-5" style={{ color: financeStatColors.thisMonth.icon }} />
             </div>
             <div>
               <p className="text-2xl font-bold">{formatCurrency(stats.thisMonthCollection)}</p>
@@ -99,8 +109,11 @@ export function FinanceStats() {
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-orange-100 dark:bg-orange-800 rounded-lg">
-                <Clock className="h-5 w-5 text-orange-600" />
+              <div
+                className="icon-box"
+                style={{ backgroundColor: financeStatColors.expenses.bg }}
+              >
+                <Clock className="h-5 w-5" style={{ color: financeStatColors.expenses.icon }} />
               </div>
               <div>
                 <p className="text-lg font-bold">{stats.pendingExpenseApprovals}</p>
@@ -108,8 +121,11 @@ export function FinanceStats() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
+              <div
+                className="icon-box"
+                style={{ backgroundColor: financeStatColors.overdue.bg }}
+              >
+                <Users className="h-5 w-5" style={{ color: financeStatColors.overdue.icon }} />
               </div>
               <div>
                 <p className="text-lg font-bold">{stats.overdueStudentsCount}</p>

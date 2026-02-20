@@ -45,6 +45,57 @@ import type {
   OnlinePaymentOrder,
   CreatePaymentOrderRequest,
   ParentFeeDashboard,
+  // Multi-currency
+  Currency,
+  ExchangeRate,
+  CreateExchangeRateRequest,
+  UpdateExchangeRateRequest,
+  CurrencyConversionRequest,
+  CurrencyConversionResult,
+  CurrencyCode,
+  // Tax invoice
+  TaxInvoice,
+  CreateTaxInvoiceRequest,
+  UpdateTaxInvoiceRequest,
+  TaxInvoiceFilters,
+  TaxSettings,
+  // Financial year
+  FinancialYear,
+  YearEndClosing,
+  StartYearEndClosingRequest,
+  CreateFinancialYearRequest,
+  FinancialYearTransition,
+  // Budget
+  Budget,
+  BudgetCategory,
+  BudgetVariance,
+  CreateBudgetRequest,
+  UpdateBudgetRequest,
+  BudgetFilters,
+  BudgetVsActualReport,
+  // Vendor payments
+  Vendor,
+  PaymentSchedule,
+  VendorPayment,
+  CreateVendorRequest,
+  UpdateVendorRequest,
+  CreatePaymentScheduleRequest,
+  CreateVendorPaymentRequest,
+  UpdateVendorPaymentRequest,
+  VendorPaymentFilters,
+  ProcessVendorPaymentRequest,
+  // Scholarship
+  ScholarshipScheme,
+  ScholarshipBeneficiary,
+  ScholarshipDisbursement,
+  CreateScholarshipSchemeRequest,
+  UpdateScholarshipSchemeRequest,
+  AwardScholarshipRequest,
+  CreateDisbursementRequest,
+  ProcessDisbursementRequest,
+  ScholarshipFilters,
+  DisbursementFilters,
+  ScholarshipSummary,
 } from '../types/finance.types'
 
 // ==================== USER-SCOPED TYPES ====================
@@ -499,4 +550,532 @@ export async function createPaymentOrder(
 
 export async function fetchParentFeeDashboard(): Promise<{ data: ParentFeeDashboard }> {
   return apiGet<{ data: ParentFeeDashboard }>(`${API_BASE}/parent-dashboard`)
+}
+
+// ==================== MULTI-CURRENCY ====================
+
+export async function fetchCurrencies(): Promise<{ data: Currency[] }> {
+  return apiGet<{ data: Currency[] }>(`${API_BASE}/currencies`)
+}
+
+export async function fetchExchangeRates(
+  baseCurrency?: CurrencyCode
+): Promise<{ data: ExchangeRate[] }> {
+  const params = new URLSearchParams()
+  if (baseCurrency) params.set('baseCurrency', baseCurrency)
+
+  return apiGet<{ data: ExchangeRate[] }>(`${API_BASE}/exchange-rates?${params.toString()}`)
+}
+
+export async function fetchExchangeRate(id: string): Promise<{ data: ExchangeRate }> {
+  return apiGet<{ data: ExchangeRate }>(`${API_BASE}/exchange-rates/${id}`)
+}
+
+export async function createExchangeRate(
+  data: CreateExchangeRateRequest
+): Promise<{ data: ExchangeRate }> {
+  return apiPost<{ data: ExchangeRate }>(`${API_BASE}/exchange-rates`, data)
+}
+
+export async function updateExchangeRate(
+  id: string,
+  data: UpdateExchangeRateRequest
+): Promise<{ data: ExchangeRate }> {
+  return apiPut<{ data: ExchangeRate }>(`${API_BASE}/exchange-rates/${id}`, data)
+}
+
+export async function deleteExchangeRate(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/exchange-rates/${id}`)
+}
+
+export async function convertCurrency(
+  data: CurrencyConversionRequest
+): Promise<{ data: CurrencyConversionResult }> {
+  return apiPost<{ data: CurrencyConversionResult }>(`${API_BASE}/currency/convert`, data)
+}
+
+// ==================== TAX INVOICES ====================
+
+export async function fetchTaxInvoices(
+  filters: TaxInvoiceFilters = {}
+): Promise<PaginatedResponse<TaxInvoice>> {
+  const params = new URLSearchParams()
+
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.customerId) params.set('customerId', filters.customerId)
+  if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) params.set('dateTo', filters.dateTo)
+  if (filters.search) params.set('search', filters.search)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<TaxInvoice>>(`${API_BASE}/tax-invoices?${params.toString()}`)
+}
+
+export async function fetchTaxInvoice(id: string): Promise<{ data: TaxInvoice }> {
+  return apiGet<{ data: TaxInvoice }>(`${API_BASE}/tax-invoices/${id}`)
+}
+
+export async function createTaxInvoice(
+  data: CreateTaxInvoiceRequest
+): Promise<{ data: TaxInvoice }> {
+  return apiPost<{ data: TaxInvoice }>(`${API_BASE}/tax-invoices`, data)
+}
+
+export async function updateTaxInvoice(
+  id: string,
+  data: UpdateTaxInvoiceRequest
+): Promise<{ data: TaxInvoice }> {
+  return apiPut<{ data: TaxInvoice }>(`${API_BASE}/tax-invoices/${id}`, data)
+}
+
+export async function issueTaxInvoice(id: string): Promise<{ data: TaxInvoice }> {
+  return apiPatch<{ data: TaxInvoice }>(`${API_BASE}/tax-invoices/${id}/issue`)
+}
+
+export async function cancelTaxInvoice(
+  id: string,
+  reason: string
+): Promise<{ data: TaxInvoice }> {
+  return apiPatch<{ data: TaxInvoice }>(`${API_BASE}/tax-invoices/${id}/cancel`, { reason })
+}
+
+export async function fetchTaxSettings(): Promise<{ data: TaxSettings }> {
+  return apiGet<{ data: TaxSettings }>(`${API_BASE}/tax-settings`)
+}
+
+export async function updateTaxSettings(
+  data: Partial<TaxSettings>
+): Promise<{ data: TaxSettings }> {
+  return apiPut<{ data: TaxSettings }>(`${API_BASE}/tax-settings`, data)
+}
+
+// ==================== FINANCIAL YEAR ====================
+
+export async function fetchFinancialYears(): Promise<{ data: FinancialYear[] }> {
+  return apiGet<{ data: FinancialYear[] }>(`${API_BASE}/financial-years`)
+}
+
+export async function fetchFinancialYear(id: string): Promise<{ data: FinancialYear }> {
+  return apiGet<{ data: FinancialYear }>(`${API_BASE}/financial-years/${id}`)
+}
+
+export async function fetchCurrentFinancialYear(): Promise<{ data: FinancialYear }> {
+  return apiGet<{ data: FinancialYear }>(`${API_BASE}/financial-years/current`)
+}
+
+export async function createFinancialYear(
+  data: CreateFinancialYearRequest
+): Promise<{ data: FinancialYear }> {
+  return apiPost<{ data: FinancialYear }>(`${API_BASE}/financial-years`, data)
+}
+
+export async function setActiveFinancialYear(id: string): Promise<{ data: FinancialYear }> {
+  return apiPatch<{ data: FinancialYear }>(`${API_BASE}/financial-years/${id}/activate`)
+}
+
+// ==================== YEAR-END CLOSING ====================
+
+export async function fetchYearEndClosing(
+  financialYearId: string
+): Promise<{ data: YearEndClosing }> {
+  return apiGet<{ data: YearEndClosing }>(
+    `${API_BASE}/financial-years/${financialYearId}/year-end-closing`
+  )
+}
+
+export async function startYearEndClosing(
+  data: StartYearEndClosingRequest
+): Promise<{ data: YearEndClosing }> {
+  return apiPost<{ data: YearEndClosing }>(
+    `${API_BASE}/financial-years/${data.financialYearId}/year-end-closing/start`,
+    data
+  )
+}
+
+export async function completeYearEndClosingTask(
+  financialYearId: string,
+  taskId: string
+): Promise<{ data: YearEndClosing }> {
+  return apiPatch<{ data: YearEndClosing }>(
+    `${API_BASE}/financial-years/${financialYearId}/year-end-closing/tasks/${taskId}/complete`
+  )
+}
+
+export async function finalizeYearEndClosing(
+  financialYearId: string
+): Promise<{ data: YearEndClosing }> {
+  return apiPost<{ data: YearEndClosing }>(
+    `${API_BASE}/financial-years/${financialYearId}/year-end-closing/finalize`
+  )
+}
+
+export async function transitionFinancialYear(
+  fromYearId: string,
+  toYearId: string
+): Promise<{ data: FinancialYearTransition }> {
+  return apiPost<{ data: FinancialYearTransition }>(
+    `${API_BASE}/financial-years/transition`,
+    { fromYearId, toYearId }
+  )
+}
+
+// ==================== BUDGET ====================
+
+export async function fetchBudgets(
+  filters: BudgetFilters = {}
+): Promise<PaginatedResponse<Budget>> {
+  const params = new URLSearchParams()
+
+  if (filters.financialYearId) params.set('financialYearId', filters.financialYearId)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.period && filters.period !== 'all') params.set('period', filters.period)
+  if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) params.set('dateTo', filters.dateTo)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<Budget>>(`${API_BASE}/budgets?${params.toString()}`)
+}
+
+export async function fetchBudget(id: string): Promise<{ data: Budget }> {
+  return apiGet<{ data: Budget }>(`${API_BASE}/budgets/${id}`)
+}
+
+export async function createBudget(data: CreateBudgetRequest): Promise<{ data: Budget }> {
+  return apiPost<{ data: Budget }>(`${API_BASE}/budgets`, data)
+}
+
+export async function updateBudget(
+  id: string,
+  data: UpdateBudgetRequest
+): Promise<{ data: Budget }> {
+  return apiPut<{ data: Budget }>(`${API_BASE}/budgets/${id}`, data)
+}
+
+export async function submitBudgetForApproval(id: string): Promise<{ data: Budget }> {
+  return apiPatch<{ data: Budget }>(`${API_BASE}/budgets/${id}/submit`)
+}
+
+export async function approveBudget(id: string): Promise<{ data: Budget }> {
+  return apiPatch<{ data: Budget }>(`${API_BASE}/budgets/${id}/approve`)
+}
+
+export async function rejectBudget(
+  id: string,
+  reason: string
+): Promise<{ data: Budget }> {
+  return apiPatch<{ data: Budget }>(`${API_BASE}/budgets/${id}/reject`, { reason })
+}
+
+export async function deleteBudget(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/budgets/${id}`)
+}
+
+export async function fetchBudgetCategories(): Promise<{ data: BudgetCategory[] }> {
+  return apiGet<{ data: BudgetCategory[] }>(`${API_BASE}/budget-categories`)
+}
+
+export async function fetchBudgetVariances(
+  budgetId: string
+): Promise<{ data: BudgetVariance[] }> {
+  return apiGet<{ data: BudgetVariance[] }>(`${API_BASE}/budgets/${budgetId}/variances`)
+}
+
+export async function fetchBudgetVsActualReport(
+  budgetId: string
+): Promise<{ data: BudgetVsActualReport }> {
+  return apiGet<{ data: BudgetVsActualReport }>(`${API_BASE}/budgets/${budgetId}/vs-actual`)
+}
+
+// ==================== VENDOR ====================
+
+export async function fetchVendors(
+  filters: { search?: string; isActive?: boolean } = {}
+): Promise<{ data: Vendor[] }> {
+  const params = new URLSearchParams()
+  if (filters.search) params.set('search', filters.search)
+  if (filters.isActive !== undefined) params.set('isActive', String(filters.isActive))
+
+  return apiGet<{ data: Vendor[] }>(`${API_BASE}/vendors?${params.toString()}`)
+}
+
+export async function fetchVendor(id: string): Promise<{ data: Vendor }> {
+  return apiGet<{ data: Vendor }>(`${API_BASE}/vendors/${id}`)
+}
+
+export async function createVendor(data: CreateVendorRequest): Promise<{ data: Vendor }> {
+  return apiPost<{ data: Vendor }>(`${API_BASE}/vendors`, data)
+}
+
+export async function updateVendor(
+  id: string,
+  data: UpdateVendorRequest
+): Promise<{ data: Vendor }> {
+  return apiPut<{ data: Vendor }>(`${API_BASE}/vendors/${id}`, data)
+}
+
+export async function deleteVendor(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/vendors/${id}`)
+}
+
+// ==================== PAYMENT SCHEDULES ====================
+
+export async function fetchPaymentSchedules(
+  vendorId?: string
+): Promise<{ data: PaymentSchedule[] }> {
+  const params = new URLSearchParams()
+  if (vendorId) params.set('vendorId', vendorId)
+
+  return apiGet<{ data: PaymentSchedule[] }>(
+    `${API_BASE}/payment-schedules?${params.toString()}`
+  )
+}
+
+export async function fetchPaymentSchedule(id: string): Promise<{ data: PaymentSchedule }> {
+  return apiGet<{ data: PaymentSchedule }>(`${API_BASE}/payment-schedules/${id}`)
+}
+
+export async function createPaymentSchedule(
+  data: CreatePaymentScheduleRequest
+): Promise<{ data: PaymentSchedule }> {
+  return apiPost<{ data: PaymentSchedule }>(`${API_BASE}/payment-schedules`, data)
+}
+
+export async function togglePaymentSchedule(id: string): Promise<{ data: PaymentSchedule }> {
+  return apiPatch<{ data: PaymentSchedule }>(`${API_BASE}/payment-schedules/${id}/toggle`)
+}
+
+export async function deletePaymentSchedule(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/payment-schedules/${id}`)
+}
+
+// ==================== VENDOR PAYMENTS ====================
+
+export async function fetchVendorPayments(
+  filters: VendorPaymentFilters = {}
+): Promise<PaginatedResponse<VendorPayment>> {
+  const params = new URLSearchParams()
+
+  if (filters.vendorId) params.set('vendorId', filters.vendorId)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) params.set('dateTo', filters.dateTo)
+  if (filters.search) params.set('search', filters.search)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<VendorPayment>>(
+    `${API_BASE}/vendor-payments?${params.toString()}`
+  )
+}
+
+export async function fetchVendorPayment(id: string): Promise<{ data: VendorPayment }> {
+  return apiGet<{ data: VendorPayment }>(`${API_BASE}/vendor-payments/${id}`)
+}
+
+export async function createVendorPayment(
+  data: CreateVendorPaymentRequest
+): Promise<{ data: VendorPayment }> {
+  return apiPost<{ data: VendorPayment }>(`${API_BASE}/vendor-payments`, data)
+}
+
+export async function updateVendorPayment(
+  id: string,
+  data: UpdateVendorPaymentRequest
+): Promise<{ data: VendorPayment }> {
+  return apiPut<{ data: VendorPayment }>(`${API_BASE}/vendor-payments/${id}`, data)
+}
+
+export async function approveVendorPayment(id: string): Promise<{ data: VendorPayment }> {
+  return apiPatch<{ data: VendorPayment }>(`${API_BASE}/vendor-payments/${id}/approve`)
+}
+
+export async function rejectVendorPayment(
+  id: string,
+  reason: string
+): Promise<{ data: VendorPayment }> {
+  return apiPatch<{ data: VendorPayment }>(`${API_BASE}/vendor-payments/${id}/reject`, {
+    reason,
+  })
+}
+
+export async function processVendorPayment(
+  id: string,
+  data: ProcessVendorPaymentRequest
+): Promise<{ data: VendorPayment }> {
+  return apiPatch<{ data: VendorPayment }>(
+    `${API_BASE}/vendor-payments/${id}/process`,
+    data
+  )
+}
+
+export async function cancelVendorPayment(
+  id: string,
+  reason?: string
+): Promise<{ data: VendorPayment }> {
+  return apiPatch<{ data: VendorPayment }>(`${API_BASE}/vendor-payments/${id}/cancel`, {
+    reason,
+  })
+}
+
+// ==================== SCHOLARSHIP SCHEMES ====================
+
+export async function fetchScholarshipSchemes(
+  filters: ScholarshipFilters = {}
+): Promise<PaginatedResponse<ScholarshipScheme>> {
+  const params = new URLSearchParams()
+
+  if (filters.type && filters.type !== 'all') params.set('type', filters.type)
+  if (filters.academicYear) params.set('academicYear', filters.academicYear)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<ScholarshipScheme>>(
+    `${API_BASE}/scholarship-schemes?${params.toString()}`
+  )
+}
+
+export async function fetchScholarshipScheme(
+  id: string
+): Promise<{ data: ScholarshipScheme }> {
+  return apiGet<{ data: ScholarshipScheme }>(`${API_BASE}/scholarship-schemes/${id}`)
+}
+
+export async function createScholarshipScheme(
+  data: CreateScholarshipSchemeRequest
+): Promise<{ data: ScholarshipScheme }> {
+  return apiPost<{ data: ScholarshipScheme }>(`${API_BASE}/scholarship-schemes`, data)
+}
+
+export async function updateScholarshipScheme(
+  id: string,
+  data: UpdateScholarshipSchemeRequest
+): Promise<{ data: ScholarshipScheme }> {
+  return apiPut<{ data: ScholarshipScheme }>(`${API_BASE}/scholarship-schemes/${id}`, data)
+}
+
+export async function deleteScholarshipScheme(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/scholarship-schemes/${id}`)
+}
+
+// ==================== SCHOLARSHIP BENEFICIARIES ====================
+
+export async function fetchScholarshipBeneficiaries(
+  schemeId?: string
+): Promise<{ data: ScholarshipBeneficiary[] }> {
+  const params = new URLSearchParams()
+  if (schemeId) params.set('schemeId', schemeId)
+
+  return apiGet<{ data: ScholarshipBeneficiary[] }>(
+    `${API_BASE}/scholarship-beneficiaries?${params.toString()}`
+  )
+}
+
+export async function fetchScholarshipBeneficiary(
+  id: string
+): Promise<{ data: ScholarshipBeneficiary }> {
+  return apiGet<{ data: ScholarshipBeneficiary }>(
+    `${API_BASE}/scholarship-beneficiaries/${id}`
+  )
+}
+
+export async function awardScholarship(
+  data: AwardScholarshipRequest
+): Promise<{ data: ScholarshipBeneficiary }> {
+  return apiPost<{ data: ScholarshipBeneficiary }>(
+    `${API_BASE}/scholarship-beneficiaries`,
+    data
+  )
+}
+
+export async function revokeScholarship(
+  id: string,
+  reason: string
+): Promise<{ data: ScholarshipBeneficiary }> {
+  return apiPatch<{ data: ScholarshipBeneficiary }>(
+    `${API_BASE}/scholarship-beneficiaries/${id}/revoke`,
+    { reason }
+  )
+}
+
+// ==================== SCHOLARSHIP DISBURSEMENTS ====================
+
+export async function fetchScholarshipDisbursements(
+  filters: DisbursementFilters = {}
+): Promise<PaginatedResponse<ScholarshipDisbursement>> {
+  const params = new URLSearchParams()
+
+  if (filters.schemeId) params.set('schemeId', filters.schemeId)
+  if (filters.studentId) params.set('studentId', filters.studentId)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.dateFrom) params.set('dateFrom', filters.dateFrom)
+  if (filters.dateTo) params.set('dateTo', filters.dateTo)
+  if (filters.search) params.set('search', filters.search)
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<ScholarshipDisbursement>>(
+    `${API_BASE}/scholarship-disbursements?${params.toString()}`
+  )
+}
+
+export async function fetchScholarshipDisbursement(
+  id: string
+): Promise<{ data: ScholarshipDisbursement }> {
+  return apiGet<{ data: ScholarshipDisbursement }>(
+    `${API_BASE}/scholarship-disbursements/${id}`
+  )
+}
+
+export async function createDisbursement(
+  data: CreateDisbursementRequest
+): Promise<{ data: ScholarshipDisbursement }> {
+  return apiPost<{ data: ScholarshipDisbursement }>(
+    `${API_BASE}/scholarship-disbursements`,
+    data
+  )
+}
+
+export async function approveDisbursement(
+  id: string
+): Promise<{ data: ScholarshipDisbursement }> {
+  return apiPatch<{ data: ScholarshipDisbursement }>(
+    `${API_BASE}/scholarship-disbursements/${id}/approve`
+  )
+}
+
+export async function processDisbursement(
+  id: string,
+  data: ProcessDisbursementRequest
+): Promise<{ data: ScholarshipDisbursement }> {
+  return apiPatch<{ data: ScholarshipDisbursement }>(
+    `${API_BASE}/scholarship-disbursements/${id}/process`,
+    data
+  )
+}
+
+export async function holdDisbursement(
+  id: string,
+  reason: string
+): Promise<{ data: ScholarshipDisbursement }> {
+  return apiPatch<{ data: ScholarshipDisbursement }>(
+    `${API_BASE}/scholarship-disbursements/${id}/hold`,
+    { reason }
+  )
+}
+
+export async function cancelDisbursement(
+  id: string,
+  reason: string
+): Promise<{ data: ScholarshipDisbursement }> {
+  return apiPatch<{ data: ScholarshipDisbursement }>(
+    `${API_BASE}/scholarship-disbursements/${id}/cancel`,
+    { reason }
+  )
+}
+
+export async function fetchScholarshipSummary(): Promise<{ data: ScholarshipSummary }> {
+  return apiGet<{ data: ScholarshipSummary }>(`${API_BASE}/scholarship-summary`)
 }

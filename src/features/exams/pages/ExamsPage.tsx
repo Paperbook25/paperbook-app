@@ -127,6 +127,7 @@ export function ExamsPage() {
         title="Exams"
         description={`Manage exams, marks, and report cards`}
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Exams' }]}
+        moduleColor="exams"
         actions={
           canManageExams ? (
             <Button onClick={() => navigate('/exams/new')}>
@@ -405,7 +406,7 @@ export function ExamsPage() {
                             <CardTitle className="text-base">{exam.name}</CardTitle>
                             <CardDescription>{EXAM_TYPE_LABELS[exam.type]}</CardDescription>
                           </div>
-                          <Badge variant="default" className="bg-green-600 text-white">
+                          <Badge variant="default" className="text-white" style={{ backgroundColor: 'var(--color-module-attendance)' }}>
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Published
                           </Badge>

@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
 import { useCreateExpense, useUpdateExpense } from '../hooks/useFinance'
 import {
   EXPENSE_CATEGORIES,
@@ -27,22 +30,25 @@ import {
   type ExpenseCategory,
 } from '../types/finance.types'
 
+const expenseSchema = z.object({
+  category: z.enum(EXPENSE_CATEGORIES as unknown as [ExpenseCategory, ...ExpenseCategory[]]),
+  description: z.string().min(1, 'Description is required').max(500, 'Description must be 500 characters or less'),
+  amount: z.number({ invalid_type_error: 'Amount must be a number' }).positive('Amount must be greater than 0'),
+  vendorName: z.string().max(100).optional(),
+  invoiceNumber: z.string().max(50).optional(),
+  invoiceDate: z.string().optional(),
+})
+
 interface ExpenseFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   expense?: Expense | null
 }
 
-interface FormData {
-  category: ExpenseCategory
-  description: string
-  amount: number
-  vendorName: string
-  invoiceNumber: string
-  invoiceDate: string
-}
+type FormData = z.infer<typeof expenseSchema>
 
 export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
+  const { toast } = useToast()
   const createMutation = useCreateExpense()
   const updateMutation = useUpdateExpense()
   const isEditing = !!expense
@@ -54,6 +60,7 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
     reset,
     formState: { errors },
   } = useForm<FormData>({
+    resolver: zodResolver(expenseSchema),
     defaultValues: {
       category: 'other',
       description: '',
@@ -100,6 +107,10 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
             invoiceDate: data.invoiceDate || undefined,
           },
         })
+        toast({
+          title: 'Expense updated',
+          description: 'The expense has been updated successfully.',
+        })
       } else {
         await createMutation.mutateAsync({
           category: data.category,
@@ -109,11 +120,19 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
           invoiceNumber: data.invoiceNumber || undefined,
           invoiceDate: data.invoiceDate || undefined,
         })
+        toast({
+          title: 'Expense created',
+          description: 'The expense has been recorded successfully.',
+        })
       }
       reset()
       onOpenChange(false)
     } catch (error) {
-      console.error('Failed to save expense:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save expense',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -141,11 +160,12 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">
+                Category <span className="text-destructive">*</span>
+              </Label>
               <Controller
                 name="category"
                 control={control}
-                rules={{ required: 'Category is required' }}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
@@ -167,17 +187,15 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (Rs)</Label>
+              <Label htmlFor="amount">
+                Amount (Rs) <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="amount"
                 type="number"
                 min="0"
                 step="0.01"
-                {...register('amount', {
-                  required: 'Amount is required',
-                  valueAsNumber: true,
-                  min: { value: 1, message: 'Amount must be greater than 0' },
-                })}
+                {...register('amount', { valueAsNumber: true })}
               />
               {errors.amount && (
                 <p className="text-sm text-destructive">{errors.amount.message}</p>
@@ -186,12 +204,14 @@ export function ExpenseForm({ open, onOpenChange, expense }: ExpenseFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">
+              Description <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               id="description"
               placeholder="Describe the expense"
               rows={3}
-              {...register('description', { required: 'Description is required' })}
+              {...register('description')}
             />
             {errors.description && (
               <p className="text-sm text-destructive">{errors.description.message}</p>

@@ -12,11 +12,24 @@ interface PageHeaderProps {
   description?: string
   breadcrumbs?: Breadcrumb[]
   actions?: ReactNode
+  moduleColor?: string // e.g., 'behavior', 'finance', 'lms'
 }
 
-export function PageHeader({ title, description, breadcrumbs, actions }: PageHeaderProps) {
+export function PageHeader({ title, description, breadcrumbs, actions, moduleColor }: PageHeaderProps) {
   return (
-    <div className="mb-6">
+    <div
+      className="mb-6 -mx-6 -mt-6 px-6 pt-6"
+      style={moduleColor ? {
+        background: `linear-gradient(to bottom, var(--color-module-${moduleColor}-light) 0%, transparent 100%)`,
+      } : undefined}
+    >
+      {/* Module Color Accent Bar */}
+      {moduleColor && (
+        <div
+          className="h-1 -mx-6 -mt-6 mb-4"
+          style={{ backgroundColor: `var(--color-module-${moduleColor})` }}
+        />
+      )}
       {/* Breadcrumbs */}
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav className="flex items-center text-sm text-muted-foreground mb-2">

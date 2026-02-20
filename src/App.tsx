@@ -1,90 +1,120 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
 import { Toaster } from '@/components/ui/toaster'
+import { PageLoader } from '@/components/ui/lazy-loader'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { RoleProtectedRoute, ALL_ROLES } from '@/components/auth/RoleProtectedRoute'
 
-// Pages
+// Eagerly load LoginPage for fast initial render
 import { LoginPage } from '@/features/auth/pages/LoginPage'
-import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
-import { StudentDashboard } from '@/features/dashboard/pages/StudentDashboard'
-import { ParentDashboard } from '@/features/dashboard/pages/ParentDashboard'
-import { TeacherDashboard } from '@/features/dashboard/pages/TeacherDashboard'
-import { AccountantDashboard } from '@/features/dashboard/pages/AccountantDashboard'
-import { LibrarianDashboard } from '@/features/dashboard/pages/LibrarianDashboard'
-import { TransportManagerDashboard } from '@/features/dashboard/pages/TransportManagerDashboard'
-import { StudentsListPage } from '@/features/students/pages/StudentsListPage'
-import { StudentDetailPage } from '@/features/students/pages/StudentDetailPage'
-import { NewStudentPage } from '@/features/students/pages/NewStudentPage'
-import { EditStudentPage } from '@/features/students/pages/EditStudentPage'
-import { StaffListPage } from '@/features/staff/pages/StaffListPage'
-import { StaffDetailPage } from '@/features/staff/pages/StaffDetailPage'
-import { NewStaffPage } from '@/features/staff/pages/NewStaffPage'
-import { EditStaffPage } from '@/features/staff/pages/EditStaffPage'
-import { StaffAttendancePage } from '@/features/staff/pages/StaffAttendancePage'
-import { LeaveManagementPage } from '@/features/staff/pages/LeaveManagementPage'
-import { SalaryManagementPage } from '@/features/staff/pages/SalaryManagementPage'
-import { TimetableManagementPage } from '@/features/staff/pages/TimetableManagementPage'
-import { SubstitutionPage } from '@/features/staff/pages/SubstitutionPage'
-import { AttendancePage } from '@/features/attendance/pages/AttendancePage'
-import { AdmissionsPage } from '@/features/admissions/pages/AdmissionsPage'
-import { ApplicationsListPage } from '@/features/admissions/pages/ApplicationsListPage'
-import { ApplicationDetailPage } from '@/features/admissions/pages/ApplicationDetailPage'
-import { NewApplicationPage } from '@/features/admissions/pages/NewApplicationPage'
-import { LibraryPage } from '@/features/library/pages/LibraryPage'
-import { BarcodeScannerPage } from '@/features/library/pages/BarcodeScannerPage'
-import { ReservationsPage } from '@/features/library/pages/ReservationsPage'
-import { ReadingHistoryPage } from '@/features/library/pages/ReadingHistoryPage'
-import { DigitalLibraryPage } from '@/features/library/pages/DigitalLibraryPage'
-import { OverdueNotificationsPage } from '@/features/library/pages/OverdueNotificationsPage'
-import { TransportPage } from '@/features/transport/pages/TransportPage'
-import { VehiclesPage } from '@/features/transport/pages/VehiclesPage'
-import { DriversPage } from '@/features/transport/pages/DriversPage'
-import { TrackingPage } from '@/features/transport/pages/TrackingPage'
-import { StopAssignmentsPage } from '@/features/transport/pages/StopAssignmentsPage'
-import { MaintenancePage } from '@/features/transport/pages/MaintenancePage'
-import { TransportNotificationsPage } from '@/features/transport/pages/TransportNotificationsPage'
-import { FinancePage } from '@/features/finance/pages/FinancePage'
-import { InstallmentPlansPage } from '@/features/finance/pages/InstallmentPlansPage'
-import { DiscountRulesPage } from '@/features/finance/pages/DiscountRulesPage'
-import { ConcessionsPage } from '@/features/finance/pages/ConcessionsPage'
-import { EscalationPage } from '@/features/finance/pages/EscalationPage'
-import { OnlinePaymentsPage } from '@/features/finance/pages/OnlinePaymentsPage'
-import { ParentFeeDashboardPage } from '@/features/finance/pages/ParentFeeDashboardPage'
-import { SettingsPage } from '@/features/settings/pages/SettingsPage'
-import { IntegrationsPage } from '@/features/integrations/pages/IntegrationsPage'
-import { ExamsPage, NewExamPage, EditExamPage, ExamDetailPage, MarksEntryPage } from '@/features/exams/pages'
-import { ExamTimetablePage } from '@/features/exams/pages/ExamTimetablePage'
-import { MarksAnalyticsPage } from '@/features/exams/pages/MarksAnalyticsPage'
-import { ProgressTrackingPage } from '@/features/exams/pages/ProgressTrackingPage'
-import { CoScholasticPage } from '@/features/exams/pages/CoScholasticPage'
-import { QuestionPapersPage } from '@/features/exams/pages/QuestionPapersPage'
-import { EntranceExamsPage } from '@/features/admissions/pages/EntranceExamsPage'
-import { WaitlistPage } from '@/features/admissions/pages/WaitlistPage'
-import { CommunicationsPage } from '@/features/admissions/pages/CommunicationsPage'
-import { AdmissionPaymentsPage } from '@/features/admissions/pages/AdmissionPaymentsPage'
-import { AdmissionAnalyticsPage } from '@/features/admissions/pages/AdmissionAnalyticsPage'
-import { PublicApplicationPage } from '@/features/admissions/pages/PublicApplicationPage'
-import { PeriodAttendancePage } from '@/features/attendance/pages/PeriodAttendancePage'
-import { ShortageAlertsPage } from '@/features/attendance/pages/ShortageAlertsPage'
-import { LateDetectionPage } from '@/features/attendance/pages/LateDetectionPage'
-import { AttendanceNotificationsPage } from '@/features/attendance/pages/NotificationsPage'
-import { BiometricPage } from '@/features/attendance/pages/BiometricPage'
-import { LeaveApplicationPage } from '@/features/attendance/pages/LeaveApplicationPage'
-import { LmsPage } from '@/features/lms/pages/LmsPage'
-import { CoursesListPage } from '@/features/lms/pages/CoursesListPage'
-import { NewCoursePage } from '@/features/lms/pages/NewCoursePage'
-import { CourseDetailPage } from '@/features/lms/pages/CourseDetailPage'
-import { EditCoursePage } from '@/features/lms/pages/EditCoursePage'
-import { StudentCoursePage } from '@/features/lms/pages/StudentCoursePage'
-import { LiveClassesPage } from '@/features/lms/pages/LiveClassesPage'
-import { EnrollmentsPage } from '@/features/lms/pages/EnrollmentsPage'
-import { AssignmentsPage } from '@/features/lms/pages/AssignmentsPage'
-import { HostelPage, RoomsPage, AllocationsPage, HostelFeesPage, MessPage, HostelAttendancePage } from '@/features/hostel'
-import { VisitorsPage, VisitorLogsPage, VisitorReportsPage, PreApprovedPage } from '@/features/visitors'
-import { InventoryPage, AssetsPage, StockPage, PurchaseOrdersPage, CreatePurchaseOrderPage, VendorsPage } from '@/features/inventory'
-import { AlumniPage, BatchesPage, AchievementsPage, ContributionsPage, EventsPage as AlumniEventsPage } from '@/features/alumni'
+
+// Lazy load all other pages for code splitting
+const DashboardPage = lazy(() => import('@/features/dashboard/pages/DashboardPage').then(m => ({ default: m.DashboardPage })))
+const StudentDashboard = lazy(() => import('@/features/dashboard/pages/StudentDashboard').then(m => ({ default: m.StudentDashboard })))
+const ParentDashboard = lazy(() => import('@/features/dashboard/pages/ParentDashboard').then(m => ({ default: m.ParentDashboard })))
+const TeacherDashboard = lazy(() => import('@/features/dashboard/pages/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })))
+const AccountantDashboard = lazy(() => import('@/features/dashboard/pages/AccountantDashboard').then(m => ({ default: m.AccountantDashboard })))
+const LibrarianDashboard = lazy(() => import('@/features/dashboard/pages/LibrarianDashboard').then(m => ({ default: m.LibrarianDashboard })))
+const TransportManagerDashboard = lazy(() => import('@/features/dashboard/pages/TransportManagerDashboard').then(m => ({ default: m.TransportManagerDashboard })))
+
+// Students
+const StudentsListPage = lazy(() => import('@/features/students/pages/StudentsListPage').then(m => ({ default: m.StudentsListPage })))
+const StudentDetailPage = lazy(() => import('@/features/students/pages/StudentDetailPage').then(m => ({ default: m.StudentDetailPage })))
+const NewStudentPage = lazy(() => import('@/features/students/pages/NewStudentPage').then(m => ({ default: m.NewStudentPage })))
+const EditStudentPage = lazy(() => import('@/features/students/pages/EditStudentPage').then(m => ({ default: m.EditStudentPage })))
+
+// Staff
+const StaffPage = lazy(() => import('@/features/staff/pages/StaffPage').then(m => ({ default: m.StaffPage })))
+const StaffDetailPage = lazy(() => import('@/features/staff/pages/StaffDetailPage').then(m => ({ default: m.StaffDetailPage })))
+const NewStaffPage = lazy(() => import('@/features/staff/pages/NewStaffPage').then(m => ({ default: m.NewStaffPage })))
+const EditStaffPage = lazy(() => import('@/features/staff/pages/EditStaffPage').then(m => ({ default: m.EditStaffPage })))
+
+// Attendance
+const AttendancePage = lazy(() => import('@/features/attendance/pages/AttendancePage').then(m => ({ default: m.AttendancePage })))
+const LeaveApplicationPage = lazy(() => import('@/features/attendance/pages/LeaveApplicationPage').then(m => ({ default: m.LeaveApplicationPage })))
+
+// Admissions
+const AdmissionsMainPage = lazy(() => import('@/features/admissions/pages/AdmissionsMainPage').then(m => ({ default: m.AdmissionsMainPage })))
+const ApplicationDetailPage = lazy(() => import('@/features/admissions/pages/ApplicationDetailPage').then(m => ({ default: m.ApplicationDetailPage })))
+const NewApplicationPage = lazy(() => import('@/features/admissions/pages/NewApplicationPage').then(m => ({ default: m.NewApplicationPage })))
+const PublicApplicationPage = lazy(() => import('@/features/admissions/pages/PublicApplicationPage').then(m => ({ default: m.PublicApplicationPage })))
+
+// Library
+const LibraryPage = lazy(() => import('@/features/library/pages/LibraryPage').then(m => ({ default: m.LibraryPage })))
+
+// Transport
+const TrackingPage = lazy(() => import('@/features/transport/pages/TrackingPage').then(m => ({ default: m.TrackingPage })))
+
+// Finance
+const FinancePage = lazy(() => import('@/features/finance/pages/FinancePage').then(m => ({ default: m.FinancePage })))
+const InstallmentPlansPage = lazy(() => import('@/features/finance/pages/InstallmentPlansPage').then(m => ({ default: m.InstallmentPlansPage })))
+const DiscountRulesPage = lazy(() => import('@/features/finance/pages/DiscountRulesPage').then(m => ({ default: m.DiscountRulesPage })))
+const ConcessionsPage = lazy(() => import('@/features/finance/pages/ConcessionsPage').then(m => ({ default: m.ConcessionsPage })))
+const EscalationPage = lazy(() => import('@/features/finance/pages/EscalationPage').then(m => ({ default: m.EscalationPage })))
+const OnlinePaymentsPage = lazy(() => import('@/features/finance/pages/OnlinePaymentsPage').then(m => ({ default: m.OnlinePaymentsPage })))
+const ParentFeeDashboardPage = lazy(() => import('@/features/finance/pages/ParentFeeDashboardPage').then(m => ({ default: m.ParentFeeDashboardPage })))
+
+// Settings
+const SettingsPage = lazy(() => import('@/features/settings/pages/SettingsPage').then(m => ({ default: m.SettingsPage })))
+
+// Exams
+const ExamsPage = lazy(() => import('@/features/exams/pages').then(m => ({ default: m.ExamsPage })))
+const NewExamPage = lazy(() => import('@/features/exams/pages').then(m => ({ default: m.NewExamPage })))
+const EditExamPage = lazy(() => import('@/features/exams/pages').then(m => ({ default: m.EditExamPage })))
+const ExamDetailPage = lazy(() => import('@/features/exams/pages').then(m => ({ default: m.ExamDetailPage })))
+const MarksEntryPage = lazy(() => import('@/features/exams/pages').then(m => ({ default: m.MarksEntryPage })))
+const ExamTimetablePage = lazy(() => import('@/features/exams/pages/ExamTimetablePage').then(m => ({ default: m.ExamTimetablePage })))
+const MarksAnalyticsPage = lazy(() => import('@/features/exams/pages/MarksAnalyticsPage').then(m => ({ default: m.MarksAnalyticsPage })))
+const ProgressTrackingPage = lazy(() => import('@/features/exams/pages/ProgressTrackingPage').then(m => ({ default: m.ProgressTrackingPage })))
+const CoScholasticPage = lazy(() => import('@/features/exams/pages/CoScholasticPage').then(m => ({ default: m.CoScholasticPage })))
+const QuestionPapersPage = lazy(() => import('@/features/exams/pages/QuestionPapersPage').then(m => ({ default: m.QuestionPapersPage })))
+
+// LMS
+const LmsMainPage = lazy(() => import('@/features/lms/pages/LmsMainPage').then(m => ({ default: m.LmsMainPage })))
+const NewCoursePage = lazy(() => import('@/features/lms/pages/NewCoursePage').then(m => ({ default: m.NewCoursePage })))
+const CourseDetailPage = lazy(() => import('@/features/lms/pages/CourseDetailPage').then(m => ({ default: m.CourseDetailPage })))
+const EditCoursePage = lazy(() => import('@/features/lms/pages/EditCoursePage').then(m => ({ default: m.EditCoursePage })))
+const StudentCoursePage = lazy(() => import('@/features/lms/pages/StudentCoursePage').then(m => ({ default: m.StudentCoursePage })))
+
+// Visitors
+const VisitorsMainPage = lazy(() => import('@/features/visitors').then(m => ({ default: m.VisitorsMainPage })))
+
+// Inventory
+const CreatePurchaseOrderPage = lazy(() => import('@/features/inventory').then(m => ({ default: m.CreatePurchaseOrderPage })))
+
+// Alumni
+const AlumniMainPage = lazy(() => import('@/features/alumni').then(m => ({ default: m.AlumniMainPage })))
+
+// Management
+const ManagementPage = lazy(() => import('@/features/management').then(m => ({ default: m.ManagementPage })))
+
+// Operations
+const OperationsPage = lazy(() => import('@/features/operations').then(m => ({ default: m.OperationsPage })))
+
+// People
+const PeoplePage = lazy(() => import('@/features/people').then(m => ({ default: m.PeoplePage })))
+
+// Communication
+const NewAnnouncementPage = lazy(() => import('@/features/communication/pages/NewAnnouncementPage').then(m => ({ default: m.NewAnnouncementPage })))
+const NewSurveyPage = lazy(() => import('@/features/communication/pages/NewSurveyPage').then(m => ({ default: m.NewSurveyPage })))
+
+// Behavior
+const BehaviorMainPage = lazy(() => import('@/features/behavior/pages/BehaviorMainPage').then(m => ({ default: m.BehaviorMainPage })))
+
+// Reports
+const ReportsMainPage = lazy(() => import('@/features/reports/pages/ReportsMainPage').then(m => ({ default: m.ReportsMainPage })))
+const NewReportPage = lazy(() => import('@/features/reports/pages/NewReportPage').then(m => ({ default: m.NewReportPage })))
+
+// Timetable
+const TimetablePage = lazy(() => import('@/features/timetable').then(m => ({ default: m.TimetablePage })))
+
+// Parent Portal
+const ParentPortalPage = lazy(() => import('@/features/parent-portal').then(m => ({ default: m.ParentPortalPage })))
+
+// Documents
+const DocumentsPage = lazy(() => import('@/features/documents').then(m => ({ default: m.DocumentsPage })))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -137,6 +167,11 @@ function RoleDashboard() {
   return <DashboardPage />
 }
 
+// Wrap component with Suspense for lazy loading
+function LazyRoute({ children }: { children: React.ReactNode }) {
+  return <Suspense fallback={<PageLoader />}>{children}</Suspense>
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -144,31 +179,58 @@ export default function App() {
         <Toaster />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/apply" element={<PublicApplicationPage />} />
+          <Route path="/apply" element={<LazyRoute><PublicApplicationPage /></LazyRoute>} />
 
           <Route
             path="/"
             element={
               <ProtectedRoute>
-                <RoleDashboard />
+                <LazyRoute>
+                  <RoleDashboard />
+                </LazyRoute>
               </ProtectedRoute>
             }
           />
 
-          {/* Students */}
+          {/* People (consolidated Students, Staff, Attendance) */}
           <Route
-            path="/students"
+            path="/people"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <StudentsListPage />
+              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
+                <LazyRoute><PeoplePage /></LazyRoute>
               </RoleProtectedRoute>
             }
+          />
+
+          {/* Operations (consolidated Transport, Hostel, Assets) */}
+          <Route
+            path="/operations"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'accountant']}>
+                <LazyRoute><OperationsPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+          {/* Keep create PO as separate route under operations */}
+          <Route
+            path="/operations/assets/purchase-orders/new"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <LazyRoute><CreatePurchaseOrderPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Students - Redirect to People module */}
+          <Route
+            path="/students"
+            element={<Navigate to="/people?tab=students&subtab=list" replace />}
           />
           <Route
             path="/students/new"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <NewStudentPage />
+                <LazyRoute><NewStudentPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -176,7 +238,7 @@ export default function App() {
             path="/students/:id"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <StudentDetailPage />
+                <LazyRoute><StudentDetailPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -184,73 +246,50 @@ export default function App() {
             path="/students/:id/edit"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <EditStudentPage />
+                <LazyRoute><EditStudentPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Staff */}
+          {/* Staff - Redirect to People module */}
           <Route
             path="/staff"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <StaffListPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=staff&subtab=list" replace />}
           />
           <Route
             path="/staff/new"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <NewStaffPage />
+                <LazyRoute><NewStaffPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
+          {/* Redirects from old staff routes to new People module URLs */}
           <Route
             path="/staff/attendance"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <StaffAttendancePage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=staff&subtab=attendance" replace />}
           />
           <Route
             path="/staff/leave"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <LeaveManagementPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=staff&subtab=leave" replace />}
           />
           <Route
             path="/staff/salary"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <SalaryManagementPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=staff&subtab=payroll" replace />}
           />
           <Route
             path="/staff/timetable"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <TimetableManagementPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=staff&subtab=timetable" replace />}
           />
           <Route
             path="/staff/substitutions"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <SubstitutionPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=staff&subtab=substitutions" replace />}
           />
           <Route
             path="/staff/:id"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <StaffDetailPage />
+                <LazyRoute><StaffDetailPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -258,75 +297,49 @@ export default function App() {
             path="/staff/:id/edit"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <EditStaffPage />
+                <LazyRoute><EditStaffPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Attendance */}
+          {/* Attendance - Redirect to People module (except for student/parent My Attendance view) */}
           <Route
             path="/attendance"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <AttendancePage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance&subtab=mark" replace />}
           />
+          {/* Redirects from old attendance routes to new People module URLs */}
           <Route
             path="/attendance/periods"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <PeriodAttendancePage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance&subtab=period" replace />}
           />
           <Route
             path="/attendance/alerts"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <ShortageAlertsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance&subtab=alerts" replace />}
           />
           <Route
             path="/attendance/late"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <LateDetectionPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance&subtab=late" replace />}
           />
           <Route
             path="/attendance/notifications"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <AttendanceNotificationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance&subtab=notifications" replace />}
           />
           <Route
             path="/attendance/biometric"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <BiometricPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance&subtab=biometric" replace />}
           />
+          {/* Keep /attendance/leave as separate route for parent/student */}
           <Route
             path="/attendance/leave"
             element={
               <RoleProtectedRoute allowedRoles={['parent', 'student']}>
-                <LeaveApplicationPage />
+                <LazyRoute><LeaveApplicationPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
           <Route
             path="/attendance/*"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <AttendancePage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/people?tab=attendance" replace />}
           />
 
           {/* Admissions */}
@@ -334,15 +347,7 @@ export default function App() {
             path="/admissions"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <ApplicationsListPage />
-              </RoleProtectedRoute>
-            }
-          />
-          <Route
-            path="/admissions/pipeline"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AdmissionsPage />
+                <LazyRoute><AdmissionsMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -350,55 +355,40 @@ export default function App() {
             path="/admissions/new"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <NewApplicationPage />
+                <LazyRoute><NewApplicationPage /></LazyRoute>
               </RoleProtectedRoute>
             }
+          />
+          {/* Redirects from old routes to new tab-based URLs */}
+          <Route
+            path="/admissions/pipeline"
+            element={<Navigate to="/admissions?tab=pipeline" replace />}
           />
           <Route
             path="/admissions/entrance-exams"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <EntranceExamsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/admissions?tab=entrance-exams" replace />}
           />
           <Route
             path="/admissions/waitlist"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <WaitlistPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/admissions?tab=waitlist" replace />}
           />
           <Route
             path="/admissions/communications"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <CommunicationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/admissions?tab=communications" replace />}
           />
           <Route
             path="/admissions/payments"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AdmissionPaymentsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/admissions?tab=payments" replace />}
           />
           <Route
             path="/admissions/analytics"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AdmissionAnalyticsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/admissions?tab=analytics" replace />}
           />
           <Route
             path="/admissions/:id"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <ApplicationDetailPage />
+                <LazyRoute><ApplicationDetailPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -407,124 +397,79 @@ export default function App() {
           <Route
             path="/library"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
-                <LibraryPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student', 'parent']}>
+                <LazyRoute><LibraryPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
+          {/* Redirects from old routes to new tab-based URLs */}
           <Route
             path="/library/scanner"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
-                <BarcodeScannerPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/library?tab=scanner" replace />}
           />
           <Route
             path="/library/reservations"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
-                <ReservationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/library?tab=reservations" replace />}
           />
           <Route
             path="/library/reading"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student', 'parent']}>
-                <ReadingHistoryPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/library?tab=history" replace />}
           />
           <Route
             path="/library/digital"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
-                <DigitalLibraryPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/library?tab=digital" replace />}
           />
           <Route
             path="/library/notifications"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
-                <OverdueNotificationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/library?tab=fines" replace />}
           />
           <Route
             path="/library/*"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student']}>
-                <LibraryPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'librarian', 'teacher', 'student', 'parent']}>
+                <LazyRoute><LibraryPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Transport */}
+          {/* Transport - Redirect to Operations module */}
           <Route
             path="/transport"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <TransportPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=transport" replace />}
           />
-          <Route
-            path="/transport/vehicles"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <VehiclesPage />
-              </RoleProtectedRoute>
-            }
-          />
-          <Route
-            path="/transport/drivers"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <DriversPage />
-              </RoleProtectedRoute>
-            }
-          />
+          {/* Dedicated tracking page for parent/student access - keep as separate route */}
           <Route
             path="/transport/tracking"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent', 'student']}>
-                <TrackingPage />
+                <LazyRoute><TrackingPage /></LazyRoute>
               </RoleProtectedRoute>
             }
+          />
+          {/* Redirects from old transport routes to Operations module */}
+          <Route
+            path="/transport/vehicles"
+            element={<Navigate to="/operations?tab=transport&subtab=vehicles" replace />}
+          />
+          <Route
+            path="/transport/drivers"
+            element={<Navigate to="/operations?tab=transport&subtab=drivers" replace />}
           />
           <Route
             path="/transport/stops"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <StopAssignmentsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=transport&subtab=stops" replace />}
           />
           <Route
             path="/transport/maintenance"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <MaintenancePage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=transport&subtab=maintenance" replace />}
           />
           <Route
             path="/transport/notifications"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <TransportNotificationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=transport&subtab=notifications" replace />}
           />
           <Route
             path="/transport/*"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'transport_manager', 'parent']}>
-                <TransportPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=transport" replace />}
           />
 
           {/* Finance - Admin routes */}
@@ -532,7 +477,7 @@ export default function App() {
             path="/finance"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <FinancePage />
+                <LazyRoute><FinancePage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -540,7 +485,7 @@ export default function App() {
             path="/finance/installments"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <InstallmentPlansPage />
+                <LazyRoute><InstallmentPlansPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -548,7 +493,7 @@ export default function App() {
             path="/finance/discounts"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <DiscountRulesPage />
+                <LazyRoute><DiscountRulesPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -556,7 +501,7 @@ export default function App() {
             path="/finance/concessions"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <ConcessionsPage />
+                <LazyRoute><ConcessionsPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -564,7 +509,7 @@ export default function App() {
             path="/finance/escalation"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <EscalationPage />
+                <LazyRoute><EscalationPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -572,7 +517,7 @@ export default function App() {
             path="/finance/online-payments"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <OnlinePaymentsPage />
+                <LazyRoute><OnlinePaymentsPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -581,7 +526,7 @@ export default function App() {
             path="/finance/my-fees"
             element={
               <RoleProtectedRoute allowedRoles={['parent', 'student']}>
-                <ParentFeeDashboardPage />
+                <LazyRoute><ParentFeeDashboardPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -589,45 +534,66 @@ export default function App() {
             path="/finance/*"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <FinancePage />
+                <LazyRoute><FinancePage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Settings */}
+          {/* Settings (includes General, Communication, Integrations sections) */}
           <Route
             path="/settings"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <SettingsPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
+                <LazyRoute><SettingsPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
           <Route
             path="/settings/*"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <SettingsPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
+                <LazyRoute><SettingsPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Integrations */}
+          {/* Integrations - Redirect to Settings module */}
           <Route
             path="/integrations"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <IntegrationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/settings?tab=integrations" replace />}
+          />
+          {/* Redirects from old integrations routes to Settings module */}
+          <Route
+            path="/integrations/sms"
+            element={<Navigate to="/settings?tab=integrations&subtab=sms" replace />}
+          />
+          <Route
+            path="/integrations/email"
+            element={<Navigate to="/settings?tab=integrations&subtab=email" replace />}
+          />
+          <Route
+            path="/integrations/payment"
+            element={<Navigate to="/settings?tab=integrations&subtab=payment" replace />}
+          />
+          <Route
+            path="/integrations/whatsapp"
+            element={<Navigate to="/settings?tab=integrations&subtab=whatsapp" replace />}
+          />
+          <Route
+            path="/integrations/biometric"
+            element={<Navigate to="/settings?tab=integrations&subtab=biometric" replace />}
+          />
+          <Route
+            path="/integrations/webhooks"
+            element={<Navigate to="/settings?tab=integrations&subtab=webhooks" replace />}
+          />
+          <Route
+            path="/integrations/api-keys"
+            element={<Navigate to="/settings?tab=integrations&subtab=api-keys" replace />}
           />
           <Route
             path="/integrations/*"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <IntegrationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/settings?tab=integrations" replace />}
           />
 
           {/* Exams */}
@@ -635,7 +601,7 @@ export default function App() {
             path="/exams"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <ExamsPage />
+                <LazyRoute><ExamsPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -643,7 +609,7 @@ export default function App() {
             path="/exams/new"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <NewExamPage />
+                <LazyRoute><NewExamPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -651,7 +617,7 @@ export default function App() {
             path="/exams/timetable"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <ExamTimetablePage />
+                <LazyRoute><ExamTimetablePage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -659,7 +625,7 @@ export default function App() {
             path="/exams/analytics"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <MarksAnalyticsPage />
+                <LazyRoute><MarksAnalyticsPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -667,7 +633,7 @@ export default function App() {
             path="/exams/progress"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <ProgressTrackingPage />
+                <LazyRoute><ProgressTrackingPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -675,7 +641,7 @@ export default function App() {
             path="/exams/co-scholastic"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <CoScholasticPage />
+                <LazyRoute><CoScholasticPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -683,7 +649,7 @@ export default function App() {
             path="/exams/question-papers"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <QuestionPapersPage />
+                <LazyRoute><QuestionPapersPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -691,7 +657,7 @@ export default function App() {
             path="/exams/:id/edit"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <EditExamPage />
+                <LazyRoute><EditExamPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -699,7 +665,7 @@ export default function App() {
             path="/exams/:id"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'student', 'parent']}>
-                <ExamDetailPage />
+                <LazyRoute><ExamDetailPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -707,7 +673,7 @@ export default function App() {
             path="/exams/:id/marks"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <MarksEntryPage />
+                <LazyRoute><MarksEntryPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -717,23 +683,37 @@ export default function App() {
             path="/lms"
             element={
               <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <LmsPage />
+                <LazyRoute><LmsMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
+          {/* Redirects from old routes to new tab-based URLs */}
           <Route
             path="/lms/courses"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <CoursesListPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/lms?tab=courses" replace />}
           />
+          <Route
+            path="/lms/live-classes"
+            element={<Navigate to="/lms?tab=live-classes" replace />}
+          />
+          <Route
+            path="/lms/enrollments"
+            element={<Navigate to="/lms?tab=enrollments" replace />}
+          />
+          <Route
+            path="/lms/assignments"
+            element={<Navigate to="/lms?tab=assignments" replace />}
+          />
+          <Route
+            path="/lms/question-bank"
+            element={<Navigate to="/lms?tab=question-bank" replace />}
+          />
+          {/* Keep detail routes as separate pages */}
           <Route
             path="/lms/courses/new"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <NewCoursePage />
+                <LazyRoute><NewCoursePage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -741,7 +721,7 @@ export default function App() {
             path="/lms/courses/:id"
             element={
               <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <CourseDetailPage />
+                <LazyRoute><CourseDetailPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -749,7 +729,7 @@ export default function App() {
             path="/lms/courses/:id/edit"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
-                <EditCoursePage />
+                <LazyRoute><EditCoursePage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -757,31 +737,7 @@ export default function App() {
             path="/lms/courses/:id/learn"
             element={
               <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <StudentCoursePage />
-              </RoleProtectedRoute>
-            }
-          />
-          <Route
-            path="/lms/live-classes"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <LiveClassesPage />
-              </RoleProtectedRoute>
-            }
-          />
-          <Route
-            path="/lms/enrollments"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <EnrollmentsPage />
-              </RoleProtectedRoute>
-            }
-          />
-          <Route
-            path="/lms/assignments"
-            element={
-              <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <AssignmentsPage />
+                <LazyRoute><StudentCoursePage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
@@ -789,67 +745,40 @@ export default function App() {
             path="/lms/*"
             element={
               <RoleProtectedRoute allowedRoles={ALL_ROLES}>
-                <LmsPage />
+                <LazyRoute><LmsMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Hostel */}
+          {/* Hostel - Redirect to Operations module */}
           <Route
             path="/hostel"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <HostelPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel" replace />}
           />
+          {/* Redirects from old hostel routes to Operations module */}
           <Route
             path="/hostel/rooms"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <RoomsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel&subtab=rooms" replace />}
           />
           <Route
             path="/hostel/allocations"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AllocationsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel&subtab=allocations" replace />}
           />
           <Route
             path="/hostel/fees"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <HostelFeesPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel&subtab=fees" replace />}
           />
           <Route
             path="/hostel/mess"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <MessPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel&subtab=mess" replace />}
           />
           <Route
             path="/hostel/attendance"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <HostelAttendancePage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel&subtab=attendance" replace />}
           />
           <Route
             path="/hostel/*"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <HostelPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=hostel" replace />}
           />
 
           {/* Visitors */}
@@ -857,149 +786,287 @@ export default function App() {
             path="/visitors"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <VisitorsPage />
+                <LazyRoute><VisitorsMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
+          {/* Redirects from old routes to new tab-based URLs */}
           <Route
             path="/visitors/logs"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <VisitorLogsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/visitors?tab=logs" replace />}
           />
           <Route
             path="/visitors/reports"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <VisitorReportsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/visitors?tab=reports" replace />}
           />
           <Route
             path="/visitors/pre-approved"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <PreApprovedPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/visitors?tab=preapproved" replace />}
           />
           <Route
             path="/visitors/*"
             element={
               <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <VisitorsPage />
+                <LazyRoute><VisitorsMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Inventory */}
+          {/* Inventory - Redirect to Operations module (Assets tab) */}
           <Route
             path="/inventory"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <InventoryPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=assets" replace />}
           />
+          {/* Redirects from old inventory routes to Operations module */}
           <Route
             path="/inventory/assets"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <AssetsPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=assets&subtab=assets" replace />}
           />
           <Route
             path="/inventory/stock"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <StockPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=assets&subtab=stock" replace />}
           />
           <Route
             path="/inventory/purchase-orders"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <PurchaseOrdersPage />
-              </RoleProtectedRoute>
-            }
-          />
-          <Route
-            path="/inventory/purchase-orders/new"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <CreatePurchaseOrderPage />
-              </RoleProtectedRoute>
-            }
+            element={<Navigate to="/operations?tab=assets&subtab=purchase-orders" replace />}
           />
           <Route
             path="/inventory/vendors"
+            element={<Navigate to="/operations?tab=assets&subtab=vendors" replace />}
+          />
+          {/* Keep create PO as separate route - redirect to new Operations path */}
+          <Route
+            path="/inventory/purchase-orders/new"
+            element={<Navigate to="/operations/assets/purchase-orders/new" replace />}
+          />
+          <Route
+            path="/inventory/*"
+            element={<Navigate to="/operations?tab=assets" replace />}
+          />
+
+          {/* Alumni - Redirect to Management module */}
+          <Route
+            path="/alumni"
+            element={<Navigate to="/management?tab=alumni" replace />}
+          />
+          {/* Redirects from old routes to Management module */}
+          <Route
+            path="/alumni/batches"
+            element={<Navigate to="/management?tab=alumni&subtab=batches" replace />}
+          />
+          <Route
+            path="/alumni/achievements"
+            element={<Navigate to="/management?tab=alumni&subtab=achievements" replace />}
+          />
+          <Route
+            path="/alumni/contributions"
+            element={<Navigate to="/management?tab=alumni&subtab=contributions" replace />}
+          />
+          <Route
+            path="/alumni/events"
+            element={<Navigate to="/management?tab=alumni&subtab=events" replace />}
+          />
+          <Route
+            path="/alumni/*"
+            element={<Navigate to="/management?tab=alumni" replace />}
+          />
+
+          {/* Communication - Redirect to Settings module */}
+          <Route
+            path="/communication"
+            element={<Navigate to="/settings?tab=communication" replace />}
+          />
+          {/* Keep separate routes for create pages */}
+          <Route
+            path="/communication/announcements/new"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <VendorsPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
+                <LazyRoute><NewAnnouncementPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
           <Route
-            path="/inventory/*"
+            path="/communication/surveys/new"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
-                <InventoryPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
+                <LazyRoute><NewSurveyPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+          {/* Redirects from old communication routes to Settings module */}
+          <Route
+            path="/communication/announcements"
+            element={<Navigate to="/settings?tab=communication&subtab=announcements" replace />}
+          />
+          <Route
+            path="/communication/messages"
+            element={<Navigate to="/settings?tab=communication&subtab=messages" replace />}
+          />
+          <Route
+            path="/communication/circulars"
+            element={<Navigate to="/settings?tab=communication&subtab=circulars" replace />}
+          />
+          <Route
+            path="/communication/surveys"
+            element={<Navigate to="/settings?tab=communication&subtab=surveys" replace />}
+          />
+          <Route
+            path="/communication/alerts"
+            element={<Navigate to="/settings?tab=communication&subtab=emergency" replace />}
+          />
+          <Route
+            path="/communication/events"
+            element={<Navigate to="/settings?tab=communication&subtab=events" replace />}
+          />
+          <Route
+            path="/communication/*"
+            element={<Navigate to="/settings?tab=communication" replace />}
+          />
+
+          {/* Behavior & Discipline */}
+          <Route
+            path="/behavior"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
+                <LazyRoute><BehaviorMainPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+          {/* Redirects from old routes to new tab-based URLs */}
+          <Route
+            path="/behavior/incidents"
+            element={<Navigate to="/behavior?tab=incidents" replace />}
+          />
+          <Route
+            path="/behavior/detentions"
+            element={<Navigate to="/behavior?tab=detentions" replace />}
+          />
+          <Route
+            path="/behavior/actions"
+            element={<Navigate to="/behavior?tab=dashboard" replace />}
+          />
+          <Route
+            path="/behavior/points"
+            element={<Navigate to="/behavior?tab=dashboard" replace />}
+          />
+          <Route
+            path="/behavior/*"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher']}>
+                <LazyRoute><BehaviorMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
 
-          {/* Alumni */}
+          {/* Reports & Analytics */}
           <Route
-            path="/alumni"
+            path="/reports"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AlumniPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <LazyRoute><ReportsMainPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
           <Route
-            path="/alumni/batches"
+            path="/reports/new"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <BatchesPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <LazyRoute><NewReportPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+          {/* Redirects from old routes to new tab-based URLs */}
+          <Route
+            path="/reports/templates"
+            element={<Navigate to="/reports?tab=templates" replace />}
+          />
+          <Route
+            path="/reports/history"
+            element={<Navigate to="/reports?tab=history" replace />}
+          />
+          <Route
+            path="/reports/scheduled"
+            element={<Navigate to="/reports?tab=scheduled" replace />}
+          />
+          <Route
+            path="/reports/analytics"
+            element={<Navigate to="/reports?tab=analytics" replace />}
+          />
+          <Route
+            path="/reports/analytics/academic"
+            element={<Navigate to="/reports?tab=analytics&subtab=academic" replace />}
+          />
+          <Route
+            path="/reports/analytics/financial"
+            element={<Navigate to="/reports?tab=analytics&subtab=financial" replace />}
+          />
+          <Route
+            path="/reports/analytics/attendance"
+            element={<Navigate to="/reports?tab=analytics&subtab=attendance" replace />}
+          />
+          <Route
+            path="/reports/*"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'accountant']}>
+                <LazyRoute><ReportsMainPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Management (consolidated Schedule, Docs, Alumni) */}
+          <Route
+            path="/management"
+            element={
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'accountant']}>
+                <LazyRoute><ManagementPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
           <Route
-            path="/alumni/achievements"
+            path="/management/*"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AchievementsPage />
+              <RoleProtectedRoute allowedRoles={['admin', 'principal', 'teacher', 'accountant']}>
+                <LazyRoute><ManagementPage /></LazyRoute>
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Timetable - Redirect to Management module */}
+          <Route
+            path="/timetable"
+            element={<Navigate to="/management?tab=schedule" replace />}
+          />
+          <Route
+            path="/timetable/*"
+            element={<Navigate to="/management?tab=schedule" replace />}
+          />
+
+          {/* Parent Portal */}
+          <Route
+            path="/parent-portal"
+            element={
+              <RoleProtectedRoute allowedRoles={['parent', 'teacher', 'admin', 'principal']}>
+                <LazyRoute><ParentPortalPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
           <Route
-            path="/alumni/contributions"
+            path="/parent-portal/*"
             element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <ContributionsPage />
+              <RoleProtectedRoute allowedRoles={['parent', 'teacher', 'admin', 'principal']}>
+                <LazyRoute><ParentPortalPage /></LazyRoute>
               </RoleProtectedRoute>
             }
           />
+
+          {/* Documents - Redirect to Management module */}
           <Route
-            path="/alumni/events"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AlumniEventsPage />
-              </RoleProtectedRoute>
-            }
+            path="/documents"
+            element={<Navigate to="/management?tab=docs" replace />}
           />
           <Route
-            path="/alumni/*"
-            element={
-              <RoleProtectedRoute allowedRoles={['admin', 'principal']}>
-                <AlumniPage />
-              </RoleProtectedRoute>
-            }
+            path="/documents/*"
+            element={<Navigate to="/management?tab=docs" replace />}
           />
 
           {/* Catch all */}

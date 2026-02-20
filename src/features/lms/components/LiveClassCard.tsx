@@ -4,16 +4,10 @@ import { Button } from '@/components/ui/button'
 import { Video, Users, ExternalLink, Calendar, Clock } from 'lucide-react'
 import type { LiveClass } from '../types/lms.types'
 import { LIVE_CLASS_STATUS_LABELS } from '../types/lms.types'
+import { liveClassStatusColors } from '@/lib/design-tokens'
 
 interface LiveClassCardProps {
   liveClass: LiveClass
-}
-
-const statusColorMap: Record<LiveClass['status'], string> = {
-  scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
-  live: 'bg-red-100 text-red-800 border-red-200 animate-pulse',
-  completed: 'bg-green-100 text-green-800 border-green-200',
-  cancelled: 'bg-gray-100 text-gray-800 border-gray-200',
 }
 
 export function LiveClassCard({ liveClass }: LiveClassCardProps) {
@@ -39,7 +33,11 @@ export function LiveClassCard({ liveClass }: LiveClassCardProps) {
           </div>
           <Badge
             variant="outline"
-            className={statusColorMap[liveClass.status]}
+            className={liveClass.status === 'live' ? 'animate-pulse' : ''}
+            style={{
+              backgroundColor: liveClassStatusColors[liveClass.status]?.bg,
+              color: liveClassStatusColors[liveClass.status]?.text,
+            }}
           >
             {LIVE_CLASS_STATUS_LABELS[liveClass.status]}
           </Badge>

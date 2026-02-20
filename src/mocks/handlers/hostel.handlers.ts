@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   hostels,
   rooms,
@@ -23,7 +24,7 @@ export const hostelHandlers = [
 
   // Get active students who are not currently allocated to a hostel room
   http.get('/api/hostel/eligible-students', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')
     const gender = url.searchParams.get('gender') // For filtering boys/girls hostels
@@ -70,7 +71,7 @@ export const hostelHandlers = [
 
   // Get all hostels
   http.get('/api/hostel/hostels', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
     const status = url.searchParams.get('status')
@@ -84,7 +85,7 @@ export const hostelHandlers = [
 
   // Get single hostel
   http.get('/api/hostel/hostels/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const hostel = hostels.find((h) => h.id === params.id)
     if (!hostel) {
       return HttpResponse.json({ error: 'Hostel not found' }, { status: 404 })
@@ -94,7 +95,7 @@ export const hostelHandlers = [
 
   // Create hostel
   http.post('/api/hostel/hostels', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const now = new Date().toISOString()
 
@@ -122,7 +123,7 @@ export const hostelHandlers = [
 
   // Update hostel
   http.put('/api/hostel/hostels/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = hostels.findIndex((h) => h.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Hostel not found' }, { status: 404 })
@@ -138,7 +139,7 @@ export const hostelHandlers = [
 
   // Delete hostel
   http.delete('/api/hostel/hostels/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = hostels.findIndex((h) => h.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Hostel not found' }, { status: 404 })
@@ -151,7 +152,7 @@ export const hostelHandlers = [
 
   // Get all rooms
   http.get('/api/hostel/rooms', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const hostelId = url.searchParams.get('hostelId')
     const type = url.searchParams.get('type')
@@ -169,7 +170,7 @@ export const hostelHandlers = [
 
   // Get single room
   http.get('/api/hostel/rooms/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const room = rooms.find((r) => r.id === params.id)
     if (!room) {
       return HttpResponse.json({ error: 'Room not found' }, { status: 404 })
@@ -179,7 +180,7 @@ export const hostelHandlers = [
 
   // Create room
   http.post('/api/hostel/rooms', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const hostel = hostels.find((h) => h.id === body.hostelId)
 
@@ -204,7 +205,7 @@ export const hostelHandlers = [
 
   // Update room
   http.put('/api/hostel/rooms/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = rooms.findIndex((r) => r.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Room not found' }, { status: 404 })
@@ -216,7 +217,7 @@ export const hostelHandlers = [
 
   // Delete room
   http.delete('/api/hostel/rooms/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = rooms.findIndex((r) => r.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Room not found' }, { status: 404 })
@@ -229,7 +230,7 @@ export const hostelHandlers = [
 
   // Get all allocations
   http.get('/api/hostel/allocations', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const hostelId = url.searchParams.get('hostelId')
     const roomId = url.searchParams.get('roomId')
@@ -253,7 +254,7 @@ export const hostelHandlers = [
 
   // Create allocation
   http.post('/api/hostel/allocations', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const room = rooms.find((r) => r.id === body.roomId)
     const hostel = hostels.find((h) => h.id === room?.hostelId)
@@ -294,7 +295,7 @@ export const hostelHandlers = [
 
   // Vacate allocation
   http.patch('/api/hostel/allocations/:id/vacate', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = roomAllocations.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Allocation not found' }, { status: 404 })
@@ -322,7 +323,7 @@ export const hostelHandlers = [
 
   // Transfer allocation
   http.patch('/api/hostel/allocations/:id/transfer', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = roomAllocations.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Allocation not found' }, { status: 404 })
@@ -378,7 +379,7 @@ export const hostelHandlers = [
 
   // Get all fees
   http.get('/api/hostel/fees', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const studentId = url.searchParams.get('studentId')
     const feeType = url.searchParams.get('feeType')
@@ -398,7 +399,7 @@ export const hostelHandlers = [
 
   // Create fee
   http.post('/api/hostel/fees', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const allocation = roomAllocations.find((a) => a.studentId === body.studentId && a.status === 'active')
     const room = rooms.find((r) => r.id === allocation?.roomId)
@@ -423,7 +424,7 @@ export const hostelHandlers = [
 
   // Pay fee
   http.patch('/api/hostel/fees/:id/pay', async ({ params }) => {
-    await delay(300)
+    await mockDelay('write')
     const index = hostelFees.findIndex((f) => f.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Fee not found' }, { status: 404 })
@@ -438,7 +439,7 @@ export const hostelHandlers = [
 
   // Generate bulk fees for all active residents
   http.post('/api/hostel/fees/bulk-generate', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as { month: string; feeType: HostelFee['feeType']; dueDate: string; amount: number }
 
     const activeAllocations = roomAllocations.filter((a) => a.status === 'active')
@@ -477,7 +478,7 @@ export const hostelHandlers = [
 
   // Get mess menu
   http.get('/api/hostel/mess-menu', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const hostelId = url.searchParams.get('hostelId')
     const dayOfWeek = url.searchParams.get('dayOfWeek')
@@ -493,7 +494,7 @@ export const hostelHandlers = [
 
   // Update mess menu
   http.put('/api/hostel/mess-menu', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const hostel = hostels.find((h) => h.id === body.hostelId)
 
@@ -525,7 +526,7 @@ export const hostelHandlers = [
 
   // Get attendance
   http.get('/api/hostel/attendance', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const hostelId = url.searchParams.get('hostelId')
     const date = url.searchParams.get('date')
@@ -547,7 +548,7 @@ export const hostelHandlers = [
 
   // Mark attendance
   http.post('/api/hostel/attendance', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as Record<string, unknown>
     const allocation = roomAllocations.find((a) => a.studentId === body.studentId && a.status === 'active')
 
@@ -581,7 +582,7 @@ export const hostelHandlers = [
 
   // Bulk mark attendance
   http.post('/api/hostel/attendance/bulk', async ({ request }) => {
-    await delay(300)
+    await mockDelay('write')
     const body = await request.json() as { date: string; records: Array<{ studentId: string; status: string }> }
 
     for (const record of body.records) {
@@ -617,7 +618,7 @@ export const hostelHandlers = [
   // ==================== STATS ====================
 
   http.get('/api/hostel/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
 
     const totalBeds = rooms.reduce((sum, r) => sum + r.capacity, 0)
     const occupiedBeds = rooms.reduce((sum, r) => sum + r.occupancy, 0)

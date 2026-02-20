@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, Role } from '@/types/common.types'
+import { clearSessionTimeout } from '@/lib/security'
 
 const rolePermissions: Record<Role, string[]> = {
   admin: ['*'],
@@ -16,8 +17,9 @@ const rolePermissions: Record<Role, string[]> = {
 interface AuthState {
   user: User | null
   isAuthenticated: boolean
+  sessionExpiredAt: number | null
   login: (user: User) => void
-  logout: () => void
+  logout: (reason?: 'manual' | 'session_expired') => void
   hasPermission: (permission: string) => boolean
   hasRole: (roles: Role[]) => boolean
 }
@@ -27,10 +29,18 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       isAuthenticated: false,
+      sessionExpiredAt: null,
 
-      login: (user) => set({ user, isAuthenticated: true }),
+      login: (user) => set({ user, isAuthenticated: true, sessionExpiredAt: null }),
 
-      logout: () => set({ user: null, isAuthenticated: false }),
+      logout: (reason = 'manual') => {
+        clearSessionTimeout()
+        set({
+          user: null,
+          isAuthenticated: false,
+          sessionExpiredAt: reason === 'session_expired' ? Date.now() : null,
+        })
+      },
 
       hasPermission: (permission) => {
         const { user } = get()

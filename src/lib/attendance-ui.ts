@@ -67,9 +67,9 @@ export const ATTENDANCE_BADGE_VARIANT = {
   absent: 'destructive',
   late: 'warning',
   half_day: 'secondary',
-  excused: 'info',
-  on_leave: 'info',
-  leave: 'info',
+  excused: 'outline',
+  on_leave: 'outline',
+  leave: 'outline',
 } as const
 
 export type AttendanceBadgeVariant = (typeof ATTENDANCE_BADGE_VARIANT)[keyof typeof ATTENDANCE_BADGE_VARIANT]
@@ -87,7 +87,7 @@ export function getAttendanceBorderColor(status: string): string {
  */
 export function getAttendanceBadgeVariant(
   status: string
-): 'success' | 'destructive' | 'warning' | 'secondary' | 'info' {
+): 'success' | 'destructive' | 'warning' | 'secondary' | 'outline' {
   const variant = ATTENDANCE_BADGE_VARIANT[status as keyof typeof ATTENDANCE_BADGE_VARIANT]
   return variant ?? 'secondary'
 }

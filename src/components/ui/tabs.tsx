@@ -20,7 +20,7 @@ const TabsList = React.forwardRef<
       // Base styles
       'inline-flex items-center justify-center text-muted-foreground mx-auto',
 
-      // Default variant (Parent tabs - Gold theme)
+      // Default variant (Parent tabs - Saffron theme)
       variant === 'default' && [
         'h-11 bg-card border border-border shadow-sm rounded-xl p-1.5 gap-1',
       ],
@@ -54,10 +54,10 @@ const TabsTrigger = React.forwardRef<
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
       'disabled:pointer-events-none disabled:opacity-50',
 
-      // Default variant (Parent tabs - GOLD active state)
+      // Default variant (Parent tabs - SAFFRON active state)
       variant === 'default' && [
-        'text-muted-foreground hover:text-foreground hover:bg-gold/10',
-        'data-[state=active]:bg-gold data-[state=active]:text-gold-foreground',
+        'text-muted-foreground hover:text-foreground hover:bg-saffron/10',
+        'data-[state=active]:bg-saffron data-[state=active]:text-saffron-foreground',
         'data-[state=active]:shadow-md data-[state=active]:font-semibold',
       ],
 

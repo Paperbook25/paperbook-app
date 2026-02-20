@@ -60,7 +60,7 @@ export function StatusChangeDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Change Application Status</DialogTitle>
           <DialogDescription>

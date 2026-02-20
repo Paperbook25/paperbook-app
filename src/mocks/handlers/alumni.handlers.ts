@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import { faker } from '@faker-js/faker'
 import { alumni, achievements, contributions, events, eventRegistrations } from '../data/alumni.data'
 import { students } from '../data/students.data'
@@ -24,7 +25,7 @@ export const alumniHandlers = [
 
   // Graduate a single student to alumni
   http.post('/api/alumni/graduate', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as {
       studentId: string
       batchYear: string
@@ -84,7 +85,7 @@ export const alumniHandlers = [
 
   // Batch graduation - graduate multiple students
   http.post('/api/alumni/graduate-batch', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = await request.json() as {
       studentIds: string[]
       batchYear: string
@@ -158,7 +159,7 @@ export const alumniHandlers = [
 
   // Get students eligible for graduation (Class 12, active)
   http.get('/api/alumni/eligible-for-graduation', async () => {
-    await delay(200)
+    await mockDelay('read')
 
     const eligibleStudents = students
       .filter((s) => s.status === 'active' && s.class === 'Class 12')
@@ -177,7 +178,7 @@ export const alumniHandlers = [
 
   // Get alumni stats
   http.get('/api/alumni/stats', async () => {
-    await delay(100)
+    await mockDelay('read')
 
     const batches = [...new Set(alumniData.map((a) => a.batch))]
     const stats: AlumniStats = {
@@ -197,7 +198,7 @@ export const alumniHandlers = [
 
   // Get batch stats
   http.get('/api/alumni/batches/stats', async () => {
-    await delay(100)
+    await mockDelay('read')
 
     const batches = [...new Set(alumniData.map((a) => a.batch))].sort().reverse()
     const stats: BatchStats[] = batches.map((batch) => {
@@ -222,7 +223,7 @@ export const alumniHandlers = [
 
   // List achievements
   http.get('/api/alumni/achievements', async ({ request }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const url = new URL(request.url)
     const category = url.searchParams.get('category')
@@ -249,7 +250,7 @@ export const alumniHandlers = [
 
   // Create achievement
   http.post('/api/alumni/achievements', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
 
     const body = await request.json() as Partial<AlumniAchievement>
     const alumnus = alumniData.find((a) => a.id === body.alumniId)
@@ -272,7 +273,7 @@ export const alumniHandlers = [
 
   // Update achievement
   http.put('/api/alumni/achievements/:id', async ({ params, request }) => {
-    await delay(150)
+    await mockDelay('read')
 
     const index = achievementsData.findIndex((a) => a.id === params.id)
     if (index === -1) {
@@ -287,7 +288,7 @@ export const alumniHandlers = [
 
   // Publish/unpublish achievement
   http.patch('/api/alumni/achievements/:id/publish', async ({ params, request }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = achievementsData.findIndex((a) => a.id === params.id)
     if (index === -1) {
@@ -302,7 +303,7 @@ export const alumniHandlers = [
 
   // Delete achievement
   http.delete('/api/alumni/achievements/:id', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = achievementsData.findIndex((a) => a.id === params.id)
     if (index === -1) {
@@ -317,7 +318,7 @@ export const alumniHandlers = [
 
   // List contributions
   http.get('/api/alumni/contributions', async ({ request }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
@@ -344,7 +345,7 @@ export const alumniHandlers = [
 
   // Create contribution
   http.post('/api/alumni/contributions', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
 
     const body = await request.json() as Partial<AlumniContribution>
     const alumnus = alumniData.find((a) => a.id === body.alumniId)
@@ -367,7 +368,7 @@ export const alumniHandlers = [
 
   // Update contribution status
   http.patch('/api/alumni/contributions/:id/status', async ({ params, request }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = contributionsData.findIndex((c) => c.id === params.id)
     if (index === -1) {
@@ -385,7 +386,7 @@ export const alumniHandlers = [
 
   // Delete contribution
   http.delete('/api/alumni/contributions/:id', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = contributionsData.findIndex((c) => c.id === params.id)
     if (index === -1) {
@@ -400,7 +401,7 @@ export const alumniHandlers = [
 
   // List events
   http.get('/api/alumni/events', async ({ request }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
@@ -431,7 +432,7 @@ export const alumniHandlers = [
 
   // Get single event
   http.get('/api/alumni/events/:id', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const event = eventsData.find((e) => e.id === params.id)
     if (!event) {
@@ -443,7 +444,7 @@ export const alumniHandlers = [
 
   // Create event
   http.post('/api/alumni/events', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
 
     const body = await request.json() as Partial<AlumniEvent>
 
@@ -468,7 +469,7 @@ export const alumniHandlers = [
 
   // Update event
   http.put('/api/alumni/events/:id', async ({ params, request }) => {
-    await delay(150)
+    await mockDelay('read')
 
     const index = eventsData.findIndex((e) => e.id === params.id)
     if (index === -1) {
@@ -483,7 +484,7 @@ export const alumniHandlers = [
 
   // Update event status
   http.patch('/api/alumni/events/:id/status', async ({ params, request }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = eventsData.findIndex((e) => e.id === params.id)
     if (index === -1) {
@@ -498,7 +499,7 @@ export const alumniHandlers = [
 
   // Delete event
   http.delete('/api/alumni/events/:id', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = eventsData.findIndex((e) => e.id === params.id)
     if (index === -1) {
@@ -516,7 +517,7 @@ export const alumniHandlers = [
 
   // Get event registrations
   http.get('/api/alumni/events/:eventId/registrations', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const regs = registrationsData.filter((r) => r.eventId === params.eventId)
     return HttpResponse.json({ data: regs })
@@ -524,7 +525,7 @@ export const alumniHandlers = [
 
   // Register for event
   http.post('/api/alumni/events/:eventId/register', async ({ params, request }) => {
-    await delay(150)
+    await mockDelay('read')
 
     const body = await request.json() as { alumniId: string }
     const event = eventsData.find((e) => e.id === params.eventId)
@@ -564,7 +565,7 @@ export const alumniHandlers = [
 
   // Cancel registration
   http.delete('/api/alumni/events/:eventId/register/:alumniId', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const index = registrationsData.findIndex(
       (r) => r.eventId === params.eventId && r.alumniId === params.alumniId
@@ -588,7 +589,7 @@ export const alumniHandlers = [
 
   // List alumni with filters
   http.get('/api/alumni', async ({ request }) => {
-    await delay(150)
+    await mockDelay('read')
 
     const url = new URL(request.url)
     const batch = url.searchParams.get('batch')
@@ -635,7 +636,7 @@ export const alumniHandlers = [
 
   // Get single alumni
   http.get('/api/alumni/:id', async ({ params }) => {
-    await delay(100)
+    await mockDelay('read')
 
     const alumnus = alumniData.find((a) => a.id === params.id)
     if (!alumnus) {
@@ -647,7 +648,7 @@ export const alumniHandlers = [
 
   // Create alumni (self-registration)
   http.post('/api/alumni', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
 
     const body = await request.json() as Partial<Alumni>
     const newAlumni: Alumni = {
@@ -675,7 +676,7 @@ export const alumniHandlers = [
 
   // Update alumni
   http.put('/api/alumni/:id', async ({ params, request }) => {
-    await delay(200)
+    await mockDelay('read')
 
     const index = alumniData.findIndex((a) => a.id === params.id)
     if (index === -1) {
@@ -690,7 +691,7 @@ export const alumniHandlers = [
 
   // Verify alumni
   http.patch('/api/alumni/:id/verify', async ({ params }) => {
-    await delay(150)
+    await mockDelay('read')
 
     const index = alumniData.findIndex((a) => a.id === params.id)
     if (index === -1) {
@@ -703,7 +704,7 @@ export const alumniHandlers = [
 
   // Delete alumni
   http.delete('/api/alumni/:id', async ({ params }) => {
-    await delay(150)
+    await mockDelay('read')
 
     const index = alumniData.findIndex((a) => a.id === params.id)
     if (index === -1) {

@@ -340,7 +340,7 @@ export function SubstitutionManager({ staffId }: SubstitutionManagerProps) {
 
       {/* Create Substitution Dialog */}
       <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <ArrowRightLeft className="h-5 w-5" />

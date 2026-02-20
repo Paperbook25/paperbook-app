@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   schoolProfile,
   academicYears,
@@ -22,6 +23,9 @@ import type {
   ThemeConfig,
   CalendarEvent,
   EmailTemplate,
+  AuditLogEntry,
+  AuditAction,
+  AuditModule,
 } from '@/features/settings/types/settings.types'
 
 function generateId(): string {
@@ -32,12 +36,12 @@ export const settingsHandlers = [
   // ==================== SCHOOL PROFILE ====================
 
   http.get('/api/settings/school-profile', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: schoolProfile })
   }),
 
   http.put('/api/settings/school-profile', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Partial<SchoolProfile>
 
     Object.assign(schoolProfile, body)
@@ -48,12 +52,12 @@ export const settingsHandlers = [
   // ==================== ACADEMIC YEARS ====================
 
   http.get('/api/settings/academic-years', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: academicYears })
   }),
 
   http.post('/api/settings/academic-years', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as { name: string; startDate: string; endDate: string }
 
     const newYear: AcademicYear = {
@@ -71,7 +75,7 @@ export const settingsHandlers = [
   }),
 
   http.put('/api/settings/academic-years/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const yearIndex = academicYears.findIndex((y) => y.id === params.id)
 
     if (yearIndex === -1) {
@@ -85,7 +89,7 @@ export const settingsHandlers = [
   }),
 
   http.delete('/api/settings/academic-years/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const yearIndex = academicYears.findIndex((y) => y.id === params.id)
 
     if (yearIndex === -1) {
@@ -102,7 +106,7 @@ export const settingsHandlers = [
   }),
 
   http.patch('/api/settings/academic-years/:id/set-current', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const yearIndex = academicYears.findIndex((y) => y.id === params.id)
 
     if (yearIndex === -1) {
@@ -124,12 +128,12 @@ export const settingsHandlers = [
   // ==================== CLASSES ====================
 
   http.get('/api/settings/classes', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: classSections })
   }),
 
   http.post('/api/settings/classes', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as { className: string; sections: string[]; classTeacherId?: string }
 
     const teacher = body.classTeacherId ? staff.find((s) => s.id === body.classTeacherId) : null
@@ -148,7 +152,7 @@ export const settingsHandlers = [
   }),
 
   http.put('/api/settings/classes/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const classIndex = classSections.findIndex((c) => c.id === params.id)
 
     if (classIndex === -1) {
@@ -168,7 +172,7 @@ export const settingsHandlers = [
   }),
 
   http.delete('/api/settings/classes/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const classIndex = classSections.findIndex((c) => c.id === params.id)
 
     if (classIndex === -1) {
@@ -183,12 +187,12 @@ export const settingsHandlers = [
   // ==================== USERS ====================
 
   http.get('/api/settings/users', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: systemUsers })
   }),
 
   http.post('/api/settings/users', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = await request.json() as { email: string; name: string; role: SystemUser['role']; password: string }
 
     // Check if email already exists
@@ -211,7 +215,7 @@ export const settingsHandlers = [
   }),
 
   http.put('/api/settings/users/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const userIndex = systemUsers.findIndex((u) => u.id === params.id)
 
     if (userIndex === -1) {
@@ -225,7 +229,7 @@ export const settingsHandlers = [
   }),
 
   http.delete('/api/settings/users/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const userIndex = systemUsers.findIndex((u) => u.id === params.id)
 
     if (userIndex === -1) {
@@ -243,7 +247,7 @@ export const settingsHandlers = [
   }),
 
   http.patch('/api/settings/users/:id/toggle-status', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const userIndex = systemUsers.findIndex((u) => u.id === params.id)
 
     if (userIndex === -1) {
@@ -263,12 +267,12 @@ export const settingsHandlers = [
   // ==================== NOTIFICATIONS ====================
 
   http.get('/api/settings/notifications', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: notificationPreferences })
   }),
 
   http.put('/api/settings/notifications', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Partial<NotificationPreferences>
 
     Object.assign(notificationPreferences, body)
@@ -279,12 +283,12 @@ export const settingsHandlers = [
   // ==================== BACKUP ====================
 
   http.get('/api/settings/backup', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: backupConfig })
   }),
 
   http.put('/api/settings/backup', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Partial<BackupConfig>
 
     Object.assign(backupConfig, body)
@@ -293,7 +297,7 @@ export const settingsHandlers = [
   }),
 
   http.post('/api/settings/backup/trigger', async () => {
-    await delay(2000) // Simulate backup process
+    await mockDelay('heavy') // Simulate backup process
     backupConfig.lastBackupAt = new Date().toISOString()
 
     return HttpResponse.json({
@@ -306,12 +310,12 @@ export const settingsHandlers = [
   // ==================== THEME ====================
 
   http.get('/api/settings/theme', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: themeConfig })
   }),
 
   http.put('/api/settings/theme', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Partial<ThemeConfig>
 
     Object.assign(themeConfig, body)
@@ -322,7 +326,7 @@ export const settingsHandlers = [
   // ==================== AUDIT LOG ====================
 
   http.get('/api/settings/audit-log', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const module = url.searchParams.get('module')
     const action = url.searchParams.get('action')
@@ -354,10 +358,44 @@ export const settingsHandlers = [
     })
   }),
 
+  // Create new audit log entry
+  http.post('/api/settings/audit-log', async ({ request }) => {
+    await mockDelay('read')
+    const body = await request.json() as {
+      action: AuditAction
+      module: AuditModule
+      entityType: string
+      entityId: string
+      entityName: string
+      description: string
+      changes?: { field: string; oldValue: string; newValue: string }[]
+    }
+
+    const newEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}`,
+      userId: 'current-user',
+      userName: 'Current User',
+      userRole: 'admin',
+      action: body.action,
+      module: body.module,
+      entityType: body.entityType,
+      entityId: body.entityId,
+      entityName: body.entityName,
+      description: body.description,
+      changes: body.changes,
+      ipAddress: '192.168.1.1',
+      timestamp: new Date().toISOString(),
+    }
+
+    auditLogs.unshift(newEntry)
+
+    return HttpResponse.json({ data: newEntry }, { status: 201 })
+  }),
+
   // ==================== ACADEMIC CALENDAR ====================
 
   http.get('/api/settings/calendar', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
     const month = url.searchParams.get('month') // YYYY-MM
@@ -378,7 +416,7 @@ export const settingsHandlers = [
   }),
 
   http.post('/api/settings/calendar', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
 
     const newEvent: CalendarEvent = {
@@ -398,7 +436,7 @@ export const settingsHandlers = [
   }),
 
   http.put('/api/settings/calendar/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = calendarEvents.findIndex((e) => e.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Event not found' }, { status: 404 })
@@ -409,7 +447,7 @@ export const settingsHandlers = [
   }),
 
   http.delete('/api/settings/calendar/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = calendarEvents.findIndex((e) => e.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Event not found' }, { status: 404 })
@@ -421,7 +459,7 @@ export const settingsHandlers = [
   // ==================== EMAIL TEMPLATES ====================
 
   http.get('/api/settings/email-templates', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const category = url.searchParams.get('category')
 
@@ -432,7 +470,7 @@ export const settingsHandlers = [
   }),
 
   http.get('/api/settings/email-templates/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const template = emailTemplates.find((t) => t.id === params.id)
     if (!template) {
       return HttpResponse.json({ error: 'Template not found' }, { status: 404 })
@@ -441,7 +479,7 @@ export const settingsHandlers = [
   }),
 
   http.post('/api/settings/email-templates', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as Record<string, unknown>
 
     // Extract variables from body using {{...}} pattern
@@ -468,7 +506,7 @@ export const settingsHandlers = [
   }),
 
   http.put('/api/settings/email-templates/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = emailTemplates.findIndex((t) => t.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Template not found' }, { status: 404 })
@@ -489,7 +527,7 @@ export const settingsHandlers = [
   }),
 
   http.delete('/api/settings/email-templates/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = emailTemplates.findIndex((t) => t.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Template not found' }, { status: 404 })

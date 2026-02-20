@@ -39,6 +39,11 @@ import {
   submitQuiz,
   fetchQuizAttempts,
   updateLessonProgress,
+  fetchCertificates,
+  fetchCertificate,
+  fetchCertificateTemplates,
+  verifyCertificate,
+  generateCertificate,
 } from '../api/lms.api'
 import type {
   CourseFilters,
@@ -62,6 +67,7 @@ import type {
   Quiz,
   SubmitQuizRequest,
   LessonProgressRequest,
+  GenerateCertificateRequest,
 } from '../types/lms.types'
 
 export const lmsKeys = {
@@ -86,6 +92,10 @@ export const lmsKeys = {
   quizList: (params?: Record<string, unknown>) => [...lmsKeys.quizzes(), 'list', params] as const,
   quizDetail: (id: string) => [...lmsKeys.quizzes(), 'detail', id] as const,
   quizAttempts: (quizId: string) => [...lmsKeys.all, 'quiz-attempts', quizId] as const,
+  certificates: () => [...lmsKeys.all, 'certificates'] as const,
+  certificateList: (params?: Record<string, unknown>) => [...lmsKeys.certificates(), 'list', params] as const,
+  certificateDetail: (id: string) => [...lmsKeys.certificates(), 'detail', id] as const,
+  certificateTemplates: () => [...lmsKeys.certificates(), 'templates'] as const,
 }
 
 // ==================== STATS ====================
@@ -418,6 +428,49 @@ export function useUpdateLessonProgress() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: lmsKeys.enrollments() })
       qc.invalidateQueries({ queryKey: lmsKeys.stats() })
+    },
+  })
+}
+
+// ==================== CERTIFICATES ====================
+
+export function useCertificates(params?: { studentId?: string; courseId?: string }) {
+  return useQuery({
+    queryKey: lmsKeys.certificateList(params as Record<string, unknown>),
+    queryFn: () => fetchCertificates(params),
+  })
+}
+
+export function useCertificate(id: string) {
+  return useQuery({
+    queryKey: lmsKeys.certificateDetail(id),
+    queryFn: () => fetchCertificate(id),
+    enabled: !!id,
+  })
+}
+
+export function useCertificateTemplates() {
+  return useQuery({
+    queryKey: lmsKeys.certificateTemplates(),
+    queryFn: fetchCertificateTemplates,
+  })
+}
+
+export function useVerifyCertificate(certNumber: string) {
+  return useQuery({
+    queryKey: [...lmsKeys.certificates(), 'verify', certNumber],
+    queryFn: () => verifyCertificate(certNumber),
+    enabled: !!certNumber,
+  })
+}
+
+export function useGenerateCertificate() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: GenerateCertificateRequest) => generateCertificate(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: lmsKeys.certificates() })
+      qc.invalidateQueries({ queryKey: lmsKeys.enrollments() })
     },
   })
 }

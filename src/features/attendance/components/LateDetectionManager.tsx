@@ -81,11 +81,11 @@ export function LateDetectionManager() {
   const getTrendIcon = (trend: 'improving' | 'stable' | 'worsening') => {
     switch (trend) {
       case 'improving':
-        return <TrendingDown className="h-4 w-4 text-green-600" />
+        return <TrendingDown className="h-4 w-4 text-green-600 dark:text-green-400" />
       case 'stable':
-        return <Minus className="h-4 w-4 text-yellow-600" />
+        return <Minus className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
       case 'worsening':
-        return <TrendingUp className="h-4 w-4 text-red-600" />
+        return <TrendingUp className="h-4 w-4 text-red-600 dark:text-red-400" />
     }
   }
 
@@ -103,17 +103,17 @@ export function LateDetectionManager() {
   const getTrendColor = (trend: 'improving' | 'stable' | 'worsening') => {
     switch (trend) {
       case 'improving':
-        return 'text-green-600'
+        return 'text-green-600 dark:text-green-400'
       case 'stable':
-        return 'text-yellow-600'
+        return 'text-yellow-600 dark:text-yellow-400'
       case 'worsening':
-        return 'text-red-600'
+        return 'text-red-600 dark:text-red-400'
     }
   }
 
   const getLateColor = (minutes: number) => {
-    if (minutes > 30) return 'text-red-600 font-semibold'
-    if (minutes > 15) return 'text-yellow-600 font-semibold'
+    if (minutes > 30) return 'text-red-600 dark:text-red-400 font-semibold'
+    if (minutes > 15) return 'text-yellow-600 dark:text-yellow-400 font-semibold'
     return ''
   }
 
@@ -376,7 +376,7 @@ export function LateDetectionManager() {
           {/* Habitual Latecomers Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
+              <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               <h3 className="text-base font-semibold">Habitual Latecomers</h3>
             </div>
 

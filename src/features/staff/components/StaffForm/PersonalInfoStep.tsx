@@ -117,7 +117,7 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Gender *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select gender" />
@@ -172,7 +172,7 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>State *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select state" />
@@ -245,7 +245,7 @@ export function PersonalInfoStep({ form }: PersonalInfoStepProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Relationship *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select relationship" />

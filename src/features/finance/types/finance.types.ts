@@ -734,3 +734,907 @@ export const FEES_PER_PAGE = 10
 export const PAYMENTS_PER_PAGE = 10
 export const EXPENSES_PER_PAGE = 10
 export const LEDGER_PER_PAGE = 20
+
+// ==================== MULTI-CURRENCY SUPPORT ====================
+
+export type CurrencyCode = 'INR' | 'USD' | 'EUR' | 'GBP' | 'AED' | 'SGD' | 'AUD' | 'CAD'
+
+export interface Currency {
+  id: string
+  code: CurrencyCode
+  name: string
+  symbol: string
+  decimalPlaces: number
+  isBaseCurrency: boolean
+  isActive: boolean
+  createdAt: string
+}
+
+export interface ExchangeRate {
+  id: string
+  fromCurrency: CurrencyCode
+  toCurrency: CurrencyCode
+  rate: number
+  effectiveDate: string
+  expiryDate?: string
+  source: 'manual' | 'api' | 'bank'
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateExchangeRateRequest {
+  fromCurrency: CurrencyCode
+  toCurrency: CurrencyCode
+  rate: number
+  effectiveDate: string
+  expiryDate?: string
+  source?: 'manual' | 'api' | 'bank'
+}
+
+export interface UpdateExchangeRateRequest extends Partial<CreateExchangeRateRequest> {
+  isActive?: boolean
+}
+
+export interface CurrencyConversionRequest {
+  amount: number
+  fromCurrency: CurrencyCode
+  toCurrency: CurrencyCode
+}
+
+export interface CurrencyConversionResult {
+  originalAmount: number
+  convertedAmount: number
+  fromCurrency: CurrencyCode
+  toCurrency: CurrencyCode
+  exchangeRate: number
+  conversionDate: string
+}
+
+// ==================== TAX INVOICE / GST / VAT ====================
+
+export type TaxType = 'GST' | 'VAT' | 'CGST' | 'SGST' | 'IGST' | 'CESS'
+export type InvoiceStatus = 'draft' | 'issued' | 'paid' | 'cancelled' | 'void'
+
+export interface GSTDetails {
+  gstin: string
+  gstRate: number
+  cgstRate: number
+  sgstRate: number
+  igstRate: number
+  cessRate?: number
+  hsnCode?: string
+  sacCode?: string
+  placeOfSupply: string
+  isInterState: boolean
+}
+
+export interface TaxLineItem {
+  id: string
+  description: string
+  quantity: number
+  unitPrice: number
+  amount: number
+  taxType: TaxType
+  taxRate: number
+  taxAmount: number
+  hsnCode?: string
+  sacCode?: string
+}
+
+export interface TaxInvoice {
+  id: string
+  invoiceNumber: string
+  invoiceDate: string
+  dueDate: string
+  status: InvoiceStatus
+  // Customer details
+  customerId: string
+  customerName: string
+  customerAddress: string
+  customerGstin?: string
+  customerEmail?: string
+  customerPhone?: string
+  // Seller details
+  sellerName: string
+  sellerAddress: string
+  sellerGstin: string
+  // Line items
+  lineItems: TaxLineItem[]
+  // Amounts
+  subtotal: number
+  totalTaxAmount: number
+  cgstAmount: number
+  sgstAmount: number
+  igstAmount: number
+  cessAmount: number
+  discountAmount: number
+  totalAmount: number
+  amountInWords: string
+  // Currency
+  currency: CurrencyCode
+  exchangeRate?: number
+  // References
+  referenceType: 'fee_payment' | 'miscellaneous' | 'service'
+  referenceId?: string
+  receiptNumber?: string
+  // Metadata
+  notes?: string
+  termsAndConditions?: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+  cancelledAt?: string
+  cancelledBy?: string
+  cancellationReason?: string
+}
+
+export interface CreateTaxInvoiceRequest {
+  customerId: string
+  customerName: string
+  customerAddress: string
+  customerGstin?: string
+  customerEmail?: string
+  customerPhone?: string
+  lineItems: Omit<TaxLineItem, 'id'>[]
+  dueDate: string
+  currency?: CurrencyCode
+  referenceType: 'fee_payment' | 'miscellaneous' | 'service'
+  referenceId?: string
+  receiptNumber?: string
+  notes?: string
+  termsAndConditions?: string
+  discountAmount?: number
+}
+
+export interface UpdateTaxInvoiceRequest {
+  status?: InvoiceStatus
+  dueDate?: string
+  notes?: string
+  termsAndConditions?: string
+}
+
+export interface TaxInvoiceFilters {
+  status?: InvoiceStatus | 'all'
+  customerId?: string
+  dateFrom?: string
+  dateTo?: string
+  search?: string
+  page?: number
+  limit?: number
+}
+
+export interface TaxSettings {
+  defaultTaxType: TaxType
+  defaultGstRate: number
+  isInterStateDefault: boolean
+  sellerGstin: string
+  sellerName: string
+  sellerAddress: string
+  invoicePrefix: string
+  invoiceStartNumber: number
+  termsAndConditions: string
+  bankDetails: string
+}
+
+// ==================== FINANCIAL YEAR & YEAR-END CLOSING ====================
+
+export type FinancialYearStatus = 'active' | 'closing' | 'closed' | 'archived'
+
+export interface FinancialYear {
+  id: string
+  name: string // e.g., "2024-25"
+  startDate: string
+  endDate: string
+  status: FinancialYearStatus
+  openingBalance: number
+  closingBalance?: number
+  totalRevenue?: number
+  totalExpenses?: number
+  netIncome?: number
+  isCurrentYear: boolean
+  createdAt: string
+  closedAt?: string
+  closedBy?: string
+}
+
+export interface YearEndClosingTask {
+  id: string
+  name: string
+  description: string
+  status: 'pending' | 'in_progress' | 'completed' | 'failed'
+  order: number
+  isRequired: boolean
+  completedAt?: string
+  completedBy?: string
+  errorMessage?: string
+}
+
+export interface YearEndClosing {
+  id: string
+  financialYearId: string
+  financialYearName: string
+  status: 'not_started' | 'in_progress' | 'completed' | 'failed'
+  tasks: YearEndClosingTask[]
+  // Financial summary
+  openingBalance: number
+  totalCredits: number
+  totalDebits: number
+  closingBalance: number
+  // Revenue & Expense summary
+  totalFeeCollected: number
+  totalExpensesPaid: number
+  totalDiscountsGiven: number
+  totalOutstandingDues: number
+  // Audit trail
+  initiatedBy?: string
+  initiatedAt?: string
+  completedAt?: string
+  completedBy?: string
+  notes?: string
+}
+
+export interface StartYearEndClosingRequest {
+  financialYearId: string
+  notes?: string
+}
+
+export interface CreateFinancialYearRequest {
+  name: string
+  startDate: string
+  endDate: string
+  openingBalance: number
+}
+
+export interface FinancialYearTransition {
+  fromYearId: string
+  toYearId: string
+  closingBalance: number
+  carryForwardItems: {
+    outstandingDues: number
+    pendingExpenses: number
+    advancePayments: number
+  }
+}
+
+// ==================== BUDGET PLANNING & VARIANCE TRACKING ====================
+
+export type BudgetStatus = 'draft' | 'pending_approval' | 'approved' | 'active' | 'closed'
+export type BudgetPeriod = 'monthly' | 'quarterly' | 'half_yearly' | 'annual'
+export type VarianceType = 'favorable' | 'unfavorable' | 'on_target'
+
+export interface BudgetCategory {
+  id: string
+  name: string
+  code: string
+  parentCategoryId?: string
+  description?: string
+  isExpense: boolean
+  isActive: boolean
+  createdAt: string
+}
+
+export interface BudgetLineItem {
+  id: string
+  categoryId: string
+  categoryName: string
+  categoryCode: string
+  budgetedAmount: number
+  actualAmount: number
+  variance: number
+  variancePercentage: number
+  varianceType: VarianceType
+  notes?: string
+}
+
+export interface Budget {
+  id: string
+  name: string
+  description?: string
+  financialYearId: string
+  financialYearName: string
+  period: BudgetPeriod
+  periodStart: string
+  periodEnd: string
+  status: BudgetStatus
+  // Amounts
+  totalBudgeted: number
+  totalActual: number
+  totalVariance: number
+  variancePercentage: number
+  // Line items
+  lineItems: BudgetLineItem[]
+  // Revenue budget
+  budgetedRevenue: number
+  actualRevenue: number
+  revenueVariance: number
+  // Expense budget
+  budgetedExpenses: number
+  actualExpenses: number
+  expenseVariance: number
+  // Approval workflow
+  createdBy: string
+  createdAt: string
+  submittedAt?: string
+  approvedBy?: string
+  approvedAt?: string
+  rejectedBy?: string
+  rejectedAt?: string
+  rejectionReason?: string
+}
+
+export interface BudgetVariance {
+  id: string
+  budgetId: string
+  budgetName: string
+  categoryId: string
+  categoryName: string
+  periodStart: string
+  periodEnd: string
+  budgetedAmount: number
+  actualAmount: number
+  variance: number
+  variancePercentage: number
+  varianceType: VarianceType
+  explanation?: string
+  actionTaken?: string
+  reportedAt: string
+  reportedBy?: string
+}
+
+export interface CreateBudgetRequest {
+  name: string
+  description?: string
+  financialYearId: string
+  period: BudgetPeriod
+  periodStart: string
+  periodEnd: string
+  lineItems: {
+    categoryId: string
+    budgetedAmount: number
+    notes?: string
+  }[]
+  budgetedRevenue: number
+}
+
+export interface UpdateBudgetRequest {
+  name?: string
+  description?: string
+  status?: BudgetStatus
+  lineItems?: {
+    categoryId: string
+    budgetedAmount: number
+    notes?: string
+  }[]
+}
+
+export interface BudgetFilters {
+  financialYearId?: string
+  status?: BudgetStatus | 'all'
+  period?: BudgetPeriod | 'all'
+  dateFrom?: string
+  dateTo?: string
+  page?: number
+  limit?: number
+}
+
+export interface BudgetVsActualReport {
+  budgetId: string
+  budgetName: string
+  periodStart: string
+  periodEnd: string
+  categories: {
+    categoryId: string
+    categoryName: string
+    budgeted: number
+    actual: number
+    variance: number
+    variancePercentage: number
+    varianceType: VarianceType
+  }[]
+  summary: {
+    totalBudgeted: number
+    totalActual: number
+    totalVariance: number
+    variancePercentage: number
+    utilizationRate: number
+  }
+}
+
+// ==================== VENDOR PAYMENT SCHEDULING ====================
+
+export type VendorPaymentStatus = 'scheduled' | 'pending_approval' | 'approved' | 'processing' | 'paid' | 'failed' | 'cancelled'
+export type PaymentFrequency = 'one_time' | 'weekly' | 'bi_weekly' | 'monthly' | 'quarterly' | 'annually'
+
+export interface Vendor {
+  id: string
+  name: string
+  code: string
+  contactPerson?: string
+  email?: string
+  phone?: string
+  address?: string
+  gstin?: string
+  panNumber?: string
+  bankName?: string
+  bankAccountNumber?: string
+  bankIfscCode?: string
+  paymentTerms?: number // days
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface PaymentSchedule {
+  id: string
+  vendorId: string
+  vendorName: string
+  vendorCode: string
+  description: string
+  frequency: PaymentFrequency
+  amount: number
+  currency: CurrencyCode
+  startDate: string
+  endDate?: string
+  nextPaymentDate: string
+  dayOfMonth?: number // For monthly payments
+  dayOfWeek?: number // For weekly payments
+  totalScheduledPayments: number
+  completedPayments: number
+  remainingPayments: number
+  totalAmountScheduled: number
+  totalAmountPaid: number
+  isActive: boolean
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface VendorPayment {
+  id: string
+  paymentNumber: string
+  vendorId: string
+  vendorName: string
+  vendorCode: string
+  scheduleId?: string
+  // Payment details
+  amount: number
+  currency: CurrencyCode
+  exchangeRate?: number
+  amountInBaseCurrency: number
+  // Dates
+  scheduledDate: string
+  dueDate: string
+  paidDate?: string
+  // Status
+  status: VendorPaymentStatus
+  // Invoice reference
+  invoiceNumber?: string
+  invoiceDate?: string
+  invoiceAmount?: number
+  // Payment method
+  paymentMode: PaymentMode
+  bankReference?: string
+  chequeNumber?: string
+  chequeDate?: string
+  // Deductions
+  tdsRate?: number
+  tdsAmount?: number
+  otherDeductions?: number
+  netPayableAmount: number
+  // Approval
+  approvedBy?: string
+  approvedAt?: string
+  rejectedBy?: string
+  rejectedAt?: string
+  rejectionReason?: string
+  // Processing
+  processedBy?: string
+  processedAt?: string
+  failureReason?: string
+  // Notes
+  description?: string
+  notes?: string
+  // Audit
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateVendorRequest {
+  name: string
+  code: string
+  contactPerson?: string
+  email?: string
+  phone?: string
+  address?: string
+  gstin?: string
+  panNumber?: string
+  bankName?: string
+  bankAccountNumber?: string
+  bankIfscCode?: string
+  paymentTerms?: number
+}
+
+export interface UpdateVendorRequest extends Partial<CreateVendorRequest> {
+  isActive?: boolean
+}
+
+export interface CreatePaymentScheduleRequest {
+  vendorId: string
+  description: string
+  frequency: PaymentFrequency
+  amount: number
+  currency?: CurrencyCode
+  startDate: string
+  endDate?: string
+  dayOfMonth?: number
+  dayOfWeek?: number
+}
+
+export interface CreateVendorPaymentRequest {
+  vendorId: string
+  scheduleId?: string
+  amount: number
+  currency?: CurrencyCode
+  scheduledDate: string
+  dueDate: string
+  invoiceNumber?: string
+  invoiceDate?: string
+  invoiceAmount?: number
+  paymentMode: PaymentMode
+  tdsRate?: number
+  description?: string
+  notes?: string
+}
+
+export interface UpdateVendorPaymentRequest {
+  status?: VendorPaymentStatus
+  scheduledDate?: string
+  dueDate?: string
+  paymentMode?: PaymentMode
+  notes?: string
+}
+
+export interface VendorPaymentFilters {
+  vendorId?: string
+  status?: VendorPaymentStatus | 'all'
+  dateFrom?: string
+  dateTo?: string
+  search?: string
+  page?: number
+  limit?: number
+}
+
+export interface ProcessVendorPaymentRequest {
+  paymentMode: PaymentMode
+  bankReference?: string
+  chequeNumber?: string
+  chequeDate?: string
+  notes?: string
+}
+
+// ==================== SCHOLARSHIP DISBURSEMENT TRACKING ====================
+
+export type ScholarshipType = 'merit' | 'need_based' | 'sports' | 'cultural' | 'government' | 'private' | 'staff_ward' | 'other'
+export type DisbursementStatus = 'pending' | 'approved' | 'disbursed' | 'partially_disbursed' | 'on_hold' | 'cancelled'
+export type DisbursementFrequency = 'one_time' | 'monthly' | 'quarterly' | 'half_yearly' | 'annual'
+
+export interface ScholarshipScheme {
+  id: string
+  name: string
+  code: string
+  type: ScholarshipType
+  description?: string
+  // Eligibility criteria
+  eligibilityCriteria?: string
+  minPercentage?: number
+  incomeLimit?: number
+  applicableClasses: string[]
+  // Benefit details
+  benefitType: 'percentage' | 'fixed_amount'
+  benefitValue: number
+  maxBenefitAmount?: number
+  applicableFeeTypes: string[]
+  // Duration
+  academicYear: string
+  validFrom: string
+  validTo: string
+  // Funding
+  fundingSource: 'school' | 'government' | 'trust' | 'corporate' | 'individual'
+  sponsorName?: string
+  totalBudget?: number
+  utilizedBudget?: number
+  availableBudget?: number
+  maxBeneficiaries?: number
+  currentBeneficiaries?: number
+  // Status
+  isActive: boolean
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ScholarshipBeneficiary {
+  id: string
+  schemeId: string
+  schemeName: string
+  schemeCode: string
+  scholarshipType: ScholarshipType
+  // Student details
+  studentId: string
+  studentName: string
+  studentClass: string
+  studentSection: string
+  admissionNumber: string
+  // Award details
+  awardDate: string
+  awardedBy: string
+  approvalReference?: string
+  // Benefit details
+  benefitType: 'percentage' | 'fixed_amount'
+  benefitValue: number
+  totalAwardAmount: number
+  disbursedAmount: number
+  pendingAmount: number
+  // Duration
+  validFrom: string
+  validTo: string
+  disbursementFrequency: DisbursementFrequency
+  // Status
+  status: DisbursementStatus
+  // Notes
+  notes?: string
+  // Audit
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ScholarshipDisbursement {
+  id: string
+  disbursementNumber: string
+  beneficiaryId: string
+  schemeId: string
+  schemeName: string
+  // Student details
+  studentId: string
+  studentName: string
+  studentClass: string
+  admissionNumber: string
+  // Disbursement details
+  scheduledDate: string
+  disbursementDate?: string
+  amount: number
+  feeTypeId?: string
+  feeTypeName?: string
+  // Status
+  status: DisbursementStatus
+  // Applied to fees
+  appliedToFeeId?: string
+  appliedToReceiptNumber?: string
+  // Processing
+  processedBy?: string
+  processedAt?: string
+  // Bank transfer details (for direct transfers)
+  paymentMode?: 'fee_adjustment' | 'bank_transfer' | 'cheque'
+  bankReference?: string
+  // Approval
+  approvedBy?: string
+  approvedAt?: string
+  rejectedBy?: string
+  rejectedAt?: string
+  rejectionReason?: string
+  onHoldReason?: string
+  // Notes
+  notes?: string
+  // Audit
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CreateScholarshipSchemeRequest {
+  name: string
+  code: string
+  type: ScholarshipType
+  description?: string
+  eligibilityCriteria?: string
+  minPercentage?: number
+  incomeLimit?: number
+  applicableClasses: string[]
+  benefitType: 'percentage' | 'fixed_amount'
+  benefitValue: number
+  maxBenefitAmount?: number
+  applicableFeeTypes: string[]
+  academicYear: string
+  validFrom: string
+  validTo: string
+  fundingSource: 'school' | 'government' | 'trust' | 'corporate' | 'individual'
+  sponsorName?: string
+  totalBudget?: number
+  maxBeneficiaries?: number
+}
+
+export interface UpdateScholarshipSchemeRequest extends Partial<CreateScholarshipSchemeRequest> {
+  isActive?: boolean
+}
+
+export interface AwardScholarshipRequest {
+  schemeId: string
+  studentId: string
+  awardDate: string
+  totalAwardAmount: number
+  validFrom: string
+  validTo: string
+  disbursementFrequency: DisbursementFrequency
+  approvalReference?: string
+  notes?: string
+}
+
+export interface CreateDisbursementRequest {
+  beneficiaryId: string
+  scheduledDate: string
+  amount: number
+  feeTypeId?: string
+  paymentMode?: 'fee_adjustment' | 'bank_transfer' | 'cheque'
+  notes?: string
+}
+
+export interface ProcessDisbursementRequest {
+  paymentMode: 'fee_adjustment' | 'bank_transfer' | 'cheque'
+  appliedToFeeId?: string
+  bankReference?: string
+  notes?: string
+}
+
+export interface ScholarshipFilters {
+  type?: ScholarshipType | 'all'
+  academicYear?: string
+  status?: 'active' | 'inactive' | 'all'
+  page?: number
+  limit?: number
+}
+
+export interface DisbursementFilters {
+  schemeId?: string
+  studentId?: string
+  status?: DisbursementStatus | 'all'
+  dateFrom?: string
+  dateTo?: string
+  search?: string
+  page?: number
+  limit?: number
+}
+
+export interface ScholarshipSummary {
+  totalSchemes: number
+  activeSchemes: number
+  totalBeneficiaries: number
+  totalBudget: number
+  totalDisbursed: number
+  totalPending: number
+  byType: {
+    type: ScholarshipType
+    count: number
+    amount: number
+  }[]
+  byClass: {
+    className: string
+    beneficiaries: number
+    amount: number
+  }[]
+}
+
+// ==================== ADDITIONAL CONSTANTS ====================
+
+export const CURRENCY_CODES: CurrencyCode[] = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'AUD', 'CAD']
+
+export const CURRENCY_LABELS: Record<CurrencyCode, string> = {
+  INR: 'Indian Rupee',
+  USD: 'US Dollar',
+  EUR: 'Euro',
+  GBP: 'British Pound',
+  AED: 'UAE Dirham',
+  SGD: 'Singapore Dollar',
+  AUD: 'Australian Dollar',
+  CAD: 'Canadian Dollar',
+}
+
+export const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
+  INR: '₹',
+  USD: '$',
+  EUR: '€',
+  GBP: '£',
+  AED: 'د.إ',
+  SGD: 'S$',
+  AUD: 'A$',
+  CAD: 'C$',
+}
+
+export const TAX_TYPES: TaxType[] = ['GST', 'VAT', 'CGST', 'SGST', 'IGST', 'CESS']
+
+export const TAX_TYPE_LABELS: Record<TaxType, string> = {
+  GST: 'Goods and Services Tax',
+  VAT: 'Value Added Tax',
+  CGST: 'Central GST',
+  SGST: 'State GST',
+  IGST: 'Integrated GST',
+  CESS: 'Cess',
+}
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
+  draft: 'Draft',
+  issued: 'Issued',
+  paid: 'Paid',
+  cancelled: 'Cancelled',
+  void: 'Void',
+}
+
+export const FINANCIAL_YEAR_STATUS_LABELS: Record<FinancialYearStatus, string> = {
+  active: 'Active',
+  closing: 'Closing in Progress',
+  closed: 'Closed',
+  archived: 'Archived',
+}
+
+export const BUDGET_STATUS_LABELS: Record<BudgetStatus, string> = {
+  draft: 'Draft',
+  pending_approval: 'Pending Approval',
+  approved: 'Approved',
+  active: 'Active',
+  closed: 'Closed',
+}
+
+export const BUDGET_PERIOD_LABELS: Record<BudgetPeriod, string> = {
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  half_yearly: 'Half Yearly',
+  annual: 'Annual',
+}
+
+export const VENDOR_PAYMENT_STATUS_LABELS: Record<VendorPaymentStatus, string> = {
+  scheduled: 'Scheduled',
+  pending_approval: 'Pending Approval',
+  approved: 'Approved',
+  processing: 'Processing',
+  paid: 'Paid',
+  failed: 'Failed',
+  cancelled: 'Cancelled',
+}
+
+export const PAYMENT_FREQUENCY_LABELS: Record<PaymentFrequency, string> = {
+  one_time: 'One Time',
+  weekly: 'Weekly',
+  bi_weekly: 'Bi-Weekly',
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  annually: 'Annually',
+}
+
+export const SCHOLARSHIP_TYPE_LABELS: Record<ScholarshipType, string> = {
+  merit: 'Merit Based',
+  need_based: 'Need Based',
+  sports: 'Sports',
+  cultural: 'Cultural',
+  government: 'Government',
+  private: 'Private/Corporate',
+  staff_ward: 'Staff Ward',
+  other: 'Other',
+}
+
+export const DISBURSEMENT_STATUS_LABELS: Record<DisbursementStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  disbursed: 'Disbursed',
+  partially_disbursed: 'Partially Disbursed',
+  on_hold: 'On Hold',
+  cancelled: 'Cancelled',
+}
+
+export const DISBURSEMENT_FREQUENCY_LABELS: Record<DisbursementFrequency, string> = {
+  one_time: 'One Time',
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  half_yearly: 'Half Yearly',
+  annual: 'Annual',
+}

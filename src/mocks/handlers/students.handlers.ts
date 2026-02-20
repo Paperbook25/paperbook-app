@@ -1,5 +1,24 @@
-import { http, HttpResponse, delay } from 'msw'
-import { students, studentDocuments, getStudentTimeline, getNextClass, CLASSES, SECTIONS } from '../data/students.data'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
+import {
+  students,
+  studentDocuments,
+  getStudentTimeline,
+  getNextClass,
+  CLASSES,
+  SECTIONS,
+  getStudentPortfolio,
+  getLearningStyleAssessments,
+  getLearningPreferences,
+  getStudentRiskProfile,
+  getAtRiskStudents,
+  getGraduationProgress,
+  getPromotionHistory,
+  getGraduationDashboard,
+  getStudentTeacherRelationships,
+  getTeacherFeedback,
+  getMentorship,
+} from '../data/students.data'
 import { roomAllocations } from '../data/hostel.data'
 import { getAlumniByStudentId } from '../data/alumni.data'
 import type { StudentDocument } from '@/features/students/types/student.types'
@@ -12,7 +31,7 @@ export const studentsHandlers = [
   // ==================== HOSTEL ALLOCATION LOOKUP ====================
 
   http.get('/api/students/:id/hostel', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -29,7 +48,7 @@ export const studentsHandlers = [
   // ==================== ALUMNI RECORD LOOKUP ====================
 
   http.get('/api/students/:id/alumni', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -44,7 +63,7 @@ export const studentsHandlers = [
   // ==================== TIMELINE ====================
 
   http.get('/api/students/:id/timeline', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -56,13 +75,13 @@ export const studentsHandlers = [
   // ==================== DOCUMENTS ====================
 
   http.get('/api/students/:id/documents', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const docs = studentDocuments.filter((d) => d.studentId === params.id)
     return HttpResponse.json({ data: docs })
   }),
 
   http.post('/api/students/:id/documents', async ({ params, request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = await request.json() as {
       type: string
       name: string
@@ -90,7 +109,7 @@ export const studentsHandlers = [
   }),
 
   http.delete('/api/students/:studentId/documents/:docId', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = studentDocuments.findIndex((d) => d.id === params.docId && d.studentId === params.studentId)
     if (index === -1) {
       return HttpResponse.json({ error: 'Document not found' }, { status: 404 })
@@ -100,7 +119,7 @@ export const studentsHandlers = [
   }),
 
   http.patch('/api/students/:studentId/documents/:docId/verify', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const doc = studentDocuments.find((d) => d.id === params.docId && d.studentId === params.studentId)
     if (!doc) {
       return HttpResponse.json({ error: 'Document not found' }, { status: 404 })
@@ -114,7 +133,7 @@ export const studentsHandlers = [
   // ==================== PROMOTION ====================
 
   http.post('/api/students/promote', async ({ request }) => {
-    await delay(600)
+    await mockDelay('heavy')
     const body = await request.json() as {
       studentIds: string[]
       fromClass: string
@@ -197,7 +216,7 @@ export const studentsHandlers = [
   // ==================== SIBLING LINKING ====================
 
   http.get('/api/students/:id/siblings', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -220,7 +239,7 @@ export const studentsHandlers = [
   }),
 
   http.post('/api/students/:id/siblings', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = await request.json() as { siblingId: string }
     const student = students.find((s) => s.id === params.id)
     const sibling = students.find((s) => s.id === body.siblingId)
@@ -243,7 +262,7 @@ export const studentsHandlers = [
   }),
 
   http.delete('/api/students/:id/siblings/:siblingId', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     const sibling = students.find((s) => s.id === params.siblingId)
 
@@ -260,7 +279,7 @@ export const studentsHandlers = [
   // ==================== HEALTH RECORDS ====================
 
   http.get('/api/students/:id/health', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -269,7 +288,7 @@ export const studentsHandlers = [
   }),
 
   http.put('/api/students/:id/health', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -282,7 +301,7 @@ export const studentsHandlers = [
   // ==================== ID CARD ====================
 
   http.get('/api/students/:id/id-card', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const student = students.find((s) => s.id === params.id)
     if (!student) {
       return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
@@ -313,7 +332,7 @@ export const studentsHandlers = [
   // ==================== BULK IMPORT ====================
 
   http.post('/api/students/bulk-import', async ({ request }) => {
-    await delay(800)
+    await mockDelay('heavy')
     const body = await request.json() as { rows: any[] }
     const results = {
       total: body.rows.length,
@@ -379,7 +398,7 @@ export const studentsHandlers = [
   // ==================== MESSAGING ====================
 
   http.post('/api/students/:id/message-parent', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = await request.json() as {
       channel: 'sms' | 'email' | 'whatsapp' | 'all'
       subject?: string
@@ -401,7 +420,7 @@ export const studentsHandlers = [
   // ==================== BULK EXPORT ====================
 
   http.get('/api/students/export', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const url = new URL(request.url)
     const classFilter = url.searchParams.get('class')
     const sectionFilter = url.searchParams.get('section')
@@ -435,7 +454,7 @@ export const studentsHandlers = [
   // ==================== ENROLLMENT (from Admissions) ====================
 
   http.get('/api/students/next-roll-number', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const classParam = url.searchParams.get('class')
     const section = url.searchParams.get('section')
@@ -454,7 +473,7 @@ export const studentsHandlers = [
   }),
 
   http.post('/api/students/enroll', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = await request.json() as {
       applicationId: string
       name: string
@@ -517,5 +536,286 @@ export const studentsHandlers = [
         admissionNumber: newStudent.admissionNumber,
       },
     }, { status: 201 })
+  }),
+
+  // ==================== PORTFOLIO & SKILLS ====================
+
+  http.get('/api/students/:id/portfolio', async ({ params }) => {
+    await mockDelay('read')
+    const student = students.find((s) => s.id === params.id)
+    if (!student) {
+      return HttpResponse.json({ error: 'Student not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: getStudentPortfolio(params.id as string) })
+  }),
+
+  http.put('/api/students/:id/portfolio', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const portfolio = getStudentPortfolio(params.id as string)
+    Object.assign(portfolio, body, { lastUpdated: new Date().toISOString() })
+    return HttpResponse.json({ data: portfolio })
+  }),
+
+  http.post('/api/students/:id/skills', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const portfolio = getStudentPortfolio(params.id as string)
+    const newSkill = { id: generateId(), studentId: params.id as string, ...body }
+    portfolio.skills.push(newSkill)
+    return HttpResponse.json({ data: newSkill }, { status: 201 })
+  }),
+
+  http.put('/api/students/:id/skills/:skillId', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const portfolio = getStudentPortfolio(params.id as string)
+    const skill = portfolio.skills.find((s) => s.id === params.skillId)
+    if (!skill) {
+      return HttpResponse.json({ error: 'Skill not found' }, { status: 404 })
+    }
+    Object.assign(skill, body)
+    return HttpResponse.json({ data: skill })
+  }),
+
+  http.delete('/api/students/:id/skills/:skillId', async ({ params }) => {
+    await mockDelay('write')
+    const portfolio = getStudentPortfolio(params.id as string)
+    const index = portfolio.skills.findIndex((s) => s.id === params.skillId)
+    if (index !== -1) {
+      portfolio.skills.splice(index, 1)
+    }
+    return HttpResponse.json({ success: true })
+  }),
+
+  http.post('/api/students/:id/portfolio/items', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const portfolio = getStudentPortfolio(params.id as string)
+    const newItem = { id: generateId(), studentId: params.id as string, ...body }
+    portfolio.items.push(newItem)
+    return HttpResponse.json({ data: newItem }, { status: 201 })
+  }),
+
+  http.put('/api/students/:id/portfolio/items/:itemId', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const portfolio = getStudentPortfolio(params.id as string)
+    const item = portfolio.items.find((i) => i.id === params.itemId)
+    if (!item) {
+      return HttpResponse.json({ error: 'Portfolio item not found' }, { status: 404 })
+    }
+    Object.assign(item, body)
+    return HttpResponse.json({ data: item })
+  }),
+
+  http.delete('/api/students/:id/portfolio/items/:itemId', async ({ params }) => {
+    await mockDelay('write')
+    const portfolio = getStudentPortfolio(params.id as string)
+    const index = portfolio.items.findIndex((i) => i.id === params.itemId)
+    if (index !== -1) {
+      portfolio.items.splice(index, 1)
+    }
+    return HttpResponse.json({ success: true })
+  }),
+
+  // ==================== LEARNING STYLE ASSESSMENTS ====================
+
+  http.get('/api/students/:id/learning-style', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getLearningStyleAssessments(params.id as string) })
+  }),
+
+  http.post('/api/students/:id/learning-style', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const assessments = getLearningStyleAssessments(params.id as string)
+    const newAssessment = { id: generateId(), studentId: params.id as string, ...body }
+    assessments.push(newAssessment)
+    return HttpResponse.json({ data: newAssessment }, { status: 201 })
+  }),
+
+  http.get('/api/students/:id/learning-preferences', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getLearningPreferences(params.id as string) })
+  }),
+
+  http.put('/api/students/:id/learning-preferences', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const prefs = getLearningPreferences(params.id as string)
+    Object.assign(prefs, body)
+    return HttpResponse.json({ data: prefs })
+  }),
+
+  // ==================== RISK INDICATORS ====================
+
+  http.get('/api/students/:id/risk-profile', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getStudentRiskProfile(params.id as string) })
+  }),
+
+  http.post('/api/students/:id/risk-indicators', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const profile = getStudentRiskProfile(params.id as string)
+    const newIndicator = {
+      id: generateId(),
+      studentId: params.id as string,
+      interventions: [],
+      ...body,
+    }
+    profile.indicators.push(newIndicator)
+    return HttpResponse.json({ data: newIndicator }, { status: 201 })
+  }),
+
+  http.put('/api/students/:id/risk-indicators/:indicatorId', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const profile = getStudentRiskProfile(params.id as string)
+    const indicator = profile.indicators.find((i) => i.id === params.indicatorId)
+    if (!indicator) {
+      return HttpResponse.json({ error: 'Indicator not found' }, { status: 404 })
+    }
+    Object.assign(indicator, body)
+    return HttpResponse.json({ data: indicator })
+  }),
+
+  http.post('/api/students/:id/risk-indicators/:indicatorId/interventions', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const profile = getStudentRiskProfile(params.id as string)
+    const indicator = profile.indicators.find((i) => i.id === params.indicatorId)
+    if (!indicator) {
+      return HttpResponse.json({ error: 'Indicator not found' }, { status: 404 })
+    }
+    const newIntervention = { id: generateId(), riskId: params.indicatorId as string, ...body }
+    indicator.interventions.push(newIntervention)
+    return HttpResponse.json({ data: newIntervention }, { status: 201 })
+  }),
+
+  http.put('/api/students/:id/risk-indicators/:indicatorId/interventions/:interventionId', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const profile = getStudentRiskProfile(params.id as string)
+    const indicator = profile.indicators.find((i) => i.id === params.indicatorId)
+    if (!indicator) {
+      return HttpResponse.json({ error: 'Indicator not found' }, { status: 404 })
+    }
+    const intervention = indicator.interventions.find((i) => i.id === params.interventionId)
+    if (!intervention) {
+      return HttpResponse.json({ error: 'Intervention not found' }, { status: 404 })
+    }
+    Object.assign(intervention, body)
+    return HttpResponse.json({ data: intervention })
+  }),
+
+  http.get('/api/students/at-risk', async ({ request }) => {
+    await mockDelay('read')
+    const url = new URL(request.url)
+    const level = url.searchParams.get('level') || undefined
+    const category = url.searchParams.get('category') || undefined
+    return HttpResponse.json({ data: getAtRiskStudents({ level, category }) })
+  }),
+
+  // ==================== GRADUATION & PROMOTION ====================
+
+  http.get('/api/students/:id/graduation-progress', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getGraduationProgress(params.id as string) })
+  }),
+
+  http.put('/api/students/:id/graduation-progress', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const progress = getGraduationProgress(params.id as string)
+    Object.assign(progress, body)
+    return HttpResponse.json({ data: progress })
+  }),
+
+  http.get('/api/students/:id/promotion-history', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getPromotionHistory(params.id as string) })
+  }),
+
+  http.get('/api/students/graduation-dashboard', async ({ request }) => {
+    await mockDelay('read')
+    const url = new URL(request.url)
+    const classFilter = url.searchParams.get('class') || undefined
+    const year = url.searchParams.get('year') || undefined
+    return HttpResponse.json({ data: getGraduationDashboard({ class: classFilter, year }) })
+  }),
+
+  // ==================== STUDENT-TEACHER RELATIONSHIPS ====================
+
+  http.get('/api/students/:id/teachers', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getStudentTeacherRelationships(params.id as string) })
+  }),
+
+  http.post('/api/students/:id/teachers', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const relationships = getStudentTeacherRelationships(params.id as string)
+    const newRelationship = { id: generateId(), studentId: params.id as string, ...body }
+    relationships.push(newRelationship)
+    return HttpResponse.json({ data: newRelationship }, { status: 201 })
+  }),
+
+  http.put('/api/students/:id/teachers/:relationshipId', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const relationships = getStudentTeacherRelationships(params.id as string)
+    const rel = relationships.find((r) => r.id === params.relationshipId)
+    if (!rel) {
+      return HttpResponse.json({ error: 'Relationship not found' }, { status: 404 })
+    }
+    Object.assign(rel, body)
+    return HttpResponse.json({ data: rel })
+  }),
+
+  http.get('/api/students/:id/teacher-feedback', async ({ params, request }) => {
+    await mockDelay('read')
+    const url = new URL(request.url)
+    const term = url.searchParams.get('term') || undefined
+    const academicYear = url.searchParams.get('academicYear') || undefined
+    return HttpResponse.json({ data: getTeacherFeedback(params.id as string, { term, academicYear }) })
+  }),
+
+  http.post('/api/students/:id/teacher-feedback', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const feedbackList = getTeacherFeedback(params.id as string)
+    const newFeedback = { id: generateId(), studentId: params.id as string, ...body }
+    feedbackList.push(newFeedback)
+    return HttpResponse.json({ data: newFeedback }, { status: 201 })
+  }),
+
+  http.get('/api/students/:id/mentorship', async ({ params }) => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: getMentorship(params.id as string) })
+  }),
+
+  http.put('/api/students/:id/mentorship', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    let mentorship = getMentorship(params.id as string)
+    if (!mentorship) {
+      mentorship = { studentId: params.id as string, mentorId: '', mentorName: '', startDate: new Date().toISOString(), goals: [], meetingFrequency: 'monthly', sessions: [], status: 'active', ...body }
+    } else {
+      Object.assign(mentorship, body)
+    }
+    return HttpResponse.json({ data: mentorship })
+  }),
+
+  http.post('/api/students/:id/mentorship/sessions', async ({ params, request }) => {
+    await mockDelay('write')
+    const body = await request.json() as any
+    const mentorship = getMentorship(params.id as string)
+    if (!mentorship) {
+      return HttpResponse.json({ error: 'Mentorship not found' }, { status: 404 })
+    }
+    mentorship.sessions.push(body)
+    return HttpResponse.json({ data: mentorship })
   }),
 ]

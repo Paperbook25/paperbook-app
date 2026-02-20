@@ -1,4 +1,6 @@
 import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
 import { useCreateFeeType, useUpdateFeeType } from '../hooks/useFinance'
 import {
   FEE_CATEGORIES,
@@ -26,19 +29,22 @@ import {
   type FeeCategory,
 } from '../types/finance.types'
 
+const feeTypeSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be 100 characters or less'),
+  category: z.enum(FEE_CATEGORIES as unknown as [FeeCategory, ...FeeCategory[]]),
+  description: z.string().max(500, 'Description must be 500 characters or less').optional(),
+})
+
 interface FeeTypeFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   feeType?: FeeType | null
 }
 
-interface FormData {
-  name: string
-  category: FeeCategory
-  description: string
-}
+type FormData = z.infer<typeof feeTypeSchema>
 
 export function FeeTypeForm({ open, onOpenChange, feeType }: FeeTypeFormProps) {
+  const { toast } = useToast()
   const createMutation = useCreateFeeType()
   const updateMutation = useUpdateFeeType()
   const isEditing = !!feeType
@@ -51,6 +57,7 @@ export function FeeTypeForm({ open, onOpenChange, feeType }: FeeTypeFormProps) {
     reset,
     formState: { errors },
   } = useForm<FormData>({
+    resolver: zodResolver(feeTypeSchema),
     defaultValues: {
       name: feeType?.name || '',
       category: feeType?.category || 'tuition',
@@ -71,17 +78,29 @@ export function FeeTypeForm({ open, onOpenChange, feeType }: FeeTypeFormProps) {
             description: data.description || undefined,
           },
         })
+        toast({
+          title: 'Fee type updated',
+          description: `${data.name} has been updated successfully.`,
+        })
       } else {
         await createMutation.mutateAsync({
           name: data.name,
           category: data.category,
           description: data.description || undefined,
         })
+        toast({
+          title: 'Fee type created',
+          description: `${data.name} has been created successfully.`,
+        })
       }
       reset()
       onOpenChange(false)
     } catch (error) {
-      console.error('Failed to save fee type:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save fee type',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -96,7 +115,7 @@ export function FeeTypeForm({ open, onOpenChange, feeType }: FeeTypeFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Fee Type' : 'Add Fee Type'}</DialogTitle>
           <DialogDescription>
@@ -108,11 +127,13 @@ export function FeeTypeForm({ open, onOpenChange, feeType }: FeeTypeFormProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">
+              Name <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="name"
               placeholder="e.g., Tuition Fee"
-              {...register('name', { required: 'Name is required' })}
+              {...register('name')}
             />
             {errors.name && (
               <p className="text-sm text-destructive">{errors.name.message}</p>
@@ -120,7 +141,9 @@ export function FeeTypeForm({ open, onOpenChange, feeType }: FeeTypeFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">
+              Category <span className="text-destructive">*</span>
+            </Label>
             <Select
               value={selectedCategory}
               onValueChange={(value) => setValue('category', value as FeeCategory)}

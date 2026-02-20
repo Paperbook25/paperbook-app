@@ -8,6 +8,7 @@ export * from './api/visitors.api'
 export * from './hooks/useVisitors'
 
 // Pages
+export { VisitorsMainPage } from './pages/VisitorsMainPage'
 export { VisitorsPage } from './pages/VisitorsPage'
 export { VisitorLogsPage } from './pages/VisitorLogsPage'
 export { VisitorReportsPage } from './pages/VisitorReportsPage'

@@ -667,7 +667,7 @@ export function StudentsTab({ subTab, onSubTabChange }: StudentsTabProps) {
   return (
     <div className="space-y-4">
       <Tabs value={subTab} onValueChange={(v) => onSubTabChange(v as StudentSubTab)}>
-        <TabsList variant="secondary">
+        <TabsList variant="secondary" className="flex flex-wrap w-full">
           <TabsTrigger variant="secondary" value="dashboard" className="gap-2">
             <GraduationCap className="h-4 w-4" />
             Dashboard

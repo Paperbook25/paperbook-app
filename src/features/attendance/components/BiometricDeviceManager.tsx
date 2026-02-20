@@ -160,7 +160,7 @@ export function BiometricDeviceManager() {
                 Register Device
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px]">
+            <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Register New Device</DialogTitle>
                 <DialogDescription>

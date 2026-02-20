@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
 import { useFeeTypes, useCreateFeeStructure, useUpdateFeeStructure } from '../hooks/useFinance'
 import {
   ACADEMIC_YEARS,
@@ -29,23 +32,26 @@ import {
   type FeeFrequency,
 } from '../types/finance.types'
 
+const feeStructureSchema = z.object({
+  feeTypeId: z.string().min(1, 'Fee type is required'),
+  academicYear: z.string().min(1, 'Academic year is required'),
+  applicableClasses: z.array(z.string()).min(1, 'Select at least one class'),
+  amount: z.number({ invalid_type_error: 'Amount must be a number' }).min(0, 'Amount cannot be negative'),
+  frequency: z.enum(FEE_FREQUENCIES as unknown as [FeeFrequency, ...FeeFrequency[]]),
+  dueDay: z.number().min(1, 'Day must be between 1-28').max(28, 'Day must be between 1-28'),
+  isOptional: z.boolean(),
+})
+
 interface FeeStructureFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   feeStructure?: FeeStructure | null
 }
 
-interface FormData {
-  feeTypeId: string
-  academicYear: string
-  applicableClasses: string[]
-  amount: number
-  frequency: FeeFrequency
-  dueDay: number
-  isOptional: boolean
-}
+type FormData = z.infer<typeof feeStructureSchema>
 
 export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStructureFormProps) {
+  const { toast } = useToast()
   const { data: feeTypesData } = useFeeTypes()
   const createMutation = useCreateFeeStructure()
   const updateMutation = useUpdateFeeStructure()
@@ -60,6 +66,7 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
     reset,
     formState: { errors },
   } = useForm<FormData>({
+    resolver: zodResolver(feeStructureSchema),
     defaultValues: {
       feeTypeId: '',
       academicYear: ACADEMIC_YEARS[0],
@@ -130,6 +137,10 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
             isOptional: data.isOptional,
           },
         })
+        toast({
+          title: 'Fee structure updated',
+          description: 'The fee structure has been updated successfully.',
+        })
       } else {
         await createMutation.mutateAsync({
           feeTypeId: data.feeTypeId,
@@ -140,11 +151,19 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
           dueDay: data.dueDay,
           isOptional: data.isOptional,
         })
+        toast({
+          title: 'Fee structure created',
+          description: 'The fee structure has been created successfully.',
+        })
       }
       reset()
       onOpenChange(false)
     } catch (error) {
-      console.error('Failed to save fee structure:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to save fee structure',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -159,7 +178,7 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Fee Structure' : 'Add Fee Structure'}</DialogTitle>
           <DialogDescription>
@@ -172,11 +191,12 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="feeTypeId">Fee Type</Label>
+              <Label htmlFor="feeTypeId">
+                Fee Type <span className="text-destructive">*</span>
+              </Label>
               <Controller
                 name="feeTypeId"
                 control={control}
-                rules={{ required: 'Fee type is required' }}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
@@ -198,7 +218,9 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="academicYear">Academic Year</Label>
+              <Label htmlFor="academicYear">
+                Academic Year <span className="text-destructive">*</span>
+              </Label>
               <Controller
                 name="academicYear"
                 control={control}
@@ -222,16 +244,14 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (Rs)</Label>
+              <Label htmlFor="amount">
+                Amount (Rs) <span className="text-destructive">*</span>
+              </Label>
               <Input
                 id="amount"
                 type="number"
                 min="0"
-                {...register('amount', {
-                  required: 'Amount is required',
-                  valueAsNumber: true,
-                  min: { value: 0, message: 'Amount must be positive' },
-                })}
+                {...register('amount', { valueAsNumber: true })}
               />
               {errors.amount && (
                 <p className="text-sm text-destructive">{errors.amount.message}</p>
@@ -269,11 +289,7 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
                 type="number"
                 min="1"
                 max="28"
-                {...register('dueDay', {
-                  valueAsNumber: true,
-                  min: { value: 1, message: 'Day must be between 1-28' },
-                  max: { value: 28, message: 'Day must be between 1-28' },
-                })}
+                {...register('dueDay', { valueAsNumber: true })}
               />
               {errors.dueDay && (
                 <p className="text-sm text-destructive">{errors.dueDay.message}</p>
@@ -302,7 +318,9 @@ export function FeeStructureForm({ open, onOpenChange, feeStructure }: FeeStruct
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label>Applicable Classes</Label>
+              <Label>
+                Applicable Classes <span className="text-destructive">*</span>
+              </Label>
               <div className="flex gap-2">
                 <Button type="button" variant="link" size="sm" onClick={selectAllClasses}>
                   Select All

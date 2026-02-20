@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom'
 import { useLmsStats, useLiveClasses } from '../hooks/useLms'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { LIVE_CLASS_STATUS_LABELS } from '../types/lms.types'
+import { statusColors, moduleColors } from '@/lib/design-tokens'
 
 const popularCoursesData = [
   { name: 'Math 10', students: 45 },
@@ -28,25 +29,29 @@ export function LmsPage() {
       title: 'Total Courses',
       value: stats?.totalCourses ?? 0,
       icon: BookOpen,
-      bg: 'bg-blue-100 text-blue-600',
+      bgColor: statusColors.infoLight,
+      iconColor: statusColors.info,
     },
     {
       title: 'Active Students',
       value: stats?.activeEnrollments ?? 0,
       icon: Users,
-      bg: 'bg-green-100 text-green-600',
+      bgColor: statusColors.successLight,
+      iconColor: statusColors.success,
     },
     {
       title: 'Live Classes Today',
       value: stats?.liveClassesToday ?? 0,
       icon: Video,
-      bg: 'bg-purple-100 text-purple-600',
+      bgColor: moduleColors.integrationsLight,
+      iconColor: moduleColors.integrations,
     },
     {
       title: 'Avg Completion Rate',
       value: `${stats?.avgCompletionRate ?? 0}%`,
       icon: TrendingUp,
-      bg: 'bg-orange-100 text-orange-600',
+      bgColor: moduleColors.behaviorLight,
+      iconColor: moduleColors.behavior,
     },
   ]
 
@@ -65,8 +70,11 @@ export function LmsPage() {
         {statCards.map((stat) => (
           <Card key={stat.title}>
             <CardContent className="p-4 flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${stat.bg}`}>
-                <stat.icon className="h-5 w-5" />
+              <div
+                className="p-3 rounded-lg"
+                style={{ backgroundColor: stat.bgColor }}
+              >
+                <stat.icon className="h-5 w-5" style={{ color: stat.iconColor }} />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{stat.title}</p>

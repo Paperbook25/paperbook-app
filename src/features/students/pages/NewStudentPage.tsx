@@ -37,6 +37,7 @@ export function NewStudentPage() {
           { label: 'Students', href: '/students' },
           { label: 'New Student' },
         ]}
+        moduleColor="students"
       />
 
       <StudentForm onSubmit={handleSubmit} isSubmitting={createStudent.isPending} submitLabel="Add Student" />

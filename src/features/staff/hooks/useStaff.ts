@@ -35,6 +35,47 @@ import {
   createPD,
   updatePD,
   deletePD,
+  bulkImportStaff,
+  // New imports for enhanced features
+  fetchPayrollDeductions,
+  createPayrollDeduction,
+  updatePayrollDeduction,
+  fetchEmployeeBenefits,
+  createEmployeeBenefit,
+  updateEmployeeBenefit,
+  fetchLoanAdvances,
+  createLoanAdvance,
+  updateLoanAdvance,
+  fetchTimeOffAccrual,
+  adjustTimeOff,
+  fetchOnboardingTasks,
+  fetchOnboardingChecklists,
+  fetchStaffOnboarding,
+  createOnboardingChecklist,
+  updateOnboardingTask,
+  fetchExitInterviews,
+  fetchStaffExitInterview,
+  createExitInterview,
+  updateExitInterview,
+  updateClearanceStatus,
+  fetchStaffSkills,
+  createStaffSkill,
+  updateStaffSkill,
+  deleteStaffSkill,
+  fetchCertifications,
+  createCertification,
+  updateCertification,
+  deleteCertification,
+  fetchCertificationExpiryAlerts,
+  fetchSkillGaps,
+  fetchSkillsMatrix,
+  fetchWorkSchedulePreference,
+  updateWorkSchedulePreference,
+  requestScheduleChange,
+  approveScheduleChange,
+  fetchShiftSchedules,
+  createShiftSchedule,
+  updateShiftSchedule,
 } from '../api/staff.api'
 import type {
   StaffFilters,
@@ -49,6 +90,14 @@ import type {
   CreatePerformanceReview,
   CreatePDRequest,
   ProfessionalDevelopment,
+  PayrollDeduction,
+  EmployeeBenefit,
+  LoanAdvance,
+  StaffSkill,
+  Certification,
+  WorkSchedulePreference,
+  ShiftSchedule,
+  ExitInterview,
 } from '../types/staff.types'
 
 // ==================== QUERY KEYS ====================
@@ -84,6 +133,23 @@ export const staffKeys = {
   professionalDev: () => [...staffKeys.all, 'professional-development'] as const,
   staffPD: (staffId: string) => [...staffKeys.professionalDev(), 'staff', staffId] as const,
   allPD: (filters?: { type?: string; status?: string }) => [...staffKeys.professionalDev(), 'all', filters] as const,
+  // New keys for enhanced features
+  payrollDeductions: (staffId: string) => [...staffKeys.all, 'payroll-deductions', staffId] as const,
+  benefits: (staffId: string) => [...staffKeys.all, 'benefits', staffId] as const,
+  loans: (staffId: string) => [...staffKeys.all, 'loans', staffId] as const,
+  timeOffAccrual: (staffId: string, year?: number) => [...staffKeys.all, 'time-off-accrual', staffId, year] as const,
+  onboardingTasks: () => [...staffKeys.all, 'onboarding-tasks'] as const,
+  onboardingChecklists: (filters?: { status?: string }) => [...staffKeys.all, 'onboarding', filters] as const,
+  staffOnboarding: (staffId: string) => [...staffKeys.all, 'onboarding', 'staff', staffId] as const,
+  exitInterviews: (filters?: { status?: string; separationType?: string }) => [...staffKeys.all, 'exit-interviews', filters] as const,
+  staffExitInterview: (staffId: string) => [...staffKeys.all, 'exit-interview', 'staff', staffId] as const,
+  skills: (staffId: string) => [...staffKeys.all, 'skills', staffId] as const,
+  certifications: (staffId: string) => [...staffKeys.all, 'certifications', staffId] as const,
+  certificationExpiryAlerts: () => [...staffKeys.all, 'certification-expiry-alerts'] as const,
+  skillGaps: (staffId: string) => [...staffKeys.all, 'skill-gaps', staffId] as const,
+  skillsMatrix: (filters?: { department?: string; skill?: string }) => [...staffKeys.all, 'skills-matrix', filters] as const,
+  schedulePreference: (staffId: string) => [...staffKeys.all, 'schedule-preference', staffId] as const,
+  shiftSchedules: (filters?: { week?: string; staffId?: string; department?: string }) => [...staffKeys.all, 'shift-schedules', filters] as const,
 }
 
 // ==================== STAFF CRUD HOOKS ====================
@@ -441,6 +507,550 @@ export function useDeletePD() {
     mutationFn: (id: string) => deletePD(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: staffKeys.professionalDev() })
+    },
+  })
+}
+
+// ==================== BULK IMPORT HOOK ====================
+
+export function useBulkImportStaff() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (rows: Record<string, string>[]) => bulkImportStaff(rows),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.lists() })
+    },
+  })
+}
+
+// ==================== ADVANCED PAYROLL & BENEFITS HOOKS ====================
+
+export function usePayrollDeductions(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.payrollDeductions(staffId),
+    queryFn: () => fetchPayrollDeductions(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreatePayrollDeduction() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Omit<PayrollDeduction, 'id' | 'staffId'>
+    }) => createPayrollDeduction(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.payrollDeductions(variables.staffId) })
+    },
+  })
+}
+
+export function useUpdatePayrollDeduction() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      deductionId,
+      data,
+    }: {
+      staffId: string
+      deductionId: string
+      data: Partial<PayrollDeduction>
+    }) => updatePayrollDeduction(staffId, deductionId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.payrollDeductions(variables.staffId) })
+    },
+  })
+}
+
+export function useEmployeeBenefits(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.benefits(staffId),
+    queryFn: () => fetchEmployeeBenefits(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreateEmployeeBenefit() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Omit<EmployeeBenefit, 'id' | 'staffId'>
+    }) => createEmployeeBenefit(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.benefits(variables.staffId) })
+    },
+  })
+}
+
+export function useUpdateEmployeeBenefit() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      benefitId,
+      data,
+    }: {
+      staffId: string
+      benefitId: string
+      data: Partial<EmployeeBenefit>
+    }) => updateEmployeeBenefit(staffId, benefitId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.benefits(variables.staffId) })
+    },
+  })
+}
+
+export function useLoanAdvances(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.loans(staffId),
+    queryFn: () => fetchLoanAdvances(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreateLoanAdvance() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Omit<LoanAdvance, 'id' | 'staffId' | 'paidInstallments' | 'remainingAmount' | 'deductions'>
+    }) => createLoanAdvance(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.loans(variables.staffId) })
+    },
+  })
+}
+
+export function useUpdateLoanAdvance() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      loanId,
+      data,
+    }: {
+      staffId: string
+      loanId: string
+      data: Partial<LoanAdvance>
+    }) => updateLoanAdvance(staffId, loanId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.loans(variables.staffId) })
+    },
+  })
+}
+
+// ==================== TIME-OFF ACCRUAL HOOKS ====================
+
+export function useTimeOffAccrual(staffId: string, year?: number) {
+  return useQuery({
+    queryKey: staffKeys.timeOffAccrual(staffId, year),
+    queryFn: () => fetchTimeOffAccrual(staffId, year),
+    enabled: !!staffId,
+  })
+}
+
+export function useAdjustTimeOff() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: { leaveType: string; amount: number; notes: string }
+    }) => adjustTimeOff(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.timeOffAccrual(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.leaveBalance(variables.staffId) })
+    },
+  })
+}
+
+// ==================== ONBOARDING HOOKS ====================
+
+export function useOnboardingTasks() {
+  return useQuery({
+    queryKey: staffKeys.onboardingTasks(),
+    queryFn: fetchOnboardingTasks,
+  })
+}
+
+export function useOnboardingChecklists(filters?: { status?: string }) {
+  return useQuery({
+    queryKey: staffKeys.onboardingChecklists(filters),
+    queryFn: () => fetchOnboardingChecklists(filters),
+  })
+}
+
+export function useStaffOnboarding(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.staffOnboarding(staffId),
+    queryFn: () => fetchStaffOnboarding(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreateOnboardingChecklist() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: { assignedHR: string; assignedManager: string }
+    }) => createOnboardingChecklist(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.staffOnboarding(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.onboardingChecklists() })
+    },
+  })
+}
+
+export function useUpdateOnboardingTask() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      taskId,
+      data,
+    }: {
+      staffId: string
+      taskId: string
+      data: { status: string; notes?: string; completedBy?: string }
+    }) => updateOnboardingTask(staffId, taskId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.staffOnboarding(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.onboardingChecklists() })
+    },
+  })
+}
+
+// ==================== EXIT INTERVIEW HOOKS ====================
+
+export function useExitInterviews(filters?: { status?: string; separationType?: string }) {
+  return useQuery({
+    queryKey: staffKeys.exitInterviews(filters),
+    queryFn: () => fetchExitInterviews(filters),
+  })
+}
+
+export function useStaffExitInterview(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.staffExitInterview(staffId),
+    queryFn: () => fetchStaffExitInterview(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreateExitInterview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Omit<ExitInterview, 'id' | 'staffId' | 'staffName' | 'department' | 'designation' | 'joiningDate'>
+    }) => createExitInterview(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.staffExitInterview(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.exitInterviews() })
+    },
+  })
+}
+
+export function useUpdateExitInterview() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ staffId, data }: { staffId: string; data: Partial<ExitInterview> }) =>
+      updateExitInterview(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.staffExitInterview(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.exitInterviews() })
+    },
+  })
+}
+
+export function useUpdateClearanceStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      department,
+      data,
+    }: {
+      staffId: string
+      department: string
+      data: { cleared: boolean; clearedBy: string; remarks?: string }
+    }) => updateClearanceStatus(staffId, department, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.staffExitInterview(variables.staffId) })
+    },
+  })
+}
+
+// ==================== SKILLS & CERTIFICATIONS HOOKS ====================
+
+export function useStaffSkills(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.skills(staffId),
+    queryFn: () => fetchStaffSkills(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreateStaffSkill() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Omit<StaffSkill, 'id' | 'staffId'>
+    }) => createStaffSkill(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.skills(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.skillsMatrix() })
+    },
+  })
+}
+
+export function useUpdateStaffSkill() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      skillId,
+      data,
+    }: {
+      staffId: string
+      skillId: string
+      data: Partial<StaffSkill>
+    }) => updateStaffSkill(staffId, skillId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.skills(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.skillsMatrix() })
+    },
+  })
+}
+
+export function useDeleteStaffSkill() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ staffId, skillId }: { staffId: string; skillId: string }) =>
+      deleteStaffSkill(staffId, skillId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.skills(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.skillsMatrix() })
+    },
+  })
+}
+
+export function useCertifications(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.certifications(staffId),
+    queryFn: () => fetchCertifications(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useCreateCertification() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Omit<Certification, 'id' | 'staffId' | 'status' | 'reminderSent'>
+    }) => createCertification(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.certifications(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.certificationExpiryAlerts() })
+    },
+  })
+}
+
+export function useUpdateCertification() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      certId,
+      data,
+    }: {
+      staffId: string
+      certId: string
+      data: Partial<Certification>
+    }) => updateCertification(staffId, certId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.certifications(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.certificationExpiryAlerts() })
+    },
+  })
+}
+
+export function useDeleteCertification() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ staffId, certId }: { staffId: string; certId: string }) =>
+      deleteCertification(staffId, certId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.certifications(variables.staffId) })
+      queryClient.invalidateQueries({ queryKey: staffKeys.certificationExpiryAlerts() })
+    },
+  })
+}
+
+export function useCertificationExpiryAlerts() {
+  return useQuery({
+    queryKey: staffKeys.certificationExpiryAlerts(),
+    queryFn: fetchCertificationExpiryAlerts,
+  })
+}
+
+export function useSkillGaps(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.skillGaps(staffId),
+    queryFn: () => fetchSkillGaps(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useSkillsMatrix(filters?: { department?: string; skill?: string }) {
+  return useQuery({
+    queryKey: staffKeys.skillsMatrix(filters),
+    queryFn: () => fetchSkillsMatrix(filters),
+  })
+}
+
+// ==================== WORK SCHEDULE HOOKS ====================
+
+export function useWorkSchedulePreference(staffId: string) {
+  return useQuery({
+    queryKey: staffKeys.schedulePreference(staffId),
+    queryFn: () => fetchWorkSchedulePreference(staffId),
+    enabled: !!staffId,
+  })
+}
+
+export function useUpdateWorkSchedulePreference() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: Partial<WorkSchedulePreference>
+    }) => updateWorkSchedulePreference(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.schedulePreference(variables.staffId) })
+    },
+  })
+}
+
+export function useRequestScheduleChange() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      data,
+    }: {
+      staffId: string
+      data: { preferredWorkMode: string; preferredShift: string; notes?: string }
+    }) => requestScheduleChange(staffId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.schedulePreference(variables.staffId) })
+    },
+  })
+}
+
+export function useApproveScheduleChange() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      staffId,
+      approved,
+      effectiveFrom,
+    }: {
+      staffId: string
+      approved: boolean
+      effectiveFrom?: string
+    }) => approveScheduleChange(staffId, approved, effectiveFrom),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.schedulePreference(variables.staffId) })
+    },
+  })
+}
+
+export function useShiftSchedules(filters?: { week?: string; staffId?: string; department?: string }) {
+  return useQuery({
+    queryKey: staffKeys.shiftSchedules(filters),
+    queryFn: () => fetchShiftSchedules(filters),
+  })
+}
+
+export function useCreateShiftSchedule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: Omit<ShiftSchedule, 'id' | 'createdAt'>) => createShiftSchedule(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.shiftSchedules() })
+    },
+  })
+}
+
+export function useUpdateShiftSchedule() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      scheduleId,
+      data,
+    }: {
+      scheduleId: string
+      data: Partial<ShiftSchedule>
+    }) => updateShiftSchedule(scheduleId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: staffKeys.shiftSchedules() })
     },
   })
 }

@@ -44,9 +44,103 @@
   --color-sidebar-border: oklch(0.28 0.03 250);
   --color-sidebar-muted: oklch(0.50 0.02 250);
 
-  /* Gold Accent */
-  --color-gold: oklch(0.75 0.15 85);
-  --color-gold-foreground: oklch(0.20 0.05 85);
+  /* Saffron Accent (Indian heritage - #FF9933) */
+  --color-saffron: oklch(0.72 0.18 55);
+  --color-saffron-foreground: oklch(0.20 0.05 55);
+
+  /* Primary Light (for progress bars, highlights) */
+  --color-primary-light: #ede9fe;
+
+  /* Module Colors - Primary (from paperbook-web) */
+  --color-module-academic: #6d28d9;
+  --color-module-students: #6d28d9;
+  --color-module-staff: #4f46e5;
+  --color-module-admissions: #4f46e5;
+  --color-module-finance: #f59e0b;
+  --color-module-attendance: #10b981;
+  --color-module-lms: #10b981;
+  --color-module-library: #0d9488;
+  --color-module-operations: #0d9488;
+  --color-module-exams: #e11d48;
+  --color-module-transport: #f97316;
+  --color-module-behavior: #f97316;
+  --color-module-communication: #0ea5e9;
+  --color-module-reports: #0ea5e9;
+  --color-module-parent-portal: #ec4899;
+  --color-module-hostel: #64748b;
+  --color-module-inventory: #64748b;
+  --color-module-alumni: #06b6d4;
+  --color-module-documents: #78716c;
+  --color-module-settings: #78716c;
+  --color-module-visitors: #84cc16;
+  --color-module-integrations: #8b5cf6;
+  --color-module-timetable: #8b5cf6;
+  --color-module-management: #8b5cf6;
+  --color-module-dashboard: #6366f1;
+  --color-module-people: #6d28d9;
+
+  /* Module Colors - Light Backgrounds */
+  --color-module-academic-light: #f5f3ff;
+  --color-module-students-light: #f5f3ff;
+  --color-module-staff-light: #e0e7ff;
+  --color-module-admissions-light: #e0e7ff;
+  --color-module-finance-light: #fef3c7;
+  --color-module-attendance-light: #d1fae5;
+  --color-module-lms-light: #d1fae5;
+  --color-module-library-light: #ccfbf1;
+  --color-module-operations-light: #ccfbf1;
+  --color-module-exams-light: #ffe4e6;
+  --color-module-transport-light: #fff7ed;
+  --color-module-behavior-light: #fff7ed;
+  --color-module-communication-light: #e0f2fe;
+  --color-module-reports-light: #e0f2fe;
+  --color-module-parent-portal-light: #fce7f3;
+  --color-module-hostel-light: #f1f5f9;
+  --color-module-inventory-light: #f1f5f9;
+  --color-module-alumni-light: #e0f7fa;
+  --color-module-documents-light: #f5f5f4;
+  --color-module-settings-light: #f5f5f4;
+  --color-module-visitors-light: #f7fee7;
+  --color-module-integrations-light: #f3e8ff;
+  --color-module-timetable-light: #f3e8ff;
+  --color-module-management-light: #f3e8ff;
+  --color-module-dashboard-light: #e0e7ff;
+  --color-module-people-light: #f5f3ff;
+
+  /* Status Colors for badges/indicators */
+  --color-status-success: #22c55e;
+  --color-status-success-light: #dcfce7;
+  --color-status-warning: #f59e0b;
+  --color-status-warning-light: #fef3c7;
+  --color-status-error: #ef4444;
+  --color-status-error-light: #fee2e2;
+  --color-status-info: #3b82f6;
+  --color-status-info-light: #dbeafe;
+  --color-status-pending: #f59e0b;
+  --color-status-pending-light: #fef9c3;
+  --color-status-maintenance: #eab308;
+  --color-status-maintenance-light: #fef9c3;
+  --color-status-overdue: #dc2626;
+  --color-status-overdue-light: #fee2e2;
+  --color-status-inactive: #6b7280;
+  --color-status-inactive-light: #f3f4f6;
+
+  /* Purple-tinted Brand Shadows (matching paperbook-web) */
+  --shadow-brand-sm: 0 1px 2px rgba(109, 40, 217, 0.06);
+  --shadow-brand-md: 0 4px 6px -1px rgba(109, 40, 217, 0.08), 0 2px 4px -2px rgba(109, 40, 217, 0.08);
+  --shadow-brand-lg: 0 10px 15px -3px rgba(109, 40, 217, 0.08), 0 4px 6px -4px rgba(109, 40, 217, 0.08);
+  --shadow-brand-xl: 0 20px 25px -5px rgba(109, 40, 217, 0.1), 0 8px 10px -6px rgba(109, 40, 217, 0.1);
+
+  /* Brand Gradients */
+  --gradient-primary: linear-gradient(135deg, #7c3aed, #6d28d9, #4f46e5);
+  --gradient-saffron: linear-gradient(135deg, #fbbf24, #f59e0b, #d97706);
+  --gradient-mesh: linear-gradient(135deg, #ede9fe 0%, #f5f3ff 25%, #e0e7ff 50%, #fef3c7 75%, #f5f3ff 100%);
+
+  /* Glassmorphism Variables */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-bg-hover: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-blur: 12px;
 
   /* Chart Colors */
   --color-chart-1: oklch(0.45 0.24 285);
@@ -89,9 +183,55 @@
   --color-sidebar-accent-foreground: oklch(0.98 0 0);
   --color-sidebar-border: oklch(0.26 0.03 250);
   --color-sidebar-muted: oklch(0.48 0.02 250);
-  --color-gold: oklch(0.70 0.13 85);
-  --color-gold-foreground: oklch(0.98 0 0);
+  --color-saffron: oklch(0.70 0.16 55);
+  --color-saffron-foreground: oklch(0.98 0 0);
   --color-info: oklch(0.6 0.18 240);
+
+  /* Primary Light (for progress bars, highlights) */
+  --color-primary-light: rgba(139, 92, 246, 0.15);
+
+  /* Dark mode module light colors (darker variants for contrast) */
+  --color-module-academic-light: rgba(109, 40, 217, 0.15);
+  --color-module-students-light: rgba(109, 40, 217, 0.15);
+  --color-module-staff-light: rgba(79, 70, 229, 0.15);
+  --color-module-admissions-light: rgba(79, 70, 229, 0.15);
+  --color-module-finance-light: rgba(245, 158, 11, 0.15);
+  --color-module-attendance-light: rgba(16, 185, 129, 0.15);
+  --color-module-lms-light: rgba(16, 185, 129, 0.15);
+  --color-module-library-light: rgba(13, 148, 136, 0.15);
+  --color-module-operations-light: rgba(13, 148, 136, 0.15);
+  --color-module-exams-light: rgba(225, 29, 72, 0.15);
+  --color-module-transport-light: rgba(249, 115, 22, 0.15);
+  --color-module-behavior-light: rgba(249, 115, 22, 0.15);
+  --color-module-communication-light: rgba(14, 165, 233, 0.15);
+  --color-module-reports-light: rgba(14, 165, 233, 0.15);
+  --color-module-parent-portal-light: rgba(236, 72, 153, 0.15);
+  --color-module-hostel-light: rgba(100, 116, 139, 0.15);
+  --color-module-inventory-light: rgba(100, 116, 139, 0.15);
+  --color-module-alumni-light: rgba(6, 182, 212, 0.15);
+  --color-module-documents-light: rgba(120, 113, 108, 0.15);
+  --color-module-settings-light: rgba(120, 113, 108, 0.15);
+  --color-module-visitors-light: rgba(132, 204, 22, 0.15);
+  --color-module-integrations-light: rgba(139, 92, 246, 0.15);
+  --color-module-timetable-light: rgba(139, 92, 246, 0.15);
+  --color-module-management-light: rgba(139, 92, 246, 0.15);
+  --color-module-dashboard-light: rgba(99, 102, 241, 0.15);
+  --color-module-people-light: rgba(109, 40, 217, 0.15);
+
+  /* Dark mode status colors (alpha 0.15 for consistency with module colors) */
+  --color-status-success-light: rgba(34, 197, 94, 0.15);
+  --color-status-warning-light: rgba(245, 158, 11, 0.15);
+  --color-status-error-light: rgba(239, 68, 68, 0.15);
+  --color-status-info-light: rgba(59, 130, 246, 0.15);
+  --color-status-pending-light: rgba(245, 158, 11, 0.15);
+  --color-status-maintenance-light: rgba(234, 179, 8, 0.15);
+  --color-status-overdue-light: rgba(220, 38, 38, 0.15);
+  --color-status-inactive-light: rgba(107, 114, 128, 0.15);
+
+  /* Dark mode glass */
+  --glass-bg: rgba(30, 30, 30, 0.7);
+  --glass-bg-hover: rgba(40, 40, 40, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 * {
@@ -102,6 +242,8 @@ body {
   background-color: var(--color-background);
   color: var(--color-foreground);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Scrollbar Styling */
@@ -131,23 +273,75 @@ body {
   background: oklch(0.45 0 0);
 }
 
-/* Animation Keyframes */
+/* ============================================
+   ANIMATION KEYFRAMES (matching paperbook-web)
+   ============================================ */
+
+/* Shimmer for loading skeletons */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
+/* Fade In */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
+/* Slide Up (reveal animation) */
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Animation Utility Classes */
+/* Mesh gradient movement (hero sections) */
+@keyframes mesh-move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Floating blob animation */
+@keyframes float-blob {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, -20px) scale(1.1); }
+}
+
+/* Gentle float animation */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+/* Featured glow animation */
+@keyframes featured-glow {
+  0%, 100% {
+    box-shadow: 0 20px 25px -5px rgba(109, 40, 217, 0.15),
+                0 8px 10px -6px rgba(109, 40, 217, 0.15);
+  }
+  50% {
+    box-shadow: 0 20px 40px -5px rgba(109, 40, 217, 0.25),
+                0 8px 20px -6px rgba(109, 40, 217, 0.25);
+  }
+}
+
+/* Counter tick animation */
+@keyframes count-tick {
+  0% { opacity: 0.7; transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Pulse for live indicators */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ============================================
+   ANIMATION UTILITY CLASSES
+   ============================================ */
+
 .animate-shimmer {
   animation: shimmer 2s infinite linear;
   background: linear-gradient(90deg, transparent 0%, oklch(0.9 0 0 / 0.4) 50%, transparent 100%);
@@ -164,5 +358,445 @@ body {
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-mesh {
+  background-size: 400% 400%;
+  animation: mesh-move 15s ease infinite;
+}
+
+.animate-float {
+  animation: float-gentle 6s ease-in-out infinite;
+}
+
+.animate-float-blob {
+  animation: float-blob 8s ease-in-out infinite alternate;
+}
+
+.animate-glow {
+  animation: featured-glow 3s ease-in-out infinite;
+}
+
+.animate-pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
+}
+
+/* ============================================
+   GLASSMORPHISM UTILITIES (paperbook-web style)
+   ============================================ */
+
+/* Standard glass effect */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--color-border);
+}
+
+.glass:hover {
+  background: var(--glass-bg-hover);
+}
+
+/* Subtle glass (lighter) */
+.glass-subtle {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.dark .glass-subtle {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ============================================
+   STAT CARD STYLES (paperbook-web pattern)
+   ============================================ */
+
+/* Stat card with colored top border */
+.stat-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  border-top-width: 3px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-brand-lg);
+}
+
+/* Color variants for top border */
+.stat-card-primary { border-top-color: var(--color-module-students); }
+.stat-card-success { border-top-color: var(--color-module-attendance); }
+.stat-card-warning { border-top-color: var(--color-module-finance); }
+.stat-card-danger { border-top-color: var(--color-module-exams); }
+.stat-card-info { border-top-color: var(--color-module-communication); }
+.stat-card-purple { border-top-color: #a855f7; }
+.stat-card-orange { border-top-color: #f97316; }
+.stat-card-cyan { border-top-color: #06b6d4; }
+
+/* Stat card value styling */
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   FEATURE CARD (glassmorphic hover effect)
+   ============================================ */
+
+.feature-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(109, 40, 217, 0.08), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.feature-card:hover {
+  box-shadow: var(--shadow-brand-xl);
+  transform: scale(1.02) translateY(-6px);
+  border-color: rgba(109, 40, 217, 0.3);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
+}
+
+/* ============================================
+   BENTO CARD (module cards)
+   ============================================ */
+
+.bento-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.bento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-brand-lg);
+}
+
+.bento-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/* ============================================
+   REVEAL ANIMATION (scroll-triggered)
+   ============================================ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============================================
+   PROGRESS BAR
+   ============================================ */
+
+.progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-primary-light);
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--color-primary);
+  transition: width 0.6s ease;
+}
+
+/* ============================================
+   TREND INDICATOR
+   ============================================ */
+
+.trend-up {
+  color: #22c55e;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.trend-down {
+  color: #ef4444;
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* ============================================
+   ICON CONTAINERS
+   ============================================ */
+
+.icon-box {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-box-sm {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+}
+
+.icon-box-lg {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+}
+
+/* ============================================
+   CHART TOOLTIP (glassmorphic)
+   ============================================ */
+
+.chart-tooltip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: var(--shadow-brand-md) !important;
+  padding: 0.75rem 1rem !important;
+}
+
+.dark .chart-tooltip {
+  background: rgba(30, 30, 30, 0.95) !important;
+}
+
+/* ============================================
+   QUICK ACTION BUTTONS
+   ============================================ */
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.quick-action:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-brand-md);
+  transform: translateY(-2px);
+}
+
+.quick-action-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.quick-action-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.section-header-bar {
+  height: 4px;
+  width: 2rem;
+  border-radius: 2px;
+}
+
+.section-header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   METRIC CARD (colored background cards)
+   ============================================ */
+
+.metric-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ============================================
+   FEE COLLECTION BENTO GRID
+   ============================================ */
+
+.fee-bento-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto auto;
+}
+
+@media (max-width: 1024px) {
+  .fee-bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .fee-bento-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================
+   TRANSACTION LIST
+   ============================================ */
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: rgba(16, 185, 129, 0.08);
+  transition: background 0.2s ease;
+}
+
+.transaction-item:hover {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.dark .transaction-item {
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.dark .transaction-item:hover {
+  background: rgba(16, 185, 129, 0.2);
+}
+
+/* ============================================
+   QUICK STATS ROW
+   ============================================ */
+
+.quick-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.quick-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-brand-sm);
+}
+
+.quick-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.quick-stat-label {
+  font-size: 0.75rem;
+  color: var(--color-muted-foreground);
+  margin-top: 0.25rem;
+}
+
+/* ============================================
+   VERTICAL BAR CHART ENHANCEMENTS
+   ============================================ */
+
+.fee-bar-chart .recharts-bar-rectangle {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.fee-bar-chart .recharts-bar-rectangle:hover {
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
 }

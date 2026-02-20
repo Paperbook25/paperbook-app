@@ -23,6 +23,7 @@ import {
   type NotificationStatus,
   type NotificationConfig,
 } from '../types/library.types'
+import { statusColors } from '@/lib/design-tokens'
 
 const CHANNEL_ICONS: Record<NotificationChannel, typeof Mail> = {
   sms: MessageSquare,
@@ -146,13 +147,13 @@ export function OverdueNotificationsView() {
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-green-600">{deliveredCount}</div>
+                <div className="text-2xl font-bold" style={{ color: statusColors.success }}>{deliveredCount}</div>
                 <p className="text-sm text-muted-foreground">Delivered</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4">
-                <div className="text-2xl font-bold text-red-600">{failedCount}</div>
+                <div className="text-2xl font-bold" style={{ color: statusColors.error }}>{failedCount}</div>
                 <p className="text-sm text-muted-foreground">Failed</p>
               </CardContent>
             </Card>
@@ -210,7 +211,7 @@ export function OverdueNotificationsView() {
                         </TableCell>
                         <TableCell className="max-w-[200px] truncate">{n.bookTitle}</TableCell>
                         <TableCell>{n.overdueDays} days</TableCell>
-                        <TableCell className="font-medium text-red-600">Rs {n.fineAmount}</TableCell>
+                        <TableCell className="font-medium" style={{ color: statusColors.error }}>Rs {n.fineAmount}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="text-xs">
                             <Icon className="h-3 w-3 mr-1" />

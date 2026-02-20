@@ -26,9 +26,9 @@ function getNextStatus(current: AttendanceStatus): AttendanceStatus {
 }
 
 function getPercentageColor(pct: number): string {
-  if (pct >= 90) return 'text-green-600'
-  if (pct >= 75) return 'text-yellow-600'
-  return 'text-red-600'
+  if (pct >= 90) return 'text-green-600 dark:text-green-400'
+  if (pct >= 75) return 'text-yellow-600 dark:text-yellow-400'
+  return 'text-red-600 dark:text-red-400'
 }
 
 export function PeriodAttendanceManager() {

@@ -24,6 +24,7 @@ import {
 import { cn, formatDate } from '@/lib/utils'
 import { useAdmissionAnalytics } from '../hooks/useAdmissions'
 import type { AdmissionAnalytics } from '../types/admission.types'
+import { statusColors, moduleColors, chartColors, medalColors } from '@/lib/design-tokens'
 
 function KpiCardSkeleton() {
   return (
@@ -70,7 +71,7 @@ function KpiCard({ title, value, description, icon, iconBgColor }: KpiCardProps)
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <div className={cn('rounded-md p-2', iconBgColor)}>{icon}</div>
+        <div className="rounded-md p-2" style={{ backgroundColor: iconBgColor }}>{icon}</div>
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
@@ -110,17 +111,11 @@ function ConversionFunnel({ funnel }: ConversionFunnelProps) {
                 </div>
                 <div className="relative h-8 w-full rounded-md bg-muted/50 overflow-hidden">
                   <div
-                    className={cn(
-                      'absolute inset-y-0 left-0 rounded-md transition-all duration-500 flex items-center justify-end pr-2',
-                      index === 0 && 'bg-blue-500',
-                      index === 1 && 'bg-indigo-500',
-                      index === 2 && 'bg-violet-500',
-                      index === 3 && 'bg-purple-500',
-                      index === 4 && 'bg-fuchsia-500',
-                      index === 5 && 'bg-green-500',
-                      index >= 6 && 'bg-emerald-500'
-                    )}
-                    style={{ width: `${widthPercentage}%` }}
+                    className="absolute inset-y-0 left-0 rounded-md transition-all duration-500 flex items-center justify-end pr-2"
+                    style={{
+                      width: `${widthPercentage}%`,
+                      backgroundColor: chartColors[index % chartColors.length],
+                    }}
                   >
                     {widthPercentage > 15 && (
                       <span className="text-xs font-medium text-white">{stage.count}</span>
@@ -149,16 +144,17 @@ function SourceDistribution({ sources }: SourceDistributionProps) {
     return <Users className="h-4 w-4" />
   }
 
-  function getSourceColor(index: number) {
-    const colors = [
-      'bg-blue-100 text-blue-700',
-      'bg-green-100 text-green-700',
-      'bg-purple-100 text-purple-700',
-      'bg-orange-100 text-orange-700',
-      'bg-pink-100 text-pink-700',
-      'bg-teal-100 text-teal-700',
-    ]
-    return colors[index % colors.length]
+  const sourceColorStyles = [
+    { bg: statusColors.infoLight, text: statusColors.info },
+    { bg: statusColors.successLight, text: statusColors.success },
+    { bg: moduleColors.integrationsLight, text: moduleColors.integrations },
+    { bg: moduleColors.behaviorLight, text: moduleColors.behavior },
+    { bg: moduleColors.parentPortalLight, text: moduleColors.parentPortal },
+    { bg: moduleColors.libraryLight, text: moduleColors.library },
+  ]
+
+  function getSourceColorStyle(index: number) {
+    return sourceColorStyles[index % sourceColorStyles.length]
   }
 
   return (
@@ -177,7 +173,13 @@ function SourceDistribution({ sources }: SourceDistributionProps) {
               key={source.source}
               className="flex items-center gap-3 rounded-lg border p-3"
             >
-              <div className={cn('rounded-md p-2', getSourceColor(index))}>
+              <div
+                className="rounded-md p-2"
+                style={{
+                  backgroundColor: getSourceColorStyle(index).bg,
+                  color: getSourceColorStyle(index).text,
+                }}
+              >
                 {getSourceIcon(source.source)}
               </div>
               <div className="flex-1 min-w-0">
@@ -229,10 +231,10 @@ function MonthlyTrendTable({ trends }: MonthlyTrendTableProps) {
                 <TableCell className="font-medium">{trend.month}</TableCell>
                 <TableCell className="text-right">{trend.applications}</TableCell>
                 <TableCell className="text-right">
-                  <span className="text-green-600 font-medium">{trend.approvals}</span>
+                  <span className="font-medium" style={{ color: statusColors.success }}>{trend.approvals}</span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="text-red-600 font-medium">{trend.rejections}</span>
+                  <span className="font-medium" style={{ color: statusColors.error }}>{trend.rejections}</span>
                 </TableCell>
               </TableRow>
             ))}
@@ -280,10 +282,10 @@ function ClassDistributionTable({ distributions }: ClassDistributionTableProps) 
                 <TableCell className="font-medium">{dist.class}</TableCell>
                 <TableCell className="text-right">{dist.applications}</TableCell>
                 <TableCell className="text-right">
-                  <span className="text-green-600 font-medium">{dist.approved}</span>
+                  <span className="font-medium" style={{ color: statusColors.success }}>{dist.approved}</span>
                 </TableCell>
                 <TableCell className="text-right">
-                  <span className="text-blue-600 font-medium">{dist.enrolled}</span>
+                  <span className="font-medium" style={{ color: statusColors.info }}>{dist.enrolled}</span>
                 </TableCell>
               </TableRow>
             ))}
@@ -306,11 +308,11 @@ interface TopPerformersListProps {
 }
 
 function TopPerformersList({ performers }: TopPerformersListProps) {
-  function getMedalColor(index: number) {
-    if (index === 0) return 'bg-yellow-100 text-yellow-700 border-yellow-200'
-    if (index === 1) return 'bg-gray-100 text-gray-600 border-gray-200'
-    if (index === 2) return 'bg-orange-100 text-orange-700 border-orange-200'
-    return 'bg-muted text-muted-foreground'
+  function getMedalStyle(index: number): React.CSSProperties {
+    if (index === 0) return { backgroundColor: medalColors.goldLight, color: medalColors.gold }
+    if (index === 1) return { backgroundColor: medalColors.silverLight, color: medalColors.silver }
+    if (index === 2) return { backgroundColor: medalColors.bronzeLight, color: medalColors.bronze }
+    return {}
   }
 
   return (
@@ -335,10 +337,8 @@ function TopPerformersList({ performers }: TopPerformersListProps) {
                 className="flex items-center gap-3 rounded-lg border p-3"
               >
                 <div
-                  className={cn(
-                    'flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold',
-                    getMedalColor(index)
-                  )}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border text-sm font-bold"
+                  style={getMedalStyle(index)}
                 >
                   {index + 1}
                 </div>
@@ -418,29 +418,29 @@ export function AdmissionAnalyticsView() {
           title="Approval Rate"
           value={`${analytics.approvalRate}%`}
           description="Percentage of applications approved"
-          icon={<CheckCircle className="h-4 w-4 text-green-600" />}
-          iconBgColor="bg-green-50"
+          icon={<CheckCircle className="h-4 w-4" style={{ color: statusColors.success }} />}
+          iconBgColor={statusColors.successLight}
         />
         <KpiCard
           title="Rejection Rate"
           value={`${analytics.rejectionRate}%`}
           description="Percentage of applications rejected"
-          icon={<XCircle className="h-4 w-4 text-red-600" />}
-          iconBgColor="bg-red-50"
+          icon={<XCircle className="h-4 w-4" style={{ color: statusColors.error }} />}
+          iconBgColor={statusColors.errorLight}
         />
         <KpiCard
           title="Avg Processing Days"
           value={`${analytics.avgProcessingDays}`}
           description="Average days to process an application"
-          icon={<Clock className="h-4 w-4 text-blue-600" />}
-          iconBgColor="bg-blue-50"
+          icon={<Clock className="h-4 w-4" style={{ color: statusColors.info }} />}
+          iconBgColor={statusColors.infoLight}
         />
         <KpiCard
           title="Avg Exam Score"
           value={`${analytics.avgExamScore}%`}
           description="Average entrance exam score"
-          icon={<GraduationCap className="h-4 w-4 text-purple-600" />}
-          iconBgColor="bg-purple-50"
+          icon={<GraduationCap className="h-4 w-4" style={{ color: moduleColors.integrations }} />}
+          iconBgColor={moduleColors.integrationsLight}
         />
       </div>
 

@@ -90,6 +90,7 @@ import { MonthlySalaryRun } from '../components/MonthlySalaryRun'
 import { SalarySlipView } from '../components/SalarySlipView'
 import { TimetableView } from '../components/TimetableView'
 import { SubstitutionManager } from '../components/SubstitutionManager'
+import { StaffBulkImportDialog } from '../components/StaffBulkImportDialog'
 import {
   LEAVE_TYPE_LABELS,
   DAYS_OF_WEEK,
@@ -117,11 +118,11 @@ const CLASSES = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6
 const SECTIONS = ['A', 'B', 'C']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-const STATUS_CONFIG: Record<LeaveStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  pending: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="h-3 w-3" /> },
-  approved: { label: 'Approved', color: 'bg-green-100 text-green-700', icon: <CheckCircle className="h-3 w-3" /> },
-  rejected: { label: 'Rejected', color: 'bg-red-100 text-red-700', icon: <XCircle className="h-3 w-3" /> },
-  cancelled: { label: 'Cancelled', color: 'bg-gray-100 text-gray-700', icon: <XCircle className="h-3 w-3" /> },
+const STATUS_CONFIG: Record<LeaveStatus, { label: string; bgColor: string; textColor: string; icon: React.ReactNode }> = {
+  pending: { label: 'Pending', bgColor: 'var(--color-module-finance-light)', textColor: 'var(--color-module-finance)', icon: <Clock className="h-3 w-3" /> },
+  approved: { label: 'Approved', bgColor: 'var(--color-module-attendance-light)', textColor: 'var(--color-module-attendance)', icon: <CheckCircle className="h-3 w-3" /> },
+  rejected: { label: 'Rejected', bgColor: 'var(--color-module-exams-light)', textColor: 'var(--color-module-exams)', icon: <XCircle className="h-3 w-3" /> },
+  cancelled: { label: 'Cancelled', bgColor: 'var(--color-muted)', textColor: 'var(--color-muted-foreground)', icon: <XCircle className="h-3 w-3" /> },
 }
 
 // ============================================
@@ -137,6 +138,7 @@ function StaffListTab() {
   const [page, setPage] = useState(1)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [showBulkImport, setShowBulkImport] = useState(false)
   const limit = 10
 
   const deleteMutation = useMutation({
@@ -240,6 +242,10 @@ function StaffListTab() {
           {meta.total} staff member{meta.total !== 1 ? 's' : ''}
         </p>
         <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowBulkImport(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Bulk Import
+          </Button>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={isExporting}>
             <Download className="h-4 w-4 mr-2" />
             {isExporting ? 'Exporting...' : 'Export'}
@@ -250,6 +256,12 @@ function StaffListTab() {
           </Button>
         </div>
       </div>
+
+      {/* Bulk Import Dialog */}
+      <StaffBulkImportDialog
+        open={showBulkImport}
+        onOpenChange={setShowBulkImport}
+      />
 
       <Card>
         <CardContent className="p-4">
@@ -538,7 +550,7 @@ function AttendanceTab({ subTab, onSubTabChange }: { subTab: AttendanceSubTab; o
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-green-600">Present</CardTitle>
+                <CardTitle className="text-sm font-medium" style={{ color: 'var(--color-module-attendance)' }}>Present</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{presentCount}</p>
@@ -547,7 +559,7 @@ function AttendanceTab({ subTab, onSubTabChange }: { subTab: AttendanceSubTab; o
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-red-600">Absent</CardTitle>
+                <CardTitle className="text-sm font-medium" style={{ color: 'var(--color-module-exams)' }}>Absent</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{absentCount}</p>
@@ -556,7 +568,7 @@ function AttendanceTab({ subTab, onSubTabChange }: { subTab: AttendanceSubTab; o
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-yellow-600">Half Day</CardTitle>
+                <CardTitle className="text-sm font-medium" style={{ color: 'var(--color-module-finance)' }}>Half Day</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{halfDayCount}</p>
@@ -565,7 +577,7 @@ function AttendanceTab({ subTab, onSubTabChange }: { subTab: AttendanceSubTab; o
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-blue-600">On Leave</CardTitle>
+                <CardTitle className="text-sm font-medium" style={{ color: 'var(--color-module-communication)' }}>On Leave</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">{onLeaveCount}</p>
@@ -830,7 +842,10 @@ function LeaveTab({ subTab, onSubTabChange }: { subTab: LeaveSubTab; onSubTabCha
                           </TableCell>
                           <TableCell>{request.numberOfDays}</TableCell>
                           <TableCell>
-                            <Badge className={cn(status.color, 'gap-1')}>
+                            <Badge
+                            className="gap-1"
+                            style={{ backgroundColor: status.bgColor, color: status.textColor }}
+                          >
                               {status.icon}
                               {status.label}
                             </Badge>
@@ -1249,6 +1264,7 @@ export function StaffPage() {
         title="Staff Management"
         description="Manage staff, attendance, leave, payroll, and schedules"
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Staff' }]}
+        moduleColor="staff"
         actions={
           activeTab === 'list' ? (
             <Button onClick={() => navigate('/staff/new')}>

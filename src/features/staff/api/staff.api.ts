@@ -241,6 +241,17 @@ export async function deletePD(id: string): Promise<{ success: boolean }> {
   return apiDelete<{ success: boolean }>(`${API_BASE}/professional-development/${id}`)
 }
 
+// ==================== BULK IMPORT ====================
+
+export async function bulkImportStaff(
+  rows: Record<string, string>[]
+): Promise<{ data: import('../types/staff.types').BulkImportStaffResult }> {
+  return apiPost<{ data: import('../types/staff.types').BulkImportStaffResult }>(
+    `${API_BASE}/bulk-import`,
+    { rows }
+  )
+}
+
 // ==================== EXPORT ====================
 
 export async function exportStaff(
@@ -250,4 +261,291 @@ export async function exportStaff(
   if (filters?.department) params.set('department', filters.department)
   if (filters?.status) params.set('status', filters.status)
   return apiGet<{ data: Record<string, string | number>[] }>(`${API_BASE}/export?${params}`)
+}
+
+// ==================== ADVANCED PAYROLL & BENEFITS ====================
+
+import type {
+  PayrollDeduction,
+  EmployeeBenefit,
+  LoanAdvance,
+  TimeOffAccrual,
+  OnboardingChecklist,
+  OnboardingTask,
+  ExitInterview,
+  StaffSkill,
+  Certification,
+  CertificationExpiryAlert,
+  SkillGap,
+  WorkSchedulePreference,
+  ShiftSchedule,
+} from '../types/staff.types'
+
+export async function fetchPayrollDeductions(staffId: string): Promise<{ data: PayrollDeduction[] }> {
+  return apiGet<{ data: PayrollDeduction[] }>(`${API_BASE}/${staffId}/payroll-deductions`)
+}
+
+export async function createPayrollDeduction(
+  staffId: string,
+  data: Omit<PayrollDeduction, 'id' | 'staffId'>
+): Promise<{ data: PayrollDeduction }> {
+  return apiPost<{ data: PayrollDeduction }>(`${API_BASE}/${staffId}/payroll-deductions`, data)
+}
+
+export async function updatePayrollDeduction(
+  staffId: string,
+  deductionId: string,
+  data: Partial<PayrollDeduction>
+): Promise<{ data: PayrollDeduction }> {
+  return apiPut<{ data: PayrollDeduction }>(`${API_BASE}/${staffId}/payroll-deductions/${deductionId}`, data)
+}
+
+export async function fetchEmployeeBenefits(staffId: string): Promise<{ data: EmployeeBenefit[] }> {
+  return apiGet<{ data: EmployeeBenefit[] }>(`${API_BASE}/${staffId}/benefits`)
+}
+
+export async function createEmployeeBenefit(
+  staffId: string,
+  data: Omit<EmployeeBenefit, 'id' | 'staffId'>
+): Promise<{ data: EmployeeBenefit }> {
+  return apiPost<{ data: EmployeeBenefit }>(`${API_BASE}/${staffId}/benefits`, data)
+}
+
+export async function updateEmployeeBenefit(
+  staffId: string,
+  benefitId: string,
+  data: Partial<EmployeeBenefit>
+): Promise<{ data: EmployeeBenefit }> {
+  return apiPut<{ data: EmployeeBenefit }>(`${API_BASE}/${staffId}/benefits/${benefitId}`, data)
+}
+
+export async function fetchLoanAdvances(staffId: string): Promise<{ data: LoanAdvance[] }> {
+  return apiGet<{ data: LoanAdvance[] }>(`${API_BASE}/${staffId}/loans`)
+}
+
+export async function createLoanAdvance(
+  staffId: string,
+  data: Omit<LoanAdvance, 'id' | 'staffId' | 'paidInstallments' | 'remainingAmount' | 'deductions'>
+): Promise<{ data: LoanAdvance }> {
+  return apiPost<{ data: LoanAdvance }>(`${API_BASE}/${staffId}/loans`, data)
+}
+
+export async function updateLoanAdvance(
+  staffId: string,
+  loanId: string,
+  data: Partial<LoanAdvance>
+): Promise<{ data: LoanAdvance }> {
+  return apiPut<{ data: LoanAdvance }>(`${API_BASE}/${staffId}/loans/${loanId}`, data)
+}
+
+// ==================== TIME-OFF ACCRUAL ====================
+
+export async function fetchTimeOffAccrual(
+  staffId: string,
+  year?: number
+): Promise<{ data: TimeOffAccrual[] }> {
+  const params = year ? `?year=${year}` : ''
+  return apiGet<{ data: TimeOffAccrual[] }>(`${API_BASE}/${staffId}/time-off-accrual${params}`)
+}
+
+export async function adjustTimeOff(
+  staffId: string,
+  data: { leaveType: string; amount: number; notes: string }
+): Promise<{ data: TimeOffAccrual }> {
+  return apiPost<{ data: TimeOffAccrual }>(`${API_BASE}/${staffId}/time-off-accrual/adjust`, data)
+}
+
+// ==================== ONBOARDING ====================
+
+export async function fetchOnboardingTasks(): Promise<{ data: OnboardingTask[] }> {
+  return apiGet<{ data: OnboardingTask[] }>(`${API_BASE}/onboarding/tasks`)
+}
+
+export async function fetchOnboardingChecklists(
+  filters?: { status?: string }
+): Promise<{ data: OnboardingChecklist[] }> {
+  const params = new URLSearchParams()
+  if (filters?.status) params.set('status', filters.status)
+  return apiGet<{ data: OnboardingChecklist[] }>(`${API_BASE}/onboarding?${params}`)
+}
+
+export async function fetchStaffOnboarding(staffId: string): Promise<{ data: OnboardingChecklist | null }> {
+  return apiGet<{ data: OnboardingChecklist | null }>(`${API_BASE}/${staffId}/onboarding`)
+}
+
+export async function createOnboardingChecklist(
+  staffId: string,
+  data: { assignedHR: string; assignedManager: string }
+): Promise<{ data: OnboardingChecklist }> {
+  return apiPost<{ data: OnboardingChecklist }>(`${API_BASE}/${staffId}/onboarding`, data)
+}
+
+export async function updateOnboardingTask(
+  staffId: string,
+  taskId: string,
+  data: { status: string; notes?: string; completedBy?: string }
+): Promise<{ data: OnboardingChecklist }> {
+  return apiPatch<{ data: OnboardingChecklist }>(`${API_BASE}/${staffId}/onboarding/tasks/${taskId}`, data)
+}
+
+// ==================== EXIT INTERVIEW ====================
+
+export async function fetchExitInterviews(
+  filters?: { status?: string; separationType?: string }
+): Promise<{ data: ExitInterview[] }> {
+  const params = new URLSearchParams()
+  if (filters?.status) params.set('status', filters.status)
+  if (filters?.separationType) params.set('separationType', filters.separationType)
+  return apiGet<{ data: ExitInterview[] }>(`${API_BASE}/exit-interviews?${params}`)
+}
+
+export async function fetchStaffExitInterview(staffId: string): Promise<{ data: ExitInterview | null }> {
+  return apiGet<{ data: ExitInterview | null }>(`${API_BASE}/${staffId}/exit-interview`)
+}
+
+export async function createExitInterview(
+  staffId: string,
+  data: Omit<ExitInterview, 'id' | 'staffId' | 'staffName' | 'department' | 'designation' | 'joiningDate'>
+): Promise<{ data: ExitInterview }> {
+  return apiPost<{ data: ExitInterview }>(`${API_BASE}/${staffId}/exit-interview`, data)
+}
+
+export async function updateExitInterview(
+  staffId: string,
+  data: Partial<ExitInterview>
+): Promise<{ data: ExitInterview }> {
+  return apiPut<{ data: ExitInterview }>(`${API_BASE}/${staffId}/exit-interview`, data)
+}
+
+export async function updateClearanceStatus(
+  staffId: string,
+  department: string,
+  data: { cleared: boolean; clearedBy: string; remarks?: string }
+): Promise<{ data: ExitInterview }> {
+  return apiPatch<{ data: ExitInterview }>(`${API_BASE}/${staffId}/exit-interview/clearance/${department}`, data)
+}
+
+// ==================== SKILLS MATRIX & CERTIFICATIONS ====================
+
+export async function fetchStaffSkills(staffId: string): Promise<{ data: StaffSkill[] }> {
+  return apiGet<{ data: StaffSkill[] }>(`${API_BASE}/${staffId}/skills`)
+}
+
+export async function createStaffSkill(
+  staffId: string,
+  data: Omit<StaffSkill, 'id' | 'staffId'>
+): Promise<{ data: StaffSkill }> {
+  return apiPost<{ data: StaffSkill }>(`${API_BASE}/${staffId}/skills`, data)
+}
+
+export async function updateStaffSkill(
+  staffId: string,
+  skillId: string,
+  data: Partial<StaffSkill>
+): Promise<{ data: StaffSkill }> {
+  return apiPut<{ data: StaffSkill }>(`${API_BASE}/${staffId}/skills/${skillId}`, data)
+}
+
+export async function deleteStaffSkill(
+  staffId: string,
+  skillId: string
+): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/${staffId}/skills/${skillId}`)
+}
+
+export async function fetchCertifications(staffId: string): Promise<{ data: Certification[] }> {
+  return apiGet<{ data: Certification[] }>(`${API_BASE}/${staffId}/certifications`)
+}
+
+export async function createCertification(
+  staffId: string,
+  data: Omit<Certification, 'id' | 'staffId' | 'status' | 'reminderSent'>
+): Promise<{ data: Certification }> {
+  return apiPost<{ data: Certification }>(`${API_BASE}/${staffId}/certifications`, data)
+}
+
+export async function updateCertification(
+  staffId: string,
+  certId: string,
+  data: Partial<Certification>
+): Promise<{ data: Certification }> {
+  return apiPut<{ data: Certification }>(`${API_BASE}/${staffId}/certifications/${certId}`, data)
+}
+
+export async function deleteCertification(
+  staffId: string,
+  certId: string
+): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/${staffId}/certifications/${certId}`)
+}
+
+export async function fetchCertificationExpiryAlerts(): Promise<{ data: CertificationExpiryAlert[] }> {
+  return apiGet<{ data: CertificationExpiryAlert[] }>(`${API_BASE}/certifications/expiry-alerts`)
+}
+
+export async function fetchSkillGaps(staffId: string): Promise<{ data: SkillGap[] }> {
+  return apiGet<{ data: SkillGap[] }>(`${API_BASE}/${staffId}/skill-gaps`)
+}
+
+export async function fetchSkillsMatrix(
+  filters?: { department?: string; skill?: string }
+): Promise<{ data: { staffId: string; staffName: string; department: string; skills: StaffSkill[] }[] }> {
+  const params = new URLSearchParams()
+  if (filters?.department) params.set('department', filters.department)
+  if (filters?.skill) params.set('skill', filters.skill)
+  return apiGet(`${API_BASE}/skills-matrix?${params}`)
+}
+
+// ==================== WORK SCHEDULE PREFERENCES ====================
+
+export async function fetchWorkSchedulePreference(staffId: string): Promise<{ data: WorkSchedulePreference | null }> {
+  return apiGet<{ data: WorkSchedulePreference | null }>(`${API_BASE}/${staffId}/schedule-preference`)
+}
+
+export async function updateWorkSchedulePreference(
+  staffId: string,
+  data: Partial<WorkSchedulePreference>
+): Promise<{ data: WorkSchedulePreference }> {
+  return apiPut<{ data: WorkSchedulePreference }>(`${API_BASE}/${staffId}/schedule-preference`, data)
+}
+
+export async function requestScheduleChange(
+  staffId: string,
+  data: { preferredWorkMode: string; preferredShift: string; notes?: string }
+): Promise<{ data: WorkSchedulePreference }> {
+  return apiPost<{ data: WorkSchedulePreference }>(`${API_BASE}/${staffId}/schedule-preference/request`, data)
+}
+
+export async function approveScheduleChange(
+  staffId: string,
+  approved: boolean,
+  effectiveFrom?: string
+): Promise<{ data: WorkSchedulePreference }> {
+  return apiPatch<{ data: WorkSchedulePreference }>(`${API_BASE}/${staffId}/schedule-preference/approve`, {
+    approved,
+    effectiveFrom,
+  })
+}
+
+export async function fetchShiftSchedules(
+  filters?: { week?: string; staffId?: string; department?: string }
+): Promise<{ data: ShiftSchedule[] }> {
+  const params = new URLSearchParams()
+  if (filters?.week) params.set('week', filters.week)
+  if (filters?.staffId) params.set('staffId', filters.staffId)
+  if (filters?.department) params.set('department', filters.department)
+  return apiGet<{ data: ShiftSchedule[] }>(`${API_BASE}/shift-schedules?${params}`)
+}
+
+export async function createShiftSchedule(
+  data: Omit<ShiftSchedule, 'id' | 'createdAt'>
+): Promise<{ data: ShiftSchedule }> {
+  return apiPost<{ data: ShiftSchedule }>(`${API_BASE}/shift-schedules`, data)
+}
+
+export async function updateShiftSchedule(
+  scheduleId: string,
+  data: Partial<ShiftSchedule>
+): Promise<{ data: ShiftSchedule }> {
+  return apiPut<{ data: ShiftSchedule }>(`${API_BASE}/shift-schedules/${scheduleId}`, data)
 }

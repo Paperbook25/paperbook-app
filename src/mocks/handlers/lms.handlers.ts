@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   courses,
   modules,
@@ -11,6 +12,8 @@ import {
   quizAttempts,
   instructors,
   getLmsStats,
+  certificates,
+  certificateTemplates,
 } from '../data/lms.data'
 import type {
   Course,
@@ -22,6 +25,8 @@ import type {
   AssignmentSubmission,
   Quiz,
   QuizAttempt,
+  Certificate,
+  CertificateType,
 } from '@/features/lms/types/lms.types'
 
 export const lmsHandlers = [
@@ -29,14 +34,14 @@ export const lmsHandlers = [
 
   // Get LMS stats
   http.get('/api/lms/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     const stats = getLmsStats()
     return HttpResponse.json({ data: stats })
   }),
 
   // Get all instructors
   http.get('/api/lms/instructors', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: instructors })
   }),
 
@@ -44,7 +49,7 @@ export const lmsHandlers = [
 
   // Get paginated courses with filters
   http.get('/api/lms/courses', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')
     const category = url.searchParams.get('category')
@@ -86,7 +91,7 @@ export const lmsHandlers = [
 
   // Get single course
   http.get('/api/lms/courses/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const course = courses.find((c) => c.id === params.id)
     if (!course) {
       return HttpResponse.json({ error: 'Course not found' }, { status: 404 })
@@ -96,7 +101,7 @@ export const lmsHandlers = [
 
   // Create course
   http.post('/api/lms/courses', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
     const now = new Date().toISOString()
 
@@ -127,7 +132,7 @@ export const lmsHandlers = [
 
   // Update course
   http.put('/api/lms/courses/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = courses.findIndex((c) => c.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Course not found' }, { status: 404 })
@@ -143,7 +148,7 @@ export const lmsHandlers = [
 
   // Delete course
   http.delete('/api/lms/courses/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = courses.findIndex((c) => c.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Course not found' }, { status: 404 })
@@ -156,7 +161,7 @@ export const lmsHandlers = [
 
   // Get modules for a course, sorted by order
   http.get('/api/lms/courses/:id/modules', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const courseModules = modules
       .filter((m) => m.courseId === params.id)
       .sort((a, b) => a.order - b.order)
@@ -165,7 +170,7 @@ export const lmsHandlers = [
 
   // Create module
   http.post('/api/lms/modules', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
 
     const newModule: CourseModule = {
@@ -183,7 +188,7 @@ export const lmsHandlers = [
 
   // Update module
   http.put('/api/lms/modules/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = modules.findIndex((m) => m.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Module not found' }, { status: 404 })
@@ -195,7 +200,7 @@ export const lmsHandlers = [
 
   // Delete module
   http.delete('/api/lms/modules/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = modules.findIndex((m) => m.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Module not found' }, { status: 404 })
@@ -208,7 +213,7 @@ export const lmsHandlers = [
 
   // Get lessons for a module, sorted by order
   http.get('/api/lms/modules/:id/lessons', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const moduleLessons = lessons
       .filter((l) => l.moduleId === params.id)
       .sort((a, b) => a.order - b.order)
@@ -217,7 +222,7 @@ export const lmsHandlers = [
 
   // Create lesson
   http.post('/api/lms/lessons', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
 
     const newLesson: Lesson = {
@@ -239,7 +244,7 @@ export const lmsHandlers = [
 
   // Update lesson
   http.put('/api/lms/lessons/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = lessons.findIndex((l) => l.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Lesson not found' }, { status: 404 })
@@ -251,7 +256,7 @@ export const lmsHandlers = [
 
   // Delete lesson
   http.delete('/api/lms/lessons/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = lessons.findIndex((l) => l.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Lesson not found' }, { status: 404 })
@@ -264,7 +269,7 @@ export const lmsHandlers = [
 
   // Get paginated live classes with filters
   http.get('/api/lms/live-classes', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')
     const courseId = url.searchParams.get('courseId')
@@ -308,7 +313,7 @@ export const lmsHandlers = [
 
   // Get single live class
   http.get('/api/lms/live-classes/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const liveClass = liveClasses.find((lc) => lc.id === params.id)
     if (!liveClass) {
       return HttpResponse.json({ error: 'Live class not found' }, { status: 404 })
@@ -318,7 +323,7 @@ export const lmsHandlers = [
 
   // Schedule live class
   http.post('/api/lms/live-classes', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
 
     const course = courses.find((c) => c.id === body.courseId)
@@ -347,7 +352,7 @@ export const lmsHandlers = [
 
   // Update live class
   http.put('/api/lms/live-classes/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = liveClasses.findIndex((lc) => lc.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Live class not found' }, { status: 404 })
@@ -359,7 +364,7 @@ export const lmsHandlers = [
 
   // Delete live class
   http.delete('/api/lms/live-classes/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = liveClasses.findIndex((lc) => lc.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Live class not found' }, { status: 404 })
@@ -372,7 +377,7 @@ export const lmsHandlers = [
 
   // Get paginated enrollments with filters
   http.get('/api/lms/enrollments', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const search = url.searchParams.get('search')
     const courseId = url.searchParams.get('courseId')
@@ -410,7 +415,7 @@ export const lmsHandlers = [
 
   // Enroll student (check for duplicate)
   http.post('/api/lms/enrollments', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
 
     const duplicate = enrollments.find(
@@ -454,7 +459,7 @@ export const lmsHandlers = [
 
   // Update enrollment status
   http.patch('/api/lms/enrollments/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = enrollments.findIndex((e) => e.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Enrollment not found' }, { status: 404 })
@@ -466,7 +471,7 @@ export const lmsHandlers = [
 
   // Get enrollment progress
   http.get('/api/lms/enrollments/:id/progress', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const enrollment = enrollments.find((e) => e.id === params.id)
     if (!enrollment) {
       return HttpResponse.json({ error: 'Enrollment not found' }, { status: 404 })
@@ -494,7 +499,7 @@ export const lmsHandlers = [
 
   // Get assignments list (filterable)
   http.get('/api/lms/assignments', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const courseId = url.searchParams.get('courseId')
     const search = url.searchParams.get('search')
@@ -518,7 +523,7 @@ export const lmsHandlers = [
 
   // Get single assignment
   http.get('/api/lms/assignments/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const assignment = assignments.find((a) => a.id === params.id)
     if (!assignment) {
       return HttpResponse.json({ error: 'Assignment not found' }, { status: 404 })
@@ -528,7 +533,7 @@ export const lmsHandlers = [
 
   // Create assignment
   http.post('/api/lms/assignments', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
     const course = courses.find((c) => c.id === body.courseId)
 
@@ -551,7 +556,7 @@ export const lmsHandlers = [
 
   // Update assignment
   http.put('/api/lms/assignments/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = assignments.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Assignment not found' }, { status: 404 })
@@ -563,7 +568,7 @@ export const lmsHandlers = [
 
   // Delete assignment
   http.delete('/api/lms/assignments/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = assignments.findIndex((a) => a.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Assignment not found' }, { status: 404 })
@@ -574,7 +579,7 @@ export const lmsHandlers = [
 
   // Get submissions for an assignment
   http.get('/api/lms/assignments/:id/submissions', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const assignmentSubmissions = submissions.filter(
       (s) => s.assignmentId === params.id
     )
@@ -583,7 +588,7 @@ export const lmsHandlers = [
 
   // Submit assignment
   http.post('/api/lms/submissions', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
 
     const newSubmission: AssignmentSubmission = {
@@ -612,7 +617,7 @@ export const lmsHandlers = [
 
   // Grade submission
   http.post('/api/lms/submissions/:id/grade', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = submissions.findIndex((s) => s.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Submission not found' }, { status: 404 })
@@ -633,7 +638,7 @@ export const lmsHandlers = [
 
   // Get quizzes list (filterable)
   http.get('/api/lms/quizzes', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const courseId = url.searchParams.get('courseId')
     const search = url.searchParams.get('search')
@@ -657,7 +662,7 @@ export const lmsHandlers = [
 
   // Get single quiz
   http.get('/api/lms/quizzes/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const quiz = quizzes.find((q) => q.id === params.id)
     if (!quiz) {
       return HttpResponse.json({ error: 'Quiz not found' }, { status: 404 })
@@ -667,7 +672,7 @@ export const lmsHandlers = [
 
   // Create quiz
   http.post('/api/lms/quizzes', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as Record<string, unknown>
     const course = courses.find((c) => c.id === body.courseId)
 
@@ -695,7 +700,7 @@ export const lmsHandlers = [
 
   // Update quiz
   http.put('/api/lms/quizzes/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = quizzes.findIndex((q) => q.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Quiz not found' }, { status: 404 })
@@ -713,7 +718,7 @@ export const lmsHandlers = [
 
   // Delete quiz
   http.delete('/api/lms/quizzes/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = quizzes.findIndex((q) => q.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Quiz not found' }, { status: 404 })
@@ -724,7 +729,7 @@ export const lmsHandlers = [
 
   // Submit quiz answers (calculate score, create attempt)
   http.post('/api/lms/quizzes/:id/submit', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const quiz = quizzes.find((q) => q.id === params.id)
     if (!quiz) {
       return HttpResponse.json({ error: 'Quiz not found' }, { status: 404 })
@@ -773,7 +778,7 @@ export const lmsHandlers = [
 
   // Get quiz attempts
   http.get('/api/lms/quizzes/:id/attempts', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const attempts = quizAttempts.filter((a) => a.quizId === params.id)
     return HttpResponse.json({ data: attempts })
   }),
@@ -782,7 +787,7 @@ export const lmsHandlers = [
 
   // Mark lesson completed (update enrollment progress)
   http.post('/api/lms/lessons/:id/progress', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const lesson = lessons.find((l) => l.id === params.id)
     if (!lesson) {
       return HttpResponse.json({ error: 'Lesson not found' }, { status: 404 })
@@ -829,5 +834,112 @@ export const lmsHandlers = [
         enrollmentStatus: enrollment.status,
       },
     })
+  }),
+
+  // ==================== CERTIFICATES ====================
+
+  // Get all certificate templates
+  http.get('/api/lms/certificates/templates', async () => {
+    await mockDelay('read')
+    return HttpResponse.json({ data: certificateTemplates })
+  }),
+
+  // Get certificates for a student
+  http.get('/api/lms/certificates', async ({ request }) => {
+    await mockDelay('read')
+    const url = new URL(request.url)
+    const studentId = url.searchParams.get('studentId')
+    const courseId = url.searchParams.get('courseId')
+
+    let filtered = [...certificates]
+
+    if (studentId) {
+      filtered = filtered.filter((c) => c.studentId === studentId)
+    }
+    if (courseId) {
+      filtered = filtered.filter((c) => c.courseId === courseId)
+    }
+
+    return HttpResponse.json({ data: filtered })
+  }),
+
+  // Get single certificate
+  http.get('/api/lms/certificates/:id', async ({ params }) => {
+    await mockDelay('read')
+    const certificate = certificates.find((c) => c.id === params.id)
+    if (!certificate) {
+      return HttpResponse.json({ error: 'Certificate not found' }, { status: 404 })
+    }
+    return HttpResponse.json({ data: certificate })
+  }),
+
+  // Verify certificate by certificate number
+  http.get('/api/lms/certificates/verify/:certNumber', async ({ params }) => {
+    await mockDelay('read')
+    const certificate = certificates.find((c) => c.certificateNumber === params.certNumber)
+    if (!certificate) {
+      return HttpResponse.json({
+        data: { valid: false, message: 'Certificate not found' }
+      })
+    }
+    return HttpResponse.json({
+      data: {
+        valid: true,
+        certificate,
+        message: 'Certificate is valid and verified'
+      }
+    })
+  }),
+
+  // Generate certificate for completed enrollment
+  http.post('/api/lms/certificates/generate', async ({ request }) => {
+    await mockDelay('heavy')
+    const body = (await request.json()) as Record<string, unknown>
+    const enrollmentId = body.enrollmentId as string
+    const type = (body.type as CertificateType) || 'completion'
+
+    const enrollment = enrollments.find((e) => e.id === enrollmentId)
+    if (!enrollment) {
+      return HttpResponse.json({ error: 'Enrollment not found' }, { status: 404 })
+    }
+
+    if (enrollment.status !== 'completed') {
+      return HttpResponse.json(
+        { error: 'Certificate can only be generated for completed enrollments' },
+        { status: 400 }
+      )
+    }
+
+    // Check if certificate already exists
+    const existingCert = certificates.find((c) => c.enrollmentId === enrollmentId)
+    if (existingCert) {
+      return HttpResponse.json({ data: existingCert })
+    }
+
+    const course = courses.find((c) => c.id === enrollment.courseId)
+    const instructor = instructors.find((i) => i.id === course?.instructorId)
+
+    const certNumber = `CERT-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 10).toUpperCase()}`
+
+    const newCertificate: Certificate = {
+      id: `CERT-${Date.now()}`,
+      enrollmentId: enrollment.id,
+      courseId: enrollment.courseId,
+      courseName: enrollment.courseName,
+      studentId: enrollment.studentId,
+      studentName: enrollment.studentName,
+      instructorName: instructor?.name || 'Course Instructor',
+      type,
+      issueDate: new Date().toISOString(),
+      certificateNumber: certNumber,
+      completionPercentage: 100,
+      grade: type === 'excellence' ? 'A+' : type === 'achievement' ? 'A' : 'B',
+      hoursCompleted: course?.duration || 30,
+      skills: course?.tags || [],
+      verificationUrl: `https://verify.paperbook.edu/cert/${certNumber}`,
+    }
+
+    certificates.push(newCertificate)
+    return HttpResponse.json({ data: newCertificate }, { status: 201 })
   }),
 ]

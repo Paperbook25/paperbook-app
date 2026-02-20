@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { useStudentTimeline } from '../hooks/useStudents'
 import type { TimelineEvent, TimelineEventType } from '../types/student.types'
+import { timelineColors, statusColors, moduleColors } from '@/lib/design-tokens'
 
 interface StudentTimelineProps {
   studentId: string
@@ -37,23 +38,23 @@ const EVENT_ICON_MAP: Record<TimelineEventType, LucideIcon> = {
   transfer: ArrowRightCircle,
 }
 
-const EVENT_COLOR_MAP: Record<TimelineEventType, string> = {
-  fee_paid: 'bg-green-100 text-green-700',
-  attendance_marked: 'bg-blue-100 text-blue-700',
-  book_issued: 'bg-amber-100 text-amber-700',
-  book_returned: 'bg-amber-100 text-amber-700',
-  marks_entered: 'bg-purple-100 text-purple-700',
-  leave_applied: 'bg-orange-100 text-orange-700',
-  document_uploaded: 'bg-cyan-100 text-cyan-700',
-  profile_updated: 'bg-gray-100 text-gray-700',
-  admission: 'bg-emerald-100 text-emerald-700',
-  promotion: 'bg-indigo-100 text-indigo-700',
-  transfer: 'bg-rose-100 text-rose-700',
+const EVENT_COLOR_STYLE_MAP: Record<TimelineEventType, { bg: string; text: string }> = {
+  fee_paid: { bg: timelineColors.feePaidLight, text: timelineColors.feePaid },
+  attendance_marked: { bg: timelineColors.attendanceMarkedLight, text: timelineColors.attendanceMarked },
+  book_issued: { bg: timelineColors.bookIssuedLight, text: timelineColors.bookIssued },
+  book_returned: { bg: timelineColors.bookIssuedLight, text: timelineColors.bookIssued },
+  marks_entered: { bg: timelineColors.gradeUpdatedLight, text: timelineColors.gradeUpdated },
+  leave_applied: { bg: moduleColors.behaviorLight, text: moduleColors.behavior },
+  document_uploaded: { bg: timelineColors.documentUploadedLight, text: timelineColors.documentUploaded },
+  profile_updated: { bg: statusColors.inactiveLight, text: statusColors.inactive },
+  admission: { bg: moduleColors.admissionsLight, text: moduleColors.admissions },
+  promotion: { bg: moduleColors.lmsLight, text: moduleColors.lms },
+  transfer: { bg: statusColors.errorLight, text: statusColors.error },
 }
 
 function TimelineItem({ event }: { event: TimelineEvent }) {
   const Icon = EVENT_ICON_MAP[event.type] ?? Clock
-  const colorClass = EVENT_COLOR_MAP[event.type] ?? 'bg-gray-100 text-gray-700'
+  const colorStyle = EVENT_COLOR_STYLE_MAP[event.type] ?? { bg: statusColors.inactiveLight, text: statusColors.inactive }
 
   return (
     <div className="relative flex gap-4 pb-8 last:pb-0">
@@ -62,10 +63,8 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
 
       {/* Icon */}
       <div
-        className={cn(
-          'relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-          colorClass
-        )}
+        className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+        style={{ backgroundColor: colorStyle.bg, color: colorStyle.text }}
       >
         <Icon className="h-4 w-4" />
       </div>

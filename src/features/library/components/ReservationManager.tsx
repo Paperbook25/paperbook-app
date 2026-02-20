@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useReservations, useCancelReservation } from '../hooks/useLibrary'
 import { RESERVATION_STATUS_LABELS, type ReservationStatus } from '../types/library.types'
+import { statusColors } from '@/lib/design-tokens'
 
 const STATUS_VARIANT: Record<ReservationStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   active: 'default',
@@ -55,7 +56,7 @@ export function ReservationManager() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{activeCount}</div>
+            <div className="text-2xl font-bold" style={{ color: statusColors.info }}>{activeCount}</div>
             <p className="text-sm text-muted-foreground">Active in Queue</p>
           </CardContent>
         </Card>

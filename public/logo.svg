@@ -11,5 +11,5 @@
   <path d="M11 7h6.5a5.5 5.5 0 010 11H15v7h-4V7z" fill="#ffffff"/>
   <path d="M15 11h2.5a1.5 1.5 0 010 3H15v-3z" fill="url(#bgGrad)"/>
   <!-- Saffron acute angle triangle accent pointing up-right -->
-  <polygon points="20,25 27,17 27,25" fill="#FF9933"/>
+  <polygon points="19,25 27,25 23,18" fill="#FF9933"/>
 </svg>

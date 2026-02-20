@@ -178,3 +178,264 @@ export async function fetchStudentAlumniRecord(
 ): Promise<{ data: Alumni | null }> {
   return apiGet<{ data: Alumni | null }>(`${API_BASE}/${studentId}/alumni`)
 }
+
+// ==================== PORTFOLIO & SKILLS ====================
+
+import type {
+  StudentPortfolio,
+  StudentSkill,
+  PortfolioItem,
+  LearningStyleAssessment,
+  LearningPreferences,
+  StudentRiskProfile,
+  RiskIndicator,
+  RiskIntervention,
+  StudentGraduationProgress,
+  PromotionHistory,
+  StudentTeacherRelationship,
+  TeacherFeedback,
+  MentorshipRecord,
+} from '../types/student.types'
+
+export async function fetchStudentPortfolio(
+  studentId: string
+): Promise<{ data: StudentPortfolio }> {
+  return apiGet<{ data: StudentPortfolio }>(`${API_BASE}/${studentId}/portfolio`)
+}
+
+export async function updateStudentPortfolio(
+  studentId: string,
+  data: Partial<StudentPortfolio>
+): Promise<{ data: StudentPortfolio }> {
+  return apiPut<{ data: StudentPortfolio }>(`${API_BASE}/${studentId}/portfolio`, data)
+}
+
+export async function addStudentSkill(
+  studentId: string,
+  skill: Omit<StudentSkill, 'id' | 'studentId'>
+): Promise<{ data: StudentSkill }> {
+  return apiPost<{ data: StudentSkill }>(`${API_BASE}/${studentId}/skills`, skill)
+}
+
+export async function updateStudentSkill(
+  studentId: string,
+  skillId: string,
+  data: Partial<StudentSkill>
+): Promise<{ data: StudentSkill }> {
+  return apiPut<{ data: StudentSkill }>(`${API_BASE}/${studentId}/skills/${skillId}`, data)
+}
+
+export async function deleteStudentSkill(
+  studentId: string,
+  skillId: string
+): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/${studentId}/skills/${skillId}`)
+}
+
+export async function addPortfolioItem(
+  studentId: string,
+  item: Omit<PortfolioItem, 'id' | 'studentId'>
+): Promise<{ data: PortfolioItem }> {
+  return apiPost<{ data: PortfolioItem }>(`${API_BASE}/${studentId}/portfolio/items`, item)
+}
+
+export async function updatePortfolioItem(
+  studentId: string,
+  itemId: string,
+  data: Partial<PortfolioItem>
+): Promise<{ data: PortfolioItem }> {
+  return apiPut<{ data: PortfolioItem }>(`${API_BASE}/${studentId}/portfolio/items/${itemId}`, data)
+}
+
+export async function deletePortfolioItem(
+  studentId: string,
+  itemId: string
+): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/${studentId}/portfolio/items/${itemId}`)
+}
+
+// ==================== LEARNING STYLE ASSESSMENT ====================
+
+export async function fetchLearningStyleAssessments(
+  studentId: string
+): Promise<{ data: LearningStyleAssessment[] }> {
+  return apiGet<{ data: LearningStyleAssessment[] }>(`${API_BASE}/${studentId}/learning-style`)
+}
+
+export async function createLearningStyleAssessment(
+  studentId: string,
+  data: Omit<LearningStyleAssessment, 'id' | 'studentId'>
+): Promise<{ data: LearningStyleAssessment }> {
+  return apiPost<{ data: LearningStyleAssessment }>(`${API_BASE}/${studentId}/learning-style`, data)
+}
+
+export async function fetchLearningPreferences(
+  studentId: string
+): Promise<{ data: LearningPreferences | null }> {
+  return apiGet<{ data: LearningPreferences | null }>(`${API_BASE}/${studentId}/learning-preferences`)
+}
+
+export async function updateLearningPreferences(
+  studentId: string,
+  data: Omit<LearningPreferences, 'studentId'>
+): Promise<{ data: LearningPreferences }> {
+  return apiPut<{ data: LearningPreferences }>(`${API_BASE}/${studentId}/learning-preferences`, data)
+}
+
+// ==================== RISK INDICATORS ====================
+
+export async function fetchStudentRiskProfile(
+  studentId: string
+): Promise<{ data: StudentRiskProfile }> {
+  return apiGet<{ data: StudentRiskProfile }>(`${API_BASE}/${studentId}/risk-profile`)
+}
+
+export async function createRiskIndicator(
+  studentId: string,
+  data: Omit<RiskIndicator, 'id' | 'studentId' | 'interventions'>
+): Promise<{ data: RiskIndicator }> {
+  return apiPost<{ data: RiskIndicator }>(`${API_BASE}/${studentId}/risk-indicators`, data)
+}
+
+export async function updateRiskIndicator(
+  studentId: string,
+  indicatorId: string,
+  data: Partial<RiskIndicator>
+): Promise<{ data: RiskIndicator }> {
+  return apiPut<{ data: RiskIndicator }>(`${API_BASE}/${studentId}/risk-indicators/${indicatorId}`, data)
+}
+
+export async function addRiskIntervention(
+  studentId: string,
+  indicatorId: string,
+  data: Omit<RiskIntervention, 'id' | 'riskId'>
+): Promise<{ data: RiskIntervention }> {
+  return apiPost<{ data: RiskIntervention }>(
+    `${API_BASE}/${studentId}/risk-indicators/${indicatorId}/interventions`,
+    data
+  )
+}
+
+export async function updateRiskIntervention(
+  studentId: string,
+  indicatorId: string,
+  interventionId: string,
+  data: Partial<RiskIntervention>
+): Promise<{ data: RiskIntervention }> {
+  return apiPut<{ data: RiskIntervention }>(
+    `${API_BASE}/${studentId}/risk-indicators/${indicatorId}/interventions/${interventionId}`,
+    data
+  )
+}
+
+export async function fetchAtRiskStudents(
+  filters?: { level?: string; category?: string }
+): Promise<{ data: { studentId: string; studentName: string; riskProfile: StudentRiskProfile }[] }> {
+  const params = new URLSearchParams()
+  if (filters?.level) params.set('level', filters.level)
+  if (filters?.category) params.set('category', filters.category)
+  return apiGet<{ data: { studentId: string; studentName: string; riskProfile: StudentRiskProfile }[] }>(
+    `${API_BASE}/at-risk?${params.toString()}`
+  )
+}
+
+// ==================== GRADUATION & PROMOTION TRACKING ====================
+
+export async function fetchGraduationProgress(
+  studentId: string
+): Promise<{ data: StudentGraduationProgress }> {
+  return apiGet<{ data: StudentGraduationProgress }>(`${API_BASE}/${studentId}/graduation-progress`)
+}
+
+export async function updateGraduationProgress(
+  studentId: string,
+  data: Partial<StudentGraduationProgress>
+): Promise<{ data: StudentGraduationProgress }> {
+  return apiPut<{ data: StudentGraduationProgress }>(`${API_BASE}/${studentId}/graduation-progress`, data)
+}
+
+export async function fetchPromotionHistory(
+  studentId: string
+): Promise<{ data: PromotionHistory[] }> {
+  return apiGet<{ data: PromotionHistory[] }>(`${API_BASE}/${studentId}/promotion-history`)
+}
+
+export async function fetchGraduationDashboard(
+  filters?: { class?: string; year?: string }
+): Promise<{
+  data: {
+    totalStudents: number
+    onTrack: number
+    atRisk: number
+    graduated: number
+    byClass: { class: string; total: number; onTrack: number; atRisk: number }[]
+  }
+}> {
+  const params = new URLSearchParams()
+  if (filters?.class) params.set('class', filters.class)
+  if (filters?.year) params.set('year', filters.year)
+  return apiGet(`${API_BASE}/graduation-dashboard?${params.toString()}`)
+}
+
+// ==================== STUDENT-TEACHER RELATIONSHIPS ====================
+
+export async function fetchStudentTeacherRelationships(
+  studentId: string
+): Promise<{ data: StudentTeacherRelationship[] }> {
+  return apiGet<{ data: StudentTeacherRelationship[] }>(`${API_BASE}/${studentId}/teachers`)
+}
+
+export async function addStudentTeacherRelationship(
+  studentId: string,
+  data: Omit<StudentTeacherRelationship, 'id' | 'studentId'>
+): Promise<{ data: StudentTeacherRelationship }> {
+  return apiPost<{ data: StudentTeacherRelationship }>(`${API_BASE}/${studentId}/teachers`, data)
+}
+
+export async function updateStudentTeacherRelationship(
+  studentId: string,
+  relationshipId: string,
+  data: Partial<StudentTeacherRelationship>
+): Promise<{ data: StudentTeacherRelationship }> {
+  return apiPut<{ data: StudentTeacherRelationship }>(
+    `${API_BASE}/${studentId}/teachers/${relationshipId}`,
+    data
+  )
+}
+
+export async function fetchTeacherFeedback(
+  studentId: string,
+  filters?: { term?: string; academicYear?: string }
+): Promise<{ data: TeacherFeedback[] }> {
+  const params = new URLSearchParams()
+  if (filters?.term) params.set('term', filters.term)
+  if (filters?.academicYear) params.set('academicYear', filters.academicYear)
+  return apiGet<{ data: TeacherFeedback[] }>(`${API_BASE}/${studentId}/teacher-feedback?${params.toString()}`)
+}
+
+export async function createTeacherFeedback(
+  studentId: string,
+  data: Omit<TeacherFeedback, 'id' | 'studentId'>
+): Promise<{ data: TeacherFeedback }> {
+  return apiPost<{ data: TeacherFeedback }>(`${API_BASE}/${studentId}/teacher-feedback`, data)
+}
+
+export async function fetchMentorship(
+  studentId: string
+): Promise<{ data: MentorshipRecord | null }> {
+  return apiGet<{ data: MentorshipRecord | null }>(`${API_BASE}/${studentId}/mentorship`)
+}
+
+export async function updateMentorship(
+  studentId: string,
+  data: Partial<MentorshipRecord>
+): Promise<{ data: MentorshipRecord }> {
+  return apiPut<{ data: MentorshipRecord }>(`${API_BASE}/${studentId}/mentorship`, data)
+}
+
+export async function addMentorshipSession(
+  studentId: string,
+  session: MentorshipRecord['sessions'][0]
+): Promise<{ data: MentorshipRecord }> {
+  return apiPost<{ data: MentorshipRecord }>(`${API_BASE}/${studentId}/mentorship/sessions`, session)
+}

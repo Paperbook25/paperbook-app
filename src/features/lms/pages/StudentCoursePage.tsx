@@ -24,6 +24,7 @@ import { LessonViewer } from '../components/LessonViewer'
 import { ProgressTracker } from '../components/ProgressTracker'
 import { LESSON_TYPE_LABELS } from '../types/lms.types'
 import type { Lesson, LessonType } from '../types/lms.types'
+import { statusColors } from '@/lib/design-tokens'
 
 // ==================== HELPERS ====================
 
@@ -110,7 +111,7 @@ function ModuleLessonsList({
               </div>
             </div>
             {isCompleted && (
-              <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+              <CheckCircle className="h-4 w-4 shrink-0" style={{ color: statusColors.success }} />
             )}
           </button>
         )
@@ -290,7 +291,7 @@ export function StudentCoursePage() {
                       {formatDuration(selectedLesson.duration)}
                     </span>
                     {completedLessons.has(selectedLesson.id) && (
-                      <Badge className="bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100">
+                      <Badge variant="success">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Completed
                       </Badge>

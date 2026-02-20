@@ -146,6 +146,72 @@ export const quickStats = {
   upcomingExams: 3,
 }
 
+// Payment method breakdown for fee collection
+export const paymentMethodsData = [
+  { name: 'UPI', value: 2623000, color: '#3b82f6' },
+  { name: 'Cash', value: 1130750, color: '#22c55e' },
+  { name: 'Card', value: 542760, color: '#6d28d9' },
+  { name: 'Cheque', value: 226490, color: '#64748b' },
+]
+
+// Recent fee transactions
+export const recentFeeTransactions = [
+  {
+    id: 'txn1',
+    studentName: 'Aarav Sharma',
+    class: '10A',
+    amount: 4999,
+    paymentMethod: 'UPI',
+    timestamp: faker.date.recent({ days: 0.001 }).toISOString(),
+    status: 'success' as const,
+  },
+  {
+    id: 'txn2',
+    studentName: 'Priya Patel',
+    class: '8B',
+    amount: 3500,
+    paymentMethod: 'Card',
+    timestamp: faker.date.recent({ days: 0.003 }).toISOString(),
+    status: 'success' as const,
+  },
+  {
+    id: 'txn3',
+    studentName: 'Rahul Verma',
+    class: '9A',
+    amount: 7500,
+    paymentMethod: 'Cash',
+    timestamp: faker.date.recent({ days: 0.01 }).toISOString(),
+    status: 'success' as const,
+  },
+  {
+    id: 'txn4',
+    studentName: 'Sneha Reddy',
+    class: '11B',
+    amount: 15000,
+    paymentMethod: 'UPI',
+    timestamp: faker.date.recent({ days: 0.02 }).toISOString(),
+    status: 'success' as const,
+  },
+  {
+    id: 'txn5',
+    studentName: 'Arjun Kumar',
+    class: '7C',
+    amount: 2500,
+    paymentMethod: 'Cheque',
+    timestamp: faker.date.recent({ days: 0.04 }).toISOString(),
+    status: 'success' as const,
+  },
+]
+
+// Class-wise fee collection progress
+export const classWiseCollection = [
+  { class: 'Class 12', collected: 850000, target: 1000000, percentage: 85 },
+  { class: 'Class 11', collected: 680000, target: 900000, percentage: 76 },
+  { class: 'Class 10', collected: 920000, target: 1100000, percentage: 84 },
+  { class: 'Class 9', collected: 550000, target: 800000, percentage: 69 },
+  { class: 'Class 8', collected: 480000, target: 700000, percentage: 69 },
+]
+
 // ==================== TEACHER DASHBOARD ====================
 
 export const teacherSchedule = [

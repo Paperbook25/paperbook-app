@@ -46,6 +46,7 @@ import {
   type IdType,
   type HostType,
 } from '../types/visitor.types'
+import { statusColors } from '@/lib/design-tokens'
 
 export function VisitorsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -146,10 +147,10 @@ export function VisitorsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Active Now</CardTitle>
-              <UserCheck className="h-4 w-4 text-green-500" />
+              <UserCheck className="h-4 w-4" style={{ color: statusColors.success }} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats?.activeVisitors || 0}</div>
+              <div className="text-2xl font-bold" style={{ color: statusColors.success }}>{stats?.activeVisitors || 0}</div>
               <p className="text-xs text-muted-foreground">Currently in premises</p>
             </CardContent>
           </Card>

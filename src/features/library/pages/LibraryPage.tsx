@@ -307,11 +307,11 @@ function IssuedBooksTab({
                 {issuedBooks.map((item) => (
                   <div
                     key={item.id}
-                    className={cn(
-                      'flex items-center justify-between p-3 rounded-lg border',
-                      item.status === 'overdue' &&
-                        'border-red-200 bg-red-50 dark:border-red-700 dark:bg-red-800'
-                    )}
+                    className="flex items-center justify-between p-3 rounded-lg border"
+                    style={item.status === 'overdue' ? {
+                      borderColor: 'var(--color-module-exams)',
+                      backgroundColor: 'var(--color-module-exams-light)',
+                    } : undefined}
                   >
                     <div>
                       <p className="font-medium">{item.bookTitle}</p>
@@ -547,6 +547,7 @@ export function LibraryPage() {
         title="Library"
         description="Manage books, issue, returns, and digital resources"
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Library' }]}
+        moduleColor="library"
         actions={getHeaderActions()}
       />
 
@@ -554,8 +555,8 @@ export function LibraryPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
-              <BookOpen className="h-5 w-5 text-blue-600" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-module-library-light)' }}>
+              <BookOpen className="h-5 w-5" style={{ color: 'var(--color-module-library)' }} />
             </div>
             <div>
               {statsLoading ? (
@@ -569,8 +570,8 @@ export function LibraryPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
-              <BookOpen className="h-5 w-5 text-green-600" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-module-attendance-light)' }}>
+              <BookOpen className="h-5 w-5" style={{ color: 'var(--color-module-attendance)' }} />
             </div>
             <div>
               {statsLoading ? (
@@ -584,8 +585,8 @@ export function LibraryPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg">
-              <BookMarked className="h-5 w-5 text-purple-600" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-module-lms-light)' }}>
+              <BookMarked className="h-5 w-5" style={{ color: 'var(--color-module-lms)' }} />
             </div>
             <div>
               {statsLoading ? (
@@ -599,8 +600,8 @@ export function LibraryPage() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="p-2 bg-red-100 dark:bg-red-800 rounded-lg">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-module-exams-light)' }}>
+              <AlertTriangle className="h-5 w-5" style={{ color: 'var(--color-module-exams)' }} />
             </div>
             <div>
               {statsLoading ? (

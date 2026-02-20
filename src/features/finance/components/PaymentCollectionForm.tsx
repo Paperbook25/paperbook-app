@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
+import { useToast } from '@/hooks/use-toast'
 import { useStudentFeesById, useCollectPayment } from '../hooks/useFinance'
 import { formatCurrency } from '@/lib/utils'
 import {
@@ -34,6 +35,7 @@ interface Student {
 }
 
 export function PaymentCollectionForm() {
+  const { toast } = useToast()
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
   const [selectedFees, setSelectedFees] = useState<Record<string, number>>({})
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('cash')
@@ -74,7 +76,24 @@ export function PaymentCollectionForm() {
   }
 
   const handleCollect = async () => {
-    if (!selectedStudent || totalSelected === 0) return
+    if (!selectedStudent || totalSelected === 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Please select a student and at least one fee to collect.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // Validate transaction reference for non-cash payments
+    if (paymentMode !== 'cash' && !transactionRef.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Transaction reference is required for non-cash payments.',
+        variant: 'destructive',
+      })
+      return
+    }
 
     const payments = Object.entries(selectedFees)
       .filter(([_, amount]) => amount > 0)
@@ -93,12 +112,20 @@ export function PaymentCollectionForm() {
       })
 
       setReceipt(result.data)
+      toast({
+        title: 'Payment collected',
+        description: `Payment of ${formatCurrency(totalSelected)} has been collected successfully.`,
+      })
       // Reset form
       setSelectedFees({})
       setTransactionRef('')
       setRemarks('')
     } catch (error) {
-      console.error('Failed to collect payment:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to collect payment',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -121,7 +148,9 @@ export function PaymentCollectionForm() {
         <CardContent className="space-y-6">
           {/* Student Search */}
           <div className="space-y-2">
-            <Label>Student</Label>
+            <Label>
+              Student <span className="text-destructive">*</span>
+            </Label>
             <StudentFeeSearch
               selectedStudent={selectedStudent}
               onSelect={setSelectedStudent}
@@ -237,7 +266,9 @@ export function PaymentCollectionForm() {
 
                     {paymentMode !== 'cash' && (
                       <div className="space-y-2">
-                        <Label htmlFor="transactionRef">Transaction Reference</Label>
+                        <Label htmlFor="transactionRef">
+                          Transaction Reference <span className="text-destructive">*</span>
+                        </Label>
                         <Input
                           id="transactionRef"
                           placeholder="Transaction ID / Cheque No."

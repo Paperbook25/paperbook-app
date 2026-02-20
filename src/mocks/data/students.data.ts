@@ -255,3 +255,497 @@ export const studentStats = {
 
 // Demo student for login page (first active student)
 export const demoStudent = students.find(s => s.status === 'active')!
+
+// ==================== PORTFOLIO & SKILLS ====================
+
+import type {
+  StudentSkill,
+  PortfolioItem,
+  StudentPortfolio,
+  LearningStyleAssessment,
+  LearningPreferences,
+  LearningStyleType,
+  IntelligenceType,
+  RiskIndicator,
+  RiskLevel,
+  RiskCategory,
+  StudentRiskProfile,
+  StudentGraduationProgress,
+  PromotionHistory,
+  StudentTeacherRelationship,
+  RelationshipType,
+  TeacherFeedback,
+  MentorshipRecord,
+} from '@/features/students/types/student.types'
+
+const SKILL_CATEGORIES = ['academic', 'sports', 'arts', 'leadership', 'technical', 'communication'] as const
+const SKILL_NAMES: Record<typeof SKILL_CATEGORIES[number], string[]> = {
+  academic: ['Mathematics', 'Science', 'English Literature', 'History', 'Geography', 'Computer Science'],
+  sports: ['Cricket', 'Football', 'Basketball', 'Swimming', 'Athletics', 'Badminton', 'Chess'],
+  arts: ['Painting', 'Music - Vocals', 'Classical Dance', 'Drama', 'Photography', 'Creative Writing'],
+  leadership: ['Public Speaking', 'Team Management', 'Event Organization', 'Debate', 'Student Council'],
+  technical: ['Programming', 'Web Development', 'Robotics', 'Video Editing', '3D Modeling'],
+  communication: ['Presentation Skills', 'Writing', 'Active Listening', 'Negotiation'],
+}
+
+const PORTFOLIO_TYPES = ['project', 'achievement', 'certificate', 'competition'] as const
+
+function generateStudentSkills(studentId: string): StudentSkill[] {
+  const numSkills = faker.number.int({ min: 2, max: 6 })
+  const skills: StudentSkill[] = []
+  const usedCategories = new Set<string>()
+
+  for (let i = 0; i < numSkills; i++) {
+    const category = faker.helpers.arrayElement(SKILL_CATEGORIES)
+    if (usedCategories.has(category)) continue
+    usedCategories.add(category)
+
+    skills.push({
+      id: faker.string.uuid(),
+      studentId,
+      name: faker.helpers.arrayElement(SKILL_NAMES[category]),
+      category,
+      proficiencyLevel: faker.helpers.arrayElement([1, 2, 3, 4, 5]) as 1 | 2 | 3 | 4 | 5,
+      certifications: faker.datatype.boolean(0.3) ? [faker.company.name() + ' Certificate'] : undefined,
+      endorsedBy: faker.datatype.boolean(0.4) ? [faker.person.fullName()] : undefined,
+      acquiredDate: faker.date.past({ years: 2 }).toISOString(),
+      notes: faker.datatype.boolean(0.2) ? faker.lorem.sentence() : undefined,
+    })
+  }
+  return skills
+}
+
+function generatePortfolioItems(studentId: string): PortfolioItem[] {
+  const numItems = faker.number.int({ min: 1, max: 5 })
+  return Array.from({ length: numItems }, () => ({
+    id: faker.string.uuid(),
+    studentId,
+    title: faker.helpers.arrayElement([
+      'Science Fair Project - Solar Energy',
+      'Art Competition Winner',
+      'Math Olympiad Participation',
+      'School Annual Day Performance',
+      'Sports Day Achievement',
+      'Essay Writing Competition',
+      'Coding Hackathon Project',
+    ]),
+    type: faker.helpers.arrayElement(PORTFOLIO_TYPES),
+    description: faker.lorem.paragraph(),
+    date: faker.date.past({ years: 2 }).toISOString(),
+    attachments: faker.datatype.boolean(0.5)
+      ? [{ name: 'certificate.pdf', url: '/uploads/certificates/cert.pdf', type: 'application/pdf' }]
+      : [],
+    tags: faker.helpers.arrayElements(['award', 'competition', 'project', 'achievement', 'certificate'], { min: 1, max: 3 }),
+    visibility: faker.helpers.arrayElement(['public', 'school', 'private']),
+    featured: faker.datatype.boolean(0.2),
+  }))
+}
+
+// Cache portfolios
+const portfolioCache = new Map<string, StudentPortfolio>()
+
+export function getStudentPortfolio(studentId: string): StudentPortfolio {
+  if (!portfolioCache.has(studentId)) {
+    portfolioCache.set(studentId, {
+      studentId,
+      bio: faker.datatype.boolean(0.6) ? faker.lorem.paragraph() : undefined,
+      interests: faker.helpers.arrayElements(
+        ['Science', 'Mathematics', 'Arts', 'Sports', 'Music', 'Technology', 'Literature', 'History'],
+        { min: 2, max: 5 }
+      ),
+      careerGoals: faker.datatype.boolean(0.5) ? faker.helpers.arrayElement([
+        'Become an engineer',
+        'Pursue medicine',
+        'Become a scientist',
+        'Work in technology',
+        'Become an artist',
+      ]) : undefined,
+      skills: generateStudentSkills(studentId),
+      items: generatePortfolioItems(studentId),
+      lastUpdated: faker.date.recent({ days: 30 }).toISOString(),
+    })
+  }
+  return portfolioCache.get(studentId)!
+}
+
+// ==================== LEARNING STYLE ASSESSMENTS ====================
+
+const LEARNING_STYLES: LearningStyleType[] = ['visual', 'auditory', 'reading_writing', 'kinesthetic']
+const INTELLIGENCE_TYPES: IntelligenceType[] = ['linguistic', 'logical', 'spatial', 'musical', 'bodily', 'interpersonal', 'intrapersonal', 'naturalist']
+
+function generateLearningStyleAssessment(studentId: string): LearningStyleAssessment {
+  const styleScores: Record<LearningStyleType, number> = {
+    visual: faker.number.int({ min: 20, max: 100 }),
+    auditory: faker.number.int({ min: 20, max: 100 }),
+    reading_writing: faker.number.int({ min: 20, max: 100 }),
+    kinesthetic: faker.number.int({ min: 20, max: 100 }),
+  }
+
+  const sortedStyles = Object.entries(styleScores).sort((a, b) => b[1] - a[1])
+  const primaryStyle = sortedStyles[0][0] as LearningStyleType
+  const secondaryStyle = sortedStyles[1][0] as LearningStyleType
+
+  const multipleIntelligences: Record<IntelligenceType, number> = {} as Record<IntelligenceType, number>
+  INTELLIGENCE_TYPES.forEach(type => {
+    multipleIntelligences[type] = faker.number.int({ min: 20, max: 100 })
+  })
+
+  return {
+    id: faker.string.uuid(),
+    studentId,
+    assessmentDate: faker.date.recent({ days: 180 }).toISOString(),
+    assessedBy: faker.person.fullName(),
+    primaryStyle,
+    secondaryStyle,
+    styleScores,
+    multipleIntelligences,
+    recommendations: [
+      `Focus on ${primaryStyle} learning materials`,
+      `Use ${secondaryStyle} techniques as supplementary`,
+      'Regular breaks recommended during study sessions',
+    ],
+    accommodations: faker.datatype.boolean(0.3) ? ['Extended time for tests', 'Preferential seating'] : undefined,
+    notes: faker.datatype.boolean(0.2) ? faker.lorem.sentence() : undefined,
+  }
+}
+
+const learningStyleCache = new Map<string, LearningStyleAssessment[]>()
+
+export function getLearningStyleAssessments(studentId: string): LearningStyleAssessment[] {
+  if (!learningStyleCache.has(studentId)) {
+    const numAssessments = faker.number.int({ min: 1, max: 3 })
+    learningStyleCache.set(studentId, Array.from({ length: numAssessments }, () =>
+      generateLearningStyleAssessment(studentId)
+    ))
+  }
+  return learningStyleCache.get(studentId)!
+}
+
+const learningPreferencesCache = new Map<string, LearningPreferences>()
+
+export function getLearningPreferences(studentId: string): LearningPreferences {
+  if (!learningPreferencesCache.has(studentId)) {
+    learningPreferencesCache.set(studentId, {
+      studentId,
+      preferredStudyTime: faker.helpers.arrayElement(['morning', 'afternoon', 'evening', 'night']),
+      preferredGroupSize: faker.helpers.arrayElement(['individual', 'pair', 'small_group', 'large_group']),
+      attentionSpan: faker.helpers.arrayElement(['short', 'medium', 'long']),
+      motivators: faker.helpers.arrayElements(['grades', 'praise', 'competition', 'curiosity', 'rewards'], { min: 1, max: 3 }),
+      challenges: faker.helpers.arrayElements(['focus', 'time_management', 'organization', 'test_anxiety'], { min: 0, max: 2 }),
+      accommodationsNeeded: [],
+    })
+  }
+  return learningPreferencesCache.get(studentId)!
+}
+
+// ==================== RISK INDICATORS ====================
+
+const RISK_LEVELS: RiskLevel[] = ['low', 'moderate', 'high', 'critical']
+const RISK_CATEGORIES: RiskCategory[] = ['academic', 'attendance', 'behavioral', 'social', 'health', 'financial']
+
+function generateRiskIndicators(studentId: string): RiskIndicator[] {
+  if (faker.datatype.boolean(0.7)) return [] // 70% of students have no risks
+
+  const numRisks = faker.number.int({ min: 1, max: 3 })
+  return Array.from({ length: numRisks }, () => {
+    const category = faker.helpers.arrayElement(RISK_CATEGORIES)
+    const indicators: Record<RiskCategory, string[]> = {
+      academic: ['Failing grades in multiple subjects', 'Significant grade drop', 'Incomplete assignments'],
+      attendance: ['High absence rate', 'Frequent tardiness', 'Unexplained absences'],
+      behavioral: ['Discipline incidents', 'Peer conflicts', 'Classroom disruptions'],
+      social: ['Social isolation', 'Bullying victim', 'Difficulty making friends'],
+      health: ['Frequent illness', 'Mental health concerns', 'Medical condition affecting learning'],
+      financial: ['Fee payment delays', 'Unable to afford supplies', 'Transportation issues'],
+    }
+
+    return {
+      id: faker.string.uuid(),
+      studentId,
+      category,
+      level: faker.helpers.weightedArrayElement([
+        { value: 'low' as RiskLevel, weight: 40 },
+        { value: 'moderate' as RiskLevel, weight: 35 },
+        { value: 'high' as RiskLevel, weight: 20 },
+        { value: 'critical' as RiskLevel, weight: 5 },
+      ]),
+      indicator: faker.helpers.arrayElement(indicators[category]),
+      description: faker.lorem.sentence(),
+      detectedDate: faker.date.recent({ days: 60 }).toISOString(),
+      dataPoints: [
+        { metric: 'Attendance %', value: faker.number.int({ min: 50, max: 95 }), threshold: 75 },
+        { metric: 'Assignment Completion', value: faker.number.int({ min: 40, max: 100 }), threshold: 80 },
+      ],
+      trend: faker.helpers.arrayElement(['improving', 'stable', 'declining']),
+      interventions: faker.datatype.boolean(0.5) ? [{
+        id: faker.string.uuid(),
+        riskId: '',
+        type: faker.helpers.arrayElement(['counseling', 'tutoring', 'parent_meeting', 'mentoring']),
+        description: faker.lorem.sentence(),
+        assignedTo: faker.person.fullName(),
+        startDate: faker.date.recent({ days: 30 }).toISOString(),
+        status: faker.helpers.arrayElement(['planned', 'in_progress', 'completed']),
+      }] : [],
+      status: faker.helpers.arrayElement(['active', 'monitoring', 'resolved']),
+    }
+  })
+}
+
+const riskProfileCache = new Map<string, StudentRiskProfile>()
+
+export function getStudentRiskProfile(studentId: string): StudentRiskProfile {
+  if (!riskProfileCache.has(studentId)) {
+    const indicators = generateRiskIndicators(studentId)
+    const maxLevel = indicators.reduce((max, ind) => {
+      const levels: RiskLevel[] = ['low', 'moderate', 'high', 'critical']
+      return levels.indexOf(ind.level) > levels.indexOf(max) ? ind.level : max
+    }, 'low' as RiskLevel)
+
+    riskProfileCache.set(studentId, {
+      studentId,
+      overallRiskLevel: indicators.length > 0 ? maxLevel : 'low',
+      riskScore: indicators.length > 0 ? faker.number.int({ min: 10, max: 90 }) : 0,
+      indicators,
+      watchList: indicators.some(i => i.level === 'high' || i.level === 'critical'),
+      lastAssessment: faker.date.recent({ days: 30 }).toISOString(),
+      nextReview: faker.date.future({ years: 0.25 }).toISOString(),
+    })
+  }
+  return riskProfileCache.get(studentId)!
+}
+
+// Get all at-risk students
+export function getAtRiskStudents(filters?: { level?: string; category?: string }) {
+  return students
+    .map(s => ({ studentId: s.id, studentName: s.name, riskProfile: getStudentRiskProfile(s.id) }))
+    .filter(s => {
+      if (s.riskProfile.indicators.length === 0) return false
+      if (filters?.level && s.riskProfile.overallRiskLevel !== filters.level) return false
+      if (filters?.category && !s.riskProfile.indicators.some(i => i.category === filters.category)) return false
+      return true
+    })
+}
+
+// ==================== GRADUATION & PROMOTION ====================
+
+const graduationProgressCache = new Map<string, StudentGraduationProgress>()
+
+export function getGraduationProgress(studentId: string): StudentGraduationProgress {
+  if (!graduationProgressCache.has(studentId)) {
+    const student = students.find(s => s.id === studentId)
+    const classNum = parseInt(student?.class.replace('Class ', '') || '10')
+    const requiredCredits = 100
+    const currentCredits = Math.min(requiredCredits, Math.floor((classNum / 12) * requiredCredits) + faker.number.int({ min: -10, max: 10 }))
+
+    graduationProgressCache.set(studentId, {
+      studentId,
+      expectedGraduationYear: `${2025 + (12 - classNum)}`,
+      currentCredits,
+      requiredCredits,
+      gpa: parseFloat((faker.number.float({ min: 2.5, max: 4.0 })).toFixed(2)),
+      requirements: [
+        { requirementId: '1', name: 'Core Subjects', status: 'completed', credits: 40 },
+        { requirementId: '2', name: 'Electives', status: classNum >= 9 ? 'in_progress' : 'not_started', credits: 20 },
+        { requirementId: '3', name: 'Physical Education', status: 'completed', credits: 10 },
+        { requirementId: '4', name: 'Community Service', status: faker.helpers.arrayElement(['completed', 'in_progress', 'not_started']), credits: 5 },
+      ],
+      certifications: faker.datatype.boolean(0.4) ? [
+        { name: 'Computer Basics', date: faker.date.past({ years: 1 }).toISOString(), issuer: 'School IT Dept' }
+      ] : [],
+      extracurriculars: faker.datatype.boolean(0.6) ? [
+        { activity: faker.helpers.arrayElement(['Chess Club', 'Drama Club', 'Science Club']), role: 'Member', years: '2023-24' }
+      ] : [],
+      communityService: faker.datatype.boolean(0.5) ? [
+        { hours: faker.number.int({ min: 5, max: 50 }), organization: 'Local NGO', description: 'Teaching underprivileged children' }
+      ] : [],
+      onTrack: currentCredits >= (classNum / 12) * requiredCredits * 0.9,
+      projectedGraduationDate: `${2025 + (12 - classNum)}-03-31`,
+    })
+  }
+  return graduationProgressCache.get(studentId)!
+}
+
+const promotionHistoryCache = new Map<string, PromotionHistory[]>()
+
+export function getPromotionHistory(studentId: string): PromotionHistory[] {
+  if (!promotionHistoryCache.has(studentId)) {
+    const student = students.find(s => s.id === studentId)
+    const currentClassNum = parseInt(student?.class.replace('Class ', '') || '1')
+    const history: PromotionHistory[] = []
+
+    for (let i = 1; i < currentClassNum; i++) {
+      history.push({
+        id: faker.string.uuid(),
+        studentId,
+        academicYear: `${2024 - (currentClassNum - i)}-${2025 - (currentClassNum - i)}`,
+        fromClass: `Class ${i}`,
+        toClass: `Class ${i + 1}`,
+        fromSection: faker.helpers.arrayElement(SECTIONS),
+        toSection: faker.helpers.arrayElement(SECTIONS),
+        promotionDate: faker.date.past({ years: currentClassNum - i }).toISOString(),
+        promotionType: faker.helpers.weightedArrayElement([
+          { value: 'regular' as const, weight: 90 },
+          { value: 'conditional' as const, weight: 8 },
+          { value: 'accelerated' as const, weight: 2 },
+        ]),
+        approvedBy: 'Principal',
+      })
+    }
+
+    promotionHistoryCache.set(studentId, history)
+  }
+  return promotionHistoryCache.get(studentId)!
+}
+
+export function getGraduationDashboard(filters?: { class?: string; year?: string }) {
+  let filteredStudents = students.filter(s => s.status === 'active')
+  if (filters?.class) {
+    filteredStudents = filteredStudents.filter(s => s.class === filters.class)
+  }
+
+  const progressData = filteredStudents.map(s => getGraduationProgress(s.id))
+  const onTrack = progressData.filter(p => p.onTrack).length
+  const atRisk = progressData.filter(p => !p.onTrack).length
+
+  const byClass: { class: string; total: number; onTrack: number; atRisk: number }[] = []
+  CLASSES.forEach(cls => {
+    const classStudents = filteredStudents.filter(s => s.class === cls)
+    const classProgress = classStudents.map(s => getGraduationProgress(s.id))
+    byClass.push({
+      class: cls,
+      total: classStudents.length,
+      onTrack: classProgress.filter(p => p.onTrack).length,
+      atRisk: classProgress.filter(p => !p.onTrack).length,
+    })
+  })
+
+  return {
+    totalStudents: filteredStudents.length,
+    onTrack,
+    atRisk,
+    graduated: students.filter(s => s.status === 'graduated').length,
+    byClass,
+  }
+}
+
+// ==================== STUDENT-TEACHER RELATIONSHIPS ====================
+
+const RELATIONSHIP_TYPES: RelationshipType[] = ['class_teacher', 'subject_teacher', 'mentor', 'counselor', 'club_advisor', 'sports_coach']
+const SUBJECTS = ['Mathematics', 'Science', 'English', 'Hindi', 'Social Studies', 'Computer Science', 'Physical Education', 'Art']
+
+const teacherRelationshipsCache = new Map<string, StudentTeacherRelationship[]>()
+
+export function getStudentTeacherRelationships(studentId: string): StudentTeacherRelationship[] {
+  if (!teacherRelationshipsCache.has(studentId)) {
+    const relationships: StudentTeacherRelationship[] = [
+      // Class teacher
+      {
+        id: faker.string.uuid(),
+        studentId,
+        teacherId: faker.string.uuid(),
+        teacherName: faker.person.fullName(),
+        relationshipType: 'class_teacher',
+        academicYear: '2024-25',
+        startDate: '2024-04-01',
+        isActive: true,
+      },
+      // Subject teachers
+      ...faker.helpers.arrayElements(SUBJECTS, { min: 3, max: 6 }).map(subject => ({
+        id: faker.string.uuid(),
+        studentId,
+        teacherId: faker.string.uuid(),
+        teacherName: faker.person.fullName(),
+        relationshipType: 'subject_teacher' as RelationshipType,
+        subject,
+        academicYear: '2024-25',
+        startDate: '2024-04-01',
+        isActive: true,
+      })),
+    ]
+
+    // Optional mentor
+    if (faker.datatype.boolean(0.3)) {
+      relationships.push({
+        id: faker.string.uuid(),
+        studentId,
+        teacherId: faker.string.uuid(),
+        teacherName: faker.person.fullName(),
+        relationshipType: 'mentor',
+        academicYear: '2024-25',
+        startDate: faker.date.recent({ days: 180 }).toISOString(),
+        isActive: true,
+      })
+    }
+
+    teacherRelationshipsCache.set(studentId, relationships)
+  }
+  return teacherRelationshipsCache.get(studentId)!
+}
+
+const teacherFeedbackCache = new Map<string, TeacherFeedback[]>()
+
+export function getTeacherFeedback(studentId: string, filters?: { term?: string; academicYear?: string }): TeacherFeedback[] {
+  const cacheKey = `${studentId}-${filters?.term}-${filters?.academicYear}`
+  if (!teacherFeedbackCache.has(cacheKey)) {
+    const relationships = getStudentTeacherRelationships(studentId)
+    const feedbackList: TeacherFeedback[] = []
+
+    relationships.slice(0, 4).forEach(rel => {
+      feedbackList.push({
+        id: faker.string.uuid(),
+        studentId,
+        teacherId: rel.teacherId,
+        teacherName: rel.teacherName,
+        subject: rel.subject,
+        term: filters?.term || 'Term 1',
+        academicYear: filters?.academicYear || '2024-25',
+        feedbackDate: faker.date.recent({ days: 60 }).toISOString(),
+        areas: [
+          { category: 'academic', rating: faker.helpers.arrayElement([3, 4, 5]) as 3 | 4 | 5, comments: faker.lorem.sentence() },
+          { category: 'participation', rating: faker.helpers.arrayElement([2, 3, 4, 5]) as 2 | 3 | 4 | 5 },
+          { category: 'behavior', rating: faker.helpers.arrayElement([3, 4, 5]) as 3 | 4 | 5 },
+        ],
+        overallComments: faker.lorem.paragraph(),
+        recommendations: faker.datatype.boolean(0.5) ? faker.lorem.sentence() : undefined,
+        parentAcknowledged: faker.datatype.boolean(0.7),
+        parentAcknowledgedDate: faker.datatype.boolean(0.7) ? faker.date.recent({ days: 30 }).toISOString() : undefined,
+      })
+    })
+
+    teacherFeedbackCache.set(cacheKey, feedbackList)
+  }
+  return teacherFeedbackCache.get(cacheKey)!
+}
+
+const mentorshipCache = new Map<string, MentorshipRecord | null>()
+
+export function getMentorship(studentId: string): MentorshipRecord | null {
+  if (!mentorshipCache.has(studentId)) {
+    if (faker.datatype.boolean(0.3)) {
+      mentorshipCache.set(studentId, {
+        studentId,
+        mentorId: faker.string.uuid(),
+        mentorName: faker.person.fullName(),
+        startDate: faker.date.recent({ days: 180 }).toISOString(),
+        goals: faker.helpers.arrayElements([
+          'Improve academic performance',
+          'Develop leadership skills',
+          'Better time management',
+          'Career guidance',
+          'Personal development',
+        ], { min: 2, max: 4 }),
+        meetingFrequency: faker.helpers.arrayElement(['weekly', 'biweekly', 'monthly']),
+        sessions: Array.from({ length: faker.number.int({ min: 2, max: 6 }) }, () => ({
+          date: faker.date.recent({ days: 90 }).toISOString(),
+          duration: faker.helpers.arrayElement([30, 45, 60]),
+          topics: faker.helpers.arrayElements(['Goal setting', 'Study habits', 'Stress management', 'Career exploration'], { min: 1, max: 3 }),
+          notes: faker.lorem.paragraph(),
+          actionItems: [faker.lorem.sentence()],
+        })),
+        status: 'active',
+      })
+    } else {
+      mentorshipCache.set(studentId, null)
+    }
+  }
+  return mentorshipCache.get(studentId)!
+}

@@ -45,7 +45,7 @@ export function LiveTrackingView() {
             <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950/20 dark:to-blue-950/20">
               {/* Grid lines to simulate map */}
               <div className="absolute inset-0 opacity-20" style={{
-                backgroundImage: 'linear-gradient(to right, #666 1px, transparent 1px), linear-gradient(to bottom, #666 1px, transparent 1px)',
+                backgroundImage: 'linear-gradient(to right, var(--color-muted-foreground) 1px, transparent 1px), linear-gradient(to bottom, var(--color-muted-foreground) 1px, transparent 1px)',
                 backgroundSize: '60px 60px',
               }} />
 

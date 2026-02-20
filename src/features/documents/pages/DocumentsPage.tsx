@@ -32,6 +32,7 @@ export function DocumentsPage() {
           { label: 'Dashboard', href: '/' },
           { label: 'Documents' },
         ]}
+        moduleColor="documents"
         actions={
           canManageDocuments ? (
             <div className="flex gap-2">

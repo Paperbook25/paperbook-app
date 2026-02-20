@@ -71,6 +71,19 @@ export interface StaffFilters {
   status?: StaffStatus | 'all'
 }
 
+// ==================== BULK IMPORT TYPES ====================
+
+export interface BulkImportStaffResult {
+  total: number
+  successful: number
+  failed: number
+  errors: Array<{
+    row: number
+    field: string
+    message: string
+  }>
+}
+
 // ==================== LEAVE TYPES ====================
 
 export type LeaveType = 'EL' | 'CL' | 'SL' | 'PL'
@@ -445,3 +458,274 @@ export const INDIAN_STATES = [
   'Uttarakhand',
   'West Bengal',
 ] as const
+
+// ==================== ADVANCED PAYROLL & BENEFITS ====================
+
+export type DeductionType = 'tax' | 'pf' | 'esi' | 'loan' | 'advance' | 'professional_tax' | 'insurance' | 'other'
+export type BenefitType = 'health_insurance' | 'life_insurance' | 'gratuity' | 'pension' | 'housing' | 'transport' | 'meal' | 'other'
+
+export interface PayrollDeduction {
+  id: string
+  staffId: string
+  type: DeductionType
+  name: string
+  amount: number
+  isPercentage: boolean
+  percentageOf?: 'basic' | 'gross'
+  effectiveFrom: string
+  effectiveTo?: string
+  isRecurring: boolean
+  status: 'active' | 'completed' | 'cancelled'
+  notes?: string
+}
+
+export interface EmployeeBenefit {
+  id: string
+  staffId: string
+  type: BenefitType
+  name: string
+  provider?: string
+  policyNumber?: string
+  coverageAmount?: number
+  employerContribution: number
+  employeeContribution: number
+  startDate: string
+  endDate?: string
+  nominees?: { name: string; relationship: string; percentage: number }[]
+  status: 'active' | 'expired' | 'cancelled'
+  documents?: { name: string; url: string }[]
+}
+
+export interface LoanAdvance {
+  id: string
+  staffId: string
+  type: 'loan' | 'advance'
+  amount: number
+  reason: string
+  approvedBy: string
+  approvedDate: string
+  disbursementDate: string
+  totalInstallments: number
+  installmentAmount: number
+  paidInstallments: number
+  remainingAmount: number
+  status: 'pending' | 'approved' | 'active' | 'completed' | 'cancelled'
+  deductions: { month: string; amount: number; status: 'pending' | 'deducted' }[]
+}
+
+// ==================== TIME-OFF ACCRUAL ====================
+
+export interface TimeOffPolicy {
+  id: string
+  name: string
+  leaveType: LeaveType
+  accrualRate: number
+  accrualPeriod: 'monthly' | 'quarterly' | 'yearly'
+  maxAccrual: number
+  carryForwardLimit: number
+  carryForwardExpiry?: number // months
+  eligibilityAfterDays: number
+  applicableTo: 'all' | 'department' | 'designation'
+  applicableValues?: string[]
+}
+
+export interface TimeOffAccrual {
+  staffId: string
+  leaveType: LeaveType
+  year: number
+  accrued: number
+  used: number
+  carriedForward: number
+  forfeited: number
+  available: number
+  history: {
+    date: string
+    type: 'accrual' | 'usage' | 'carry_forward' | 'adjustment' | 'forfeit'
+    amount: number
+    balance: number
+    notes?: string
+  }[]
+}
+
+// ==================== ONBOARDING WORKFLOW ====================
+
+export type OnboardingStatus = 'not_started' | 'in_progress' | 'completed' | 'on_hold'
+export type OnboardingTaskStatus = 'pending' | 'in_progress' | 'completed' | 'skipped' | 'blocked'
+
+export interface OnboardingTask {
+  id: string
+  category: 'documentation' | 'training' | 'access' | 'equipment' | 'introduction' | 'compliance'
+  name: string
+  description: string
+  assignedTo: 'hr' | 'it' | 'manager' | 'employee' | 'admin'
+  dueInDays: number
+  isMandatory: boolean
+  order: number
+}
+
+export interface OnboardingChecklist {
+  id: string
+  staffId: string
+  staffName: string
+  joiningDate: string
+  status: OnboardingStatus
+  assignedHR: string
+  assignedManager: string
+  tasks: {
+    taskId: string
+    taskName: string
+    category: OnboardingTask['category']
+    assignedTo: OnboardingTask['assignedTo']
+    status: OnboardingTaskStatus
+    dueDate: string
+    completedDate?: string
+    completedBy?: string
+    notes?: string
+    attachments?: { name: string; url: string }[]
+  }[]
+  progress: number
+  startDate: string
+  targetCompletionDate: string
+  actualCompletionDate?: string
+  feedback?: string
+}
+
+// ==================== EXIT INTERVIEW ====================
+
+export type SeparationType = 'resignation' | 'termination' | 'retirement' | 'contract_end' | 'layoff' | 'death'
+
+export interface ExitInterview {
+  id: string
+  staffId: string
+  staffName: string
+  department: string
+  designation: string
+  joiningDate: string
+  lastWorkingDate: string
+  separationType: SeparationType
+  interviewDate: string
+  interviewedBy: string
+  ratings: {
+    category: 'work_environment' | 'management' | 'growth' | 'compensation' | 'work_life_balance' | 'team'
+    rating: 1 | 2 | 3 | 4 | 5
+    comments?: string
+  }[]
+  reasonForLeaving: string[]
+  wouldRecommend: boolean
+  wouldRejoin: boolean
+  suggestions: string
+  bestPart: string
+  improvements: string
+  handoverStatus: 'not_started' | 'in_progress' | 'completed'
+  clearanceStatus: {
+    department: string
+    cleared: boolean
+    clearedBy?: string
+    clearedDate?: string
+    remarks?: string
+  }[]
+  fnfStatus: 'pending' | 'processed' | 'paid'
+  fnfAmount?: number
+  isConfidential: boolean
+  status: 'scheduled' | 'completed' | 'cancelled'
+}
+
+// ==================== SKILLS MATRIX & CERTIFICATIONS ====================
+
+export type SkillProficiency = 'beginner' | 'intermediate' | 'advanced' | 'expert'
+
+export interface StaffSkill {
+  id: string
+  staffId: string
+  skillName: string
+  category: 'technical' | 'soft' | 'domain' | 'tool' | 'language'
+  proficiency: SkillProficiency
+  yearsOfExperience: number
+  selfAssessed: boolean
+  verifiedBy?: string
+  verifiedDate?: string
+  lastUsed?: string
+  notes?: string
+}
+
+export interface Certification {
+  id: string
+  staffId: string
+  name: string
+  issuingOrganization: string
+  credentialId?: string
+  credentialUrl?: string
+  issueDate: string
+  expiryDate?: string
+  doesNotExpire: boolean
+  status: 'active' | 'expired' | 'revoked'
+  category: 'teaching' | 'technical' | 'safety' | 'compliance' | 'professional' | 'other'
+  attachmentUrl?: string
+  reminderSent: boolean
+  reminderDays?: number
+}
+
+export interface SkillGap {
+  staffId: string
+  requiredSkill: string
+  currentProficiency: SkillProficiency | null
+  requiredProficiency: SkillProficiency
+  gap: number
+  priority: 'low' | 'medium' | 'high'
+  recommendedTraining?: string
+}
+
+export interface CertificationExpiryAlert {
+  staffId: string
+  staffName: string
+  certificationId: string
+  certificationName: string
+  expiryDate: string
+  daysUntilExpiry: number
+  status: 'upcoming' | 'expiring_soon' | 'expired'
+  renewalUrl?: string
+}
+
+// ==================== WORK SCHEDULE PREFERENCES ====================
+
+export type WorkMode = 'on_site' | 'remote' | 'hybrid'
+export type ShiftType = 'morning' | 'afternoon' | 'evening' | 'night' | 'flexible'
+
+export interface WorkSchedulePreference {
+  staffId: string
+  preferredWorkMode: WorkMode
+  currentWorkMode: WorkMode
+  preferredShift: ShiftType
+  currentShift: ShiftType
+  preferredWorkingDays: DayOfWeek[]
+  flexibleHours: boolean
+  preferredStartTime?: string
+  preferredEndTime?: string
+  remoteCapable: boolean
+  equipmentAtHome: boolean
+  constraints?: string[]
+  approvalStatus: 'pending' | 'approved' | 'rejected' | 'not_requested'
+  approvedBy?: string
+  approvalDate?: string
+  effectiveFrom?: string
+  notes?: string
+}
+
+export interface ShiftSchedule {
+  id: string
+  staffId: string
+  staffName: string
+  week: string
+  schedules: {
+    day: DayOfWeek
+    shift: ShiftType
+    workMode: WorkMode
+    startTime: string
+    endTime: string
+    isOverride: boolean
+    overrideReason?: string
+  }[]
+  status: 'draft' | 'published' | 'active'
+  createdBy: string
+  createdAt: string
+}

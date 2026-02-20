@@ -219,6 +219,35 @@ function createIssuedBook(book: Book, isOverdue: boolean = false): IssuedBook {
     status = 'issued'
   }
 
+  // Randomly add renewal history for some books
+  const hasBeenRenewed = faker.datatype.boolean({ probability: 0.2 })
+  const renewalCount = hasBeenRenewed ? faker.number.int({ min: 1, max: 2 }) : 0
+  const renewalHistory: IssuedBook['renewalHistory'] = []
+
+  if (renewalCount > 0) {
+    let prevDueDate = new Date(issueDate)
+    prevDueDate.setDate(prevDueDate.getDate() + 14)
+
+    for (let i = 0; i < renewalCount; i++) {
+      const renewedAt = new Date(prevDueDate)
+      renewedAt.setDate(renewedAt.getDate() - 2) // Renewed 2 days before due
+      const newDueDate = new Date(prevDueDate)
+      newDueDate.setDate(newDueDate.getDate() + 14)
+
+      renewalHistory.push({
+        renewedAt: renewedAt.toISOString(),
+        previousDueDate: prevDueDate.toISOString(),
+        newDueDate: newDueDate.toISOString(),
+        renewedBy: 'librarian',
+      })
+
+      prevDueDate = newDueDate
+    }
+
+    // Update due date to final renewed date
+    dueDate = new Date(renewalHistory[renewalHistory.length - 1].newDueDate)
+  }
+
   return {
     id: faker.string.uuid(),
     bookId: book.id,
@@ -231,6 +260,8 @@ function createIssuedBook(book: Book, isOverdue: boolean = false): IssuedBook {
     issueDate: issueDate.toISOString(),
     dueDate: dueDate.toISOString(),
     status,
+    renewalCount,
+    renewalHistory,
   }
 }
 

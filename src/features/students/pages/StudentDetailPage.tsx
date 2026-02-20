@@ -107,6 +107,7 @@ export function StudentDetailPage() {
           { label: 'Students', href: '/students' },
           { label: student.name },
         ]}
+        moduleColor="students"
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setCollectFeeOpen(true)}>
@@ -286,16 +287,16 @@ export function StudentDetailPage() {
                 if (!att) return <p className="text-center py-8 text-muted-foreground">No attendance data available</p>
                 return (
                   <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="p-4 bg-green-50 dark:bg-green-800 rounded-lg">
-                      <p className="text-2xl font-bold text-green-600 dark:text-green-200">{att.summary.attendancePercentage}%</p>
+                    <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-module-attendance-light)' }}>
+                      <p className="text-2xl font-bold" style={{ color: 'var(--color-module-attendance)' }}>{att.summary.attendancePercentage}%</p>
                       <p className="text-sm text-muted-foreground">Overall Attendance</p>
                     </div>
-                    <div className="p-4 bg-blue-50 dark:bg-blue-800 rounded-lg">
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-200">{att.summary.presentDays}</p>
+                    <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-module-communication-light)' }}>
+                      <p className="text-2xl font-bold" style={{ color: 'var(--color-module-communication)' }}>{att.summary.presentDays}</p>
                       <p className="text-sm text-muted-foreground">Days Present</p>
                     </div>
-                    <div className="p-4 bg-red-50 dark:bg-red-800 rounded-lg">
-                      <p className="text-2xl font-bold text-red-600 dark:text-red-200">{att.summary.absentDays}</p>
+                    <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-module-exams-light)' }}>
+                      <p className="text-2xl font-bold" style={{ color: 'var(--color-module-exams)' }}>{att.summary.absentDays}</p>
                       <p className="text-sm text-muted-foreground">Days Absent</p>
                     </div>
                   </div>
@@ -336,11 +337,11 @@ export function StudentDetailPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Paid</p>
-                        <p className="text-lg font-bold text-green-600">{formatCurrency(totalPaid)}</p>
+                        <p className="text-lg font-bold" style={{ color: 'var(--color-module-attendance)' }}>{formatCurrency(totalPaid)}</p>
                       </div>
                       <div className="p-4 border rounded-lg">
                         <p className="text-sm text-muted-foreground">Pending</p>
-                        <p className="text-lg font-bold text-red-600">{formatCurrency(totalPending)}</p>
+                        <p className="text-lg font-bold" style={{ color: 'var(--color-module-exams)' }}>{formatCurrency(totalPending)}</p>
                       </div>
                     </div>
 
@@ -363,7 +364,7 @@ export function StudentDetailPage() {
                             <div className="text-right">
                               <p className="font-medium">{formatCurrency(fee.totalAmount)}</p>
                               {fee.paidAmount > 0 && (
-                                <p className="text-xs text-green-600">Paid: {formatCurrency(fee.paidAmount)}</p>
+                                <p className="text-xs" style={{ color: 'var(--color-module-attendance)' }}>Paid: {formatCurrency(fee.paidAmount)}</p>
                               )}
                             </div>
                           </div>

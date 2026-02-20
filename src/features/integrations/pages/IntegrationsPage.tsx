@@ -270,6 +270,7 @@ export function IntegrationsPage() {
           { label: 'Dashboard', href: '/' },
           { label: 'Integrations' },
         ]}
+        moduleColor="integrations"
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>

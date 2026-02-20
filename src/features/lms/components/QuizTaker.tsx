@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Quiz, QuizAttempt } from '../types/lms.types'
+import { statusColors } from '@/lib/design-tokens'
 
 // ==================== PROPS ====================
 
@@ -109,9 +110,9 @@ function ResultsView({
                       {question.points} pt{question.points !== 1 && 's'}
                     </Badge>
                     {isCorrect ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <CheckCircle className="h-5 w-5" style={{ color: statusColors.success }} />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-500" />
+                      <XCircle className="h-5 w-5" style={{ color: statusColors.error }} />
                     )}
                   </div>
                 </div>
@@ -122,7 +123,7 @@ function ResultsView({
                     <span
                       className={cn(
                         'font-medium',
-                        isCorrect ? 'text-green-600' : 'text-red-600'
+                        ''
                       )}
                     >
                       {attemptAnswer?.answer || '(no answer)'}
@@ -133,7 +134,7 @@ function ResultsView({
                       <span className="text-muted-foreground">
                         Correct answer:{' '}
                       </span>
-                      <span className="font-medium text-green-600">
+                      <span className="font-medium" style={{ color: statusColors.success }}>
                         {question.correctAnswer}
                       </span>
                     </p>

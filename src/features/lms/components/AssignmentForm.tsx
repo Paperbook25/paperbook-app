@@ -100,7 +100,7 @@ export function AssignmentForm({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Edit Assignment' : 'Create Assignment'}

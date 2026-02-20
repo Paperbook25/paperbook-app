@@ -42,7 +42,7 @@ const subjectSchema = z.object({
 
 const examFormSchema = z.object({
   name: z.string().min(2, 'Exam name must be at least 2 characters'),
-  type: z.enum(['unit_test', 'mid_term', 'quarterly', 'half_yearly', 'annual', 'practical']),
+  type: z.enum(['unit_test', 'mid_term', 'quarterly', 'half_yearly', 'annual', 'practical', 'online']),
   academicYear: z.string().min(1, 'Academic year is required'),
   term: z.string().min(1, 'Term is required'),
   applicableClasses: z.array(z.string()).min(1, 'Select at least one class'),

@@ -26,6 +26,7 @@ export function FinancePage() {
         title="Finance"
         description="Manage fees, payments, expenses, and financial reports"
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Finance' }]}
+        moduleColor="finance"
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm">
@@ -68,17 +69,19 @@ export function FinancePage() {
 
         {/* Fee Management Tab */}
         <TabsContent value="fee-management" className="space-y-6">
-          <Tabs defaultValue="types" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="types">Fee Types</TabsTrigger>
-              <TabsTrigger value="structures">Fee Structures</TabsTrigger>
+          <Tabs defaultValue="types">
+            <TabsList variant="secondary" className="flex flex-wrap w-full">
+              <TabsTrigger variant="secondary" value="types">Fee Types</TabsTrigger>
+              <TabsTrigger variant="secondary" value="structures">Fee Structures</TabsTrigger>
             </TabsList>
-            <TabsContent value="types">
-              <FeeTypeList />
-            </TabsContent>
-            <TabsContent value="structures">
-              <FeeStructureTable />
-            </TabsContent>
+            <div className="mt-6">
+              <TabsContent value="types" className="mt-0">
+                <FeeTypeList />
+              </TabsContent>
+              <TabsContent value="structures" className="mt-0">
+                <FeeStructureTable />
+              </TabsContent>
+            </div>
           </Tabs>
         </TabsContent>
 
@@ -101,17 +104,19 @@ export function FinancePage() {
 
         {/* Reports Tab */}
         <TabsContent value="reports" className="space-y-6">
-          <Tabs defaultValue="collection-report" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="collection-report">Collection Report</TabsTrigger>
-              <TabsTrigger value="due-report">Outstanding Report</TabsTrigger>
+          <Tabs defaultValue="collection-report">
+            <TabsList variant="secondary" className="flex flex-wrap w-full">
+              <TabsTrigger variant="secondary" value="collection-report">Collection Report</TabsTrigger>
+              <TabsTrigger variant="secondary" value="due-report">Outstanding Report</TabsTrigger>
             </TabsList>
-            <TabsContent value="collection-report">
-              <CollectionReportView />
-            </TabsContent>
-            <TabsContent value="due-report">
-              <DueReportView />
-            </TabsContent>
+            <div className="mt-6">
+              <TabsContent value="collection-report" className="mt-0">
+                <CollectionReportView />
+              </TabsContent>
+              <TabsContent value="due-report" className="mt-0">
+                <DueReportView />
+              </TabsContent>
+            </div>
           </Tabs>
         </TabsContent>
       </Tabs>

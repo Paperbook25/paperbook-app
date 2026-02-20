@@ -25,6 +25,48 @@ import type {
   BarcodeScanResult,
   RenewBookRequest,
   RenewBookResponse,
+  // RFID Types
+  RFIDTag,
+  CreateRFIDTagRequest,
+  UpdateRFIDTagRequest,
+  RFIDGate,
+  RFIDScan,
+  RFIDScanFilters,
+  // Inter-Library Loan Types
+  PartnerLibrary,
+  CreatePartnerLibraryRequest,
+  UpdatePartnerLibraryRequest,
+  InterLibraryLoan,
+  CreateInterLibraryLoanRequest,
+  UpdateInterLibraryLoanRequest,
+  InterLibraryLoanFilters,
+  // Reading Challenges / Gamification Types
+  ReadingChallenge,
+  CreateReadingChallengeRequest,
+  UpdateReadingChallengeRequest,
+  ChallengeProgress,
+  Badge,
+  StudentBadge,
+  StudentGamificationProfile,
+  Leaderboard,
+  // Recommendation Types
+  EnhancedBookRecommendation,
+  ReadingPreference,
+  UpdateReadingPreferenceRequest,
+  RecommendationSettings,
+  // E-Reader Types
+  EReaderDevice,
+  CreateEReaderDeviceRequest,
+  UpdateEReaderDeviceRequest,
+  AssignEReaderRequest,
+  EReaderFilters,
+  EBookLicense,
+  CreateEBookLicenseRequest,
+  UpdateEBookLicenseRequest,
+  EBookLicenseFilters,
+  EBookCheckout,
+  EBookCheckoutRequest,
+  EReaderSyncLog,
 } from '../types/library.types'
 
 const API_BASE = '/api/library'
@@ -261,4 +303,351 @@ export async function sendOverdueNotification(
 
 export async function scanBarcode(isbn: string): Promise<{ data: BarcodeScanResult }> {
   return apiGet<{ data: BarcodeScanResult }>(`${API_BASE}/scan/${encodeURIComponent(isbn)}`)
+}
+
+// ==================== RFID TRACKING ====================
+
+export async function fetchRFIDTags(
+  filters: { bookId?: string; status?: string; search?: string; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<RFIDTag>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.bookId) params.set('bookId', filters.bookId)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.search) params.set('search', filters.search)
+
+  return apiGet<PaginatedResponse<RFIDTag>>(`${API_BASE}/rfid/tags?${params.toString()}`)
+}
+
+export async function fetchRFIDTag(id: string): Promise<{ data: RFIDTag }> {
+  return apiGet<{ data: RFIDTag }>(`${API_BASE}/rfid/tags/${id}`)
+}
+
+export async function createRFIDTag(data: CreateRFIDTagRequest): Promise<{ data: RFIDTag }> {
+  return apiPost<{ data: RFIDTag }>(`${API_BASE}/rfid/tags`, data)
+}
+
+export async function updateRFIDTag(id: string, data: UpdateRFIDTagRequest): Promise<{ data: RFIDTag }> {
+  return apiPatch<{ data: RFIDTag }>(`${API_BASE}/rfid/tags/${id}`, data)
+}
+
+export async function deleteRFIDTag(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/rfid/tags/${id}`)
+}
+
+export async function fetchRFIDGates(): Promise<{ data: RFIDGate[] }> {
+  return apiGet<{ data: RFIDGate[] }>(`${API_BASE}/rfid/gates`)
+}
+
+export async function fetchRFIDScans(filters: RFIDScanFilters = {}): Promise<PaginatedResponse<RFIDScan>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.gateId) params.set('gateId', filters.gateId)
+  if (filters.scanType && filters.scanType !== 'all') params.set('scanType', filters.scanType)
+  if (filters.isAlert !== undefined) params.set('isAlert', String(filters.isAlert))
+  if (filters.startDate) params.set('startDate', filters.startDate)
+  if (filters.endDate) params.set('endDate', filters.endDate)
+
+  return apiGet<PaginatedResponse<RFIDScan>>(`${API_BASE}/rfid/scans?${params.toString()}`)
+}
+
+export async function simulateRFIDScan(tagId: string, gateId: string): Promise<{ data: RFIDScan }> {
+  return apiPost<{ data: RFIDScan }>(`${API_BASE}/rfid/scan`, { tagId, gateId })
+}
+
+// ==================== INTER-LIBRARY LOANS ====================
+
+export async function fetchPartnerLibraries(
+  filters: { status?: string; search?: string; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<PartnerLibrary>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.search) params.set('search', filters.search)
+
+  return apiGet<PaginatedResponse<PartnerLibrary>>(`${API_BASE}/ill/partners?${params.toString()}`)
+}
+
+export async function fetchPartnerLibrary(id: string): Promise<{ data: PartnerLibrary }> {
+  return apiGet<{ data: PartnerLibrary }>(`${API_BASE}/ill/partners/${id}`)
+}
+
+export async function createPartnerLibrary(data: CreatePartnerLibraryRequest): Promise<{ data: PartnerLibrary }> {
+  return apiPost<{ data: PartnerLibrary }>(`${API_BASE}/ill/partners`, data)
+}
+
+export async function updatePartnerLibrary(
+  id: string,
+  data: UpdatePartnerLibraryRequest
+): Promise<{ data: PartnerLibrary }> {
+  return apiPut<{ data: PartnerLibrary }>(`${API_BASE}/ill/partners/${id}`, data)
+}
+
+export async function deletePartnerLibrary(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/ill/partners/${id}`)
+}
+
+export async function fetchInterLibraryLoans(
+  filters: InterLibraryLoanFilters = {}
+): Promise<PaginatedResponse<InterLibraryLoan>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.direction && filters.direction !== 'all') params.set('direction', filters.direction)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.partnerLibraryId) params.set('partnerLibraryId', filters.partnerLibraryId)
+  if (filters.search) params.set('search', filters.search)
+
+  return apiGet<PaginatedResponse<InterLibraryLoan>>(`${API_BASE}/ill/loans?${params.toString()}`)
+}
+
+export async function fetchInterLibraryLoan(id: string): Promise<{ data: InterLibraryLoan }> {
+  return apiGet<{ data: InterLibraryLoan }>(`${API_BASE}/ill/loans/${id}`)
+}
+
+export async function createInterLibraryLoan(
+  data: CreateInterLibraryLoanRequest
+): Promise<{ data: InterLibraryLoan }> {
+  return apiPost<{ data: InterLibraryLoan }>(`${API_BASE}/ill/loans`, data)
+}
+
+export async function updateInterLibraryLoan(
+  id: string,
+  data: UpdateInterLibraryLoanRequest
+): Promise<{ data: InterLibraryLoan }> {
+  return apiPatch<{ data: InterLibraryLoan }>(`${API_BASE}/ill/loans/${id}`, data)
+}
+
+// ==================== READING CHALLENGES / GAMIFICATION ====================
+
+export async function fetchReadingChallenges(
+  filters: { status?: string; type?: string; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<ReadingChallenge>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.type && filters.type !== 'all') params.set('type', filters.type)
+
+  return apiGet<PaginatedResponse<ReadingChallenge>>(`${API_BASE}/challenges?${params.toString()}`)
+}
+
+export async function fetchReadingChallenge(id: string): Promise<{ data: ReadingChallenge }> {
+  return apiGet<{ data: ReadingChallenge }>(`${API_BASE}/challenges/${id}`)
+}
+
+export async function createReadingChallenge(
+  data: CreateReadingChallengeRequest
+): Promise<{ data: ReadingChallenge }> {
+  return apiPost<{ data: ReadingChallenge }>(`${API_BASE}/challenges`, data)
+}
+
+export async function updateReadingChallenge(
+  id: string,
+  data: UpdateReadingChallengeRequest
+): Promise<{ data: ReadingChallenge }> {
+  return apiPatch<{ data: ReadingChallenge }>(`${API_BASE}/challenges/${id}`, data)
+}
+
+export async function deleteReadingChallenge(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/challenges/${id}`)
+}
+
+export async function fetchChallengeProgress(
+  challengeId: string,
+  filters: { page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<ChallengeProgress>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<ChallengeProgress>>(
+    `${API_BASE}/challenges/${challengeId}/progress?${params.toString()}`
+  )
+}
+
+export async function fetchStudentChallengeProgress(studentId: string): Promise<{ data: ChallengeProgress[] }> {
+  return apiGet<{ data: ChallengeProgress[] }>(`${API_BASE}/challenges/student/${studentId}`)
+}
+
+export async function joinChallenge(challengeId: string, studentId: string): Promise<{ data: ChallengeProgress }> {
+  return apiPost<{ data: ChallengeProgress }>(`${API_BASE}/challenges/${challengeId}/join`, { studentId })
+}
+
+export async function fetchBadges(
+  filters: { category?: string; rarity?: string; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<Badge>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.category && filters.category !== 'all') params.set('category', filters.category)
+  if (filters.rarity && filters.rarity !== 'all') params.set('rarity', filters.rarity)
+
+  return apiGet<PaginatedResponse<Badge>>(`${API_BASE}/badges?${params.toString()}`)
+}
+
+export async function fetchStudentBadges(studentId: string): Promise<{ data: StudentBadge[] }> {
+  return apiGet<{ data: StudentBadge[] }>(`${API_BASE}/badges/student/${studentId}`)
+}
+
+export async function fetchStudentGamificationProfile(
+  studentId: string
+): Promise<{ data: StudentGamificationProfile }> {
+  return apiGet<{ data: StudentGamificationProfile }>(`${API_BASE}/gamification/profile/${studentId}`)
+}
+
+export async function fetchLeaderboard(
+  period: 'weekly' | 'monthly' | 'all_time' = 'weekly'
+): Promise<{ data: Leaderboard }> {
+  return apiGet<{ data: Leaderboard }>(`${API_BASE}/gamification/leaderboard?period=${period}`)
+}
+
+// ==================== BOOK RECOMMENDATIONS ====================
+
+export async function fetchEnhancedRecommendations(
+  studentId: string,
+  filters: { source?: string; limit?: number } = {}
+): Promise<{ data: EnhancedBookRecommendation[] }> {
+  const params = new URLSearchParams()
+  if (filters.source && filters.source !== 'all') params.set('source', filters.source)
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<{ data: EnhancedBookRecommendation[] }>(
+    `${API_BASE}/recommendations/enhanced/${studentId}?${params.toString()}`
+  )
+}
+
+export async function fetchReadingPreferences(studentId: string): Promise<{ data: ReadingPreference }> {
+  return apiGet<{ data: ReadingPreference }>(`${API_BASE}/recommendations/preferences/${studentId}`)
+}
+
+export async function updateReadingPreferences(
+  studentId: string,
+  data: UpdateReadingPreferenceRequest
+): Promise<{ data: ReadingPreference }> {
+  return apiPut<{ data: ReadingPreference }>(`${API_BASE}/recommendations/preferences/${studentId}`, data)
+}
+
+export async function fetchRecommendationSettings(): Promise<{ data: RecommendationSettings }> {
+  return apiGet<{ data: RecommendationSettings }>(`${API_BASE}/recommendations/settings`)
+}
+
+export async function updateRecommendationSettings(
+  data: Partial<RecommendationSettings>
+): Promise<{ data: RecommendationSettings }> {
+  return apiPut<{ data: RecommendationSettings }>(`${API_BASE}/recommendations/settings`, data)
+}
+
+// ==================== E-READER INTEGRATION ====================
+
+export async function fetchEReaderDevices(filters: EReaderFilters = {}): Promise<PaginatedResponse<EReaderDevice>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.deviceType && filters.deviceType !== 'all') params.set('deviceType', filters.deviceType)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.assignedToType && filters.assignedToType !== 'all') params.set('assignedToType', filters.assignedToType)
+  if (filters.search) params.set('search', filters.search)
+
+  return apiGet<PaginatedResponse<EReaderDevice>>(`${API_BASE}/ereader/devices?${params.toString()}`)
+}
+
+export async function fetchEReaderDevice(id: string): Promise<{ data: EReaderDevice }> {
+  return apiGet<{ data: EReaderDevice }>(`${API_BASE}/ereader/devices/${id}`)
+}
+
+export async function createEReaderDevice(data: CreateEReaderDeviceRequest): Promise<{ data: EReaderDevice }> {
+  return apiPost<{ data: EReaderDevice }>(`${API_BASE}/ereader/devices`, data)
+}
+
+export async function updateEReaderDevice(
+  id: string,
+  data: UpdateEReaderDeviceRequest
+): Promise<{ data: EReaderDevice }> {
+  return apiPatch<{ data: EReaderDevice }>(`${API_BASE}/ereader/devices/${id}`, data)
+}
+
+export async function deleteEReaderDevice(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/ereader/devices/${id}`)
+}
+
+export async function assignEReaderDevice(data: AssignEReaderRequest): Promise<{ data: EReaderDevice }> {
+  return apiPost<{ data: EReaderDevice }>(`${API_BASE}/ereader/devices/assign`, data)
+}
+
+export async function unassignEReaderDevice(deviceId: string): Promise<{ data: EReaderDevice }> {
+  return apiPost<{ data: EReaderDevice }>(`${API_BASE}/ereader/devices/${deviceId}/unassign`)
+}
+
+export async function syncEReaderDevice(deviceId: string): Promise<{ data: EReaderSyncLog }> {
+  return apiPost<{ data: EReaderSyncLog }>(`${API_BASE}/ereader/devices/${deviceId}/sync`)
+}
+
+export async function fetchEBookLicenses(
+  filters: EBookLicenseFilters = {}
+): Promise<PaginatedResponse<EBookLicense>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.licenseType && filters.licenseType !== 'all') params.set('licenseType', filters.licenseType)
+  if (filters.status && filters.status !== 'all') params.set('status', filters.status)
+  if (filters.search) params.set('search', filters.search)
+
+  return apiGet<PaginatedResponse<EBookLicense>>(`${API_BASE}/ereader/licenses?${params.toString()}`)
+}
+
+export async function fetchEBookLicense(id: string): Promise<{ data: EBookLicense }> {
+  return apiGet<{ data: EBookLicense }>(`${API_BASE}/ereader/licenses/${id}`)
+}
+
+export async function createEBookLicense(data: CreateEBookLicenseRequest): Promise<{ data: EBookLicense }> {
+  return apiPost<{ data: EBookLicense }>(`${API_BASE}/ereader/licenses`, data)
+}
+
+export async function updateEBookLicense(
+  id: string,
+  data: UpdateEBookLicenseRequest
+): Promise<{ data: EBookLicense }> {
+  return apiPatch<{ data: EBookLicense }>(`${API_BASE}/ereader/licenses/${id}`, data)
+}
+
+export async function deleteEBookLicense(id: string): Promise<{ success: boolean }> {
+  return apiDelete<{ success: boolean }>(`${API_BASE}/ereader/licenses/${id}`)
+}
+
+export async function checkoutEBook(data: EBookCheckoutRequest): Promise<{ data: EBookCheckout }> {
+  return apiPost<{ data: EBookCheckout }>(`${API_BASE}/ereader/checkout`, data)
+}
+
+export async function returnEBook(checkoutId: string): Promise<{ data: EBookCheckout }> {
+  return apiPost<{ data: EBookCheckout }>(`${API_BASE}/ereader/checkout/${checkoutId}/return`)
+}
+
+export async function fetchEBookCheckouts(
+  filters: { userId?: string; licenseId?: string; isActive?: boolean; page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<EBookCheckout>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+  if (filters.userId) params.set('userId', filters.userId)
+  if (filters.licenseId) params.set('licenseId', filters.licenseId)
+  if (filters.isActive !== undefined) params.set('isActive', String(filters.isActive))
+
+  return apiGet<PaginatedResponse<EBookCheckout>>(`${API_BASE}/ereader/checkouts?${params.toString()}`)
+}
+
+export async function fetchEReaderSyncLogs(
+  deviceId: string,
+  filters: { page?: number; limit?: number } = {}
+): Promise<PaginatedResponse<EReaderSyncLog>> {
+  const params = new URLSearchParams()
+  if (filters.page) params.set('page', String(filters.page))
+  if (filters.limit) params.set('limit', String(filters.limit))
+
+  return apiGet<PaginatedResponse<EReaderSyncLog>>(
+    `${API_BASE}/ereader/devices/${deviceId}/sync-logs?${params.toString()}`
+  )
 }

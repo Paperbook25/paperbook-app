@@ -23,6 +23,9 @@ import type {
   EnrollmentStatus,
   SubmissionStatus,
   QuizQuestionType,
+  Certificate,
+  CertificateTemplate,
+  CertificateType,
 } from '@/features/lms/types/lms.types'
 
 // ==================== CONSTANTS ====================
@@ -1148,3 +1151,99 @@ export function getStudentStats(studentId: string): StudentLmsStats {
     quizzesTaken,
   }
 }
+
+// ==================== CERTIFICATE TEMPLATES ====================
+
+export const certificateTemplates: CertificateTemplate[] = [
+  {
+    id: 'TMPL0001',
+    name: 'Classic Completion',
+    type: 'completion',
+    backgroundColor: '#ffffff',
+    borderColor: '#1e40af',
+    logoUrl: '/images/paperbook-logo.png',
+    signatureUrl: '/images/principal-signature.png',
+    isDefault: true,
+  },
+  {
+    id: 'TMPL0002',
+    name: 'Achievement Gold',
+    type: 'achievement',
+    backgroundColor: '#fffbeb',
+    borderColor: '#b45309',
+    logoUrl: '/images/paperbook-logo.png',
+    signatureUrl: '/images/principal-signature.png',
+    isDefault: true,
+  },
+  {
+    id: 'TMPL0003',
+    name: 'Excellence Platinum',
+    type: 'excellence',
+    backgroundColor: '#f8fafc',
+    borderColor: '#475569',
+    logoUrl: '/images/paperbook-logo.png',
+    signatureUrl: '/images/principal-signature.png',
+    isDefault: true,
+  },
+  {
+    id: 'TMPL0004',
+    name: 'Modern Blue',
+    type: 'completion',
+    backgroundColor: '#eff6ff',
+    borderColor: '#2563eb',
+    logoUrl: '/images/paperbook-logo.png',
+    signatureUrl: '/images/principal-signature.png',
+    isDefault: false,
+  },
+]
+
+// ==================== CERTIFICATES ====================
+
+function generateCertificateNumber(): string {
+  const year = new Date().getFullYear()
+  const random = faker.string.alphanumeric(8).toUpperCase()
+  return `CERT-${year}-${random}`
+}
+
+function getCertificateType(enrollment: Enrollment): CertificateType {
+  const avgScore = faker.number.int({ min: 60, max: 100 })
+  if (avgScore >= 90) return 'excellence'
+  if (avgScore >= 75) return 'achievement'
+  return 'completion'
+}
+
+function getGradeFromType(type: CertificateType): string | undefined {
+  switch (type) {
+    case 'excellence': return 'A+'
+    case 'achievement': return 'A'
+    case 'completion': return 'B'
+  }
+}
+
+// Generate certificates for completed enrollments
+export const certificates: Certificate[] = enrollments
+  .filter((e) => e.status === 'completed')
+  .map((enrollment, index) => {
+    const course = courses.find((c) => c.id === enrollment.courseId)
+    const instructor = instructors.find((i) => i.id === course?.instructorId)
+    const type = getCertificateType(enrollment)
+    const certNumber = generateCertificateNumber()
+
+    return {
+      id: `CERT${String(index + 1).padStart(4, '0')}`,
+      enrollmentId: enrollment.id,
+      courseId: enrollment.courseId,
+      courseName: enrollment.courseName,
+      studentId: enrollment.studentId,
+      studentName: enrollment.studentName,
+      instructorName: instructor?.name || 'Course Instructor',
+      type,
+      issueDate: faker.date.recent({ days: 60 }).toISOString(),
+      certificateNumber: certNumber,
+      completionPercentage: 100,
+      grade: getGradeFromType(type),
+      hoursCompleted: course?.duration || 30,
+      skills: course?.tags || [],
+      verificationUrl: `https://verify.paperbook.edu/cert/${certNumber}`,
+    }
+  })

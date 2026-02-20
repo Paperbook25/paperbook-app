@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -6,6 +6,7 @@ import { Loader2, Building2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useSaveIndicator } from '@/components/ui/save-indicator'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Form,
@@ -49,6 +50,7 @@ export function SchoolProfileForm() {
   const { toast } = useToast()
   const { data, isLoading } = useSchoolProfile()
   const updateProfile = useUpdateSchoolProfile()
+  const { status: saveStatus, markUnsaved, markSaving, markSaved, markError, reset: resetSaveStatus, SaveIndicator } = useSaveIndicator()
 
   const form = useForm<SchoolProfileFormData>({
     resolver: zodResolver(schoolProfileSchema),
@@ -68,6 +70,22 @@ export function SchoolProfileForm() {
     },
   })
 
+  // Track form changes for save indicator
+  const handleFieldChange = useCallback(() => {
+    if (form.formState.isDirty) {
+      markUnsaved()
+    }
+  }, [form.formState.isDirty, markUnsaved])
+
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      if (form.formState.isDirty) {
+        markUnsaved()
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [form, markUnsaved])
+
   useEffect(() => {
     if (data?.data) {
       form.reset({
@@ -84,18 +102,22 @@ export function SchoolProfileForm() {
         affiliationNumber: data.data.affiliationNumber || '',
         affiliationBoard: data.data.affiliationBoard,
       })
+      resetSaveStatus()
     }
-  }, [data, form])
+  }, [data, form, resetSaveStatus])
 
   const onSubmit = (formData: SchoolProfileFormData) => {
+    markSaving()
     updateProfile.mutate(formData, {
       onSuccess: () => {
+        markSaved()
         toast({
           title: 'Profile Updated',
           description: 'School profile has been successfully updated.',
         })
       },
       onError: (error) => {
+        markError(error instanceof Error ? error.message : 'Failed to save')
         toast({
           title: 'Error',
           description: error instanceof Error ? error.message : 'Failed to update profile',
@@ -124,10 +146,13 @@ export function SchoolProfileForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building2 className="h-5 w-5" />
-          School Profile
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            School Profile
+          </CardTitle>
+          <SaveIndicator />
+        </div>
         <CardDescription>Manage your school's basic information</CardDescription>
       </CardHeader>
       <CardContent>

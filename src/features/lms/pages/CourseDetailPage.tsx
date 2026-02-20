@@ -30,11 +30,12 @@ import {
 import type { EnrollmentStatus } from '../types/lms.types'
 import { useToast } from '@/hooks/use-toast'
 import { formatCurrency, getInitials } from '@/lib/utils'
+import { courseStatusColors, statusColors, ratingColors } from '@/lib/design-tokens'
 
-const ENROLLMENT_STATUS_COLORS: Record<EnrollmentStatus, string> = {
-  active: 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100',
-  completed: 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100',
-  dropped: 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-100',
+const enrollmentStatusStyleMap: Record<EnrollmentStatus, { bg: string; text: string }> = {
+  active: { bg: statusColors.successLight, text: statusColors.success },
+  completed: { bg: statusColors.infoLight, text: statusColors.info },
+  dropped: { bg: statusColors.errorLight, text: statusColors.error },
 }
 
 export function CourseDetailPage() {
@@ -212,7 +213,7 @@ export function CourseDetailPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Rating</p>
                   <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-4 w-4" style={{ fill: ratingColors.star, color: ratingColors.star }} />
                     <span className="font-semibold">{course.rating.toFixed(1)}</span>
                   </div>
                 </div>
@@ -334,7 +335,12 @@ export function CourseDetailPage() {
                         <ProgressTracker progress={enrollment.progress} size="sm" />
                       </TableCell>
                       <TableCell>
-                        <Badge className={ENROLLMENT_STATUS_COLORS[enrollment.status]}>
+                        <Badge
+                          style={{
+                            backgroundColor: enrollmentStatusStyleMap[enrollment.status].bg,
+                            color: enrollmentStatusStyleMap[enrollment.status].text,
+                          }}
+                        >
                           {ENROLLMENT_STATUS_LABELS[enrollment.status]}
                         </Badge>
                       </TableCell>
@@ -357,13 +363,13 @@ export function CourseDetailPage() {
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-3xl font-bold text-green-600">{completionRate}%</p>
+                <p className="text-3xl font-bold" style={{ color: statusColors.success }}>{completionRate}%</p>
                 <p className="text-sm text-muted-foreground">Completion Rate</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-3xl font-bold text-blue-600">{avgProgress}%</p>
+                <p className="text-3xl font-bold" style={{ color: statusColors.info }}>{avgProgress}%</p>
                 <p className="text-sm text-muted-foreground">Average Progress</p>
               </CardContent>
             </Card>

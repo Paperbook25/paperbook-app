@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useReadingHistory, useAvailableStudents, useStudentReadingReport, useBookRecommendations } from '../hooks/useLibrary'
 import { BOOK_CATEGORIES, type BookCategory } from '../types/library.types'
+import { statusColors, moduleColors, ratingColors } from '@/lib/design-tokens'
 
 export function ReadingHistoryView() {
   const [selectedStudentId, setSelectedStudentId] = useState('')
@@ -93,7 +94,7 @@ export function ReadingHistoryView() {
             <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <BookOpen className="h-8 w-8 text-blue-600" />
+                  <BookOpen className="h-8 w-8" style={{ color: statusColors.info }} />
                   <div>
                     <div className="text-2xl font-bold">{report.totalBooksRead}</div>
                     <p className="text-xs text-muted-foreground">Books Read</p>
@@ -102,7 +103,7 @@ export function ReadingHistoryView() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <TrendingUp className="h-8 w-8 text-green-600" />
+                  <TrendingUp className="h-8 w-8" style={{ color: statusColors.success }} />
                   <div>
                     <div className="text-2xl font-bold">{report.averageDaysToRead}</div>
                     <p className="text-xs text-muted-foreground">Avg Days/Book</p>
@@ -111,7 +112,7 @@ export function ReadingHistoryView() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <Star className="h-8 w-8 text-yellow-500" />
+                  <Star className="h-8 w-8" style={{ color: ratingColors.star }} />
                   <div>
                     <div className="text-2xl font-bold">{report.averageRating || '-'}</div>
                     <p className="text-xs text-muted-foreground">Avg Rating</p>
@@ -120,7 +121,7 @@ export function ReadingHistoryView() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-3">
-                  <BarChart3 className="h-8 w-8 text-purple-600" />
+                  <BarChart3 className="h-8 w-8" style={{ color: moduleColors.integrations }} />
                   <div>
                     <div className="text-2xl font-bold">{report.favoriteCategory}</div>
                     <p className="text-xs text-muted-foreground">Favorite Genre</p>

@@ -49,6 +49,7 @@ import {
   REVIEW_PERIOD_LABELS,
   PERFORMANCE_CATEGORIES,
 } from '../types/staff.types'
+import { statusColors, ratingColors } from '@/lib/design-tokens'
 
 interface PerformanceReviewCardProps {
   staffId: string
@@ -60,10 +61,10 @@ const STATUS_VARIANTS: Record<string, { variant: 'secondary' | 'default' | 'outl
   acknowledged: { variant: 'outline', label: 'Acknowledged' },
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-100',
-  submitted: 'bg-blue-100 text-blue-700 dark:bg-blue-800 dark:text-blue-100',
-  acknowledged: 'bg-green-100 text-green-700 dark:bg-green-800 dark:text-green-100',
+const reviewStatusStyles: Record<string, { bg: string; text: string }> = {
+  draft: { bg: statusColors.inactiveLight, text: statusColors.inactive },
+  submitted: { bg: statusColors.infoLight, text: statusColors.info },
+  acknowledged: { bg: statusColors.successLight, text: statusColors.success },
 }
 
 function renderStars(rating: number) {
@@ -72,11 +73,12 @@ function renderStars(rating: number) {
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
-          className={`h-3.5 w-3.5 ${
-            i < Math.round(rating)
-              ? 'fill-yellow-400 text-yellow-400'
-              : 'text-muted-foreground/30'
-          }`}
+          className="h-3.5 w-3.5"
+          style={{
+            fill: i < Math.round(rating) ? ratingColors.star : 'transparent',
+            color: i < Math.round(rating) ? ratingColors.star : ratingColors.starEmpty,
+            opacity: i < Math.round(rating) ? 1 : 0.3,
+          }}
         />
       ))}
       <span className="ml-1.5 text-sm font-medium">{rating.toFixed(1)}</span>
@@ -442,9 +444,11 @@ export function PerformanceReviewCard({ staffId }: PerformanceReviewCardProps) {
                       </Badge>
                       <Badge variant="outline">{review.year}</Badge>
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                          STATUS_COLORS[review.status]
-                        }`}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                        style={{
+                          backgroundColor: reviewStatusStyles[review.status]?.bg,
+                          color: reviewStatusStyles[review.status]?.text,
+                        }}
                       >
                         {STATUS_VARIANTS[review.status]?.label}
                       </span>

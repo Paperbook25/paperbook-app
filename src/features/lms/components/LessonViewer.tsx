@@ -10,6 +10,7 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import type { Lesson } from '../types/lms.types'
+import { statusColors, moduleColors } from '@/lib/design-tokens'
 
 // ==================== PROPS ====================
 
@@ -120,8 +121,8 @@ function DocumentRenderer({ lesson }: { lesson: Lesson }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-800">
-            <FileText className="h-5 w-5 text-blue-600 dark:text-blue-200" />
+          <div className="icon-box" style={{ backgroundColor: statusColors.infoLight }}>
+            <FileText className="h-5 w-5" style={{ color: statusColors.info }} />
           </div>
           {lesson.title}
         </CardTitle>
@@ -174,8 +175,8 @@ function AssignmentRenderer({ lesson }: { lesson: Lesson }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-800">
-            <ClipboardList className="h-5 w-5 text-green-600 dark:text-green-200" />
+          <div className="icon-box" style={{ backgroundColor: statusColors.successLight }}>
+            <ClipboardList className="h-5 w-5" style={{ color: statusColors.success }} />
           </div>
           {lesson.title}
         </CardTitle>
@@ -195,8 +196,8 @@ function LiveClassRenderer({ lesson }: { lesson: Lesson }) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-base">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-800">
-            <Video className="h-5 w-5 text-red-600 dark:text-red-200" />
+          <div className="icon-box" style={{ backgroundColor: statusColors.errorLight }}>
+            <Video className="h-5 w-5" style={{ color: statusColors.error }} />
           </div>
           {lesson.title}
         </CardTitle>

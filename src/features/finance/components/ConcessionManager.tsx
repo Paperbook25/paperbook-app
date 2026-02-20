@@ -15,16 +15,10 @@ import {
   useRejectConcession,
 } from '../hooks/useFinance'
 import { CONCESSION_STATUS_LABELS, type ConcessionStatus } from '../types/finance.types'
+import { concessionStatusColors, statusColors } from '@/lib/design-tokens'
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount)
-
-const STATUS_COLORS: Record<ConcessionStatus, string> = {
-  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
-  approved: 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
-  rejected: 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
-  expired: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100',
-}
 
 export function ConcessionManager() {
   const { toast } = useToast()
@@ -86,13 +80,13 @@ export function ConcessionManager() {
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-yellow-600">{pendingCount}</div>
+            <div className="text-2xl font-bold" style={{ color: statusColors.warning }}>{pendingCount}</div>
             <p className="text-sm text-muted-foreground">Pending Review</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">{formatCurrency(approvedValue)}</div>
+            <div className="text-2xl font-bold" style={{ color: statusColors.success }}>{formatCurrency(approvedValue)}</div>
             <p className="text-sm text-muted-foreground">Approved Value</p>
           </CardContent>
         </Card>
@@ -118,7 +112,13 @@ export function ConcessionManager() {
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-medium">{req.studentName}</span>
                         <Badge variant="outline">{req.studentClass} - {req.section}</Badge>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_COLORS[req.status]}`}>
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full"
+                          style={{
+                            backgroundColor: concessionStatusColors[req.status]?.bg,
+                            color: concessionStatusColors[req.status]?.text,
+                          }}
+                        >
                           {CONCESSION_STATUS_LABELS[req.status]}
                         </span>
                       </div>
@@ -145,7 +145,7 @@ export function ConcessionManager() {
                         <p className="text-sm text-destructive mt-2">Rejection: {req.rejectionReason}</p>
                       )}
                       {req.status === 'approved' && req.approvedBy && (
-                        <p className="text-sm text-green-600 mt-2">Approved by {req.approvedBy}</p>
+                        <p className="text-sm mt-2" style={{ color: statusColors.success }}>Approved by {req.approvedBy}</p>
                       )}
                     </div>
                     {req.status === 'pending' && (

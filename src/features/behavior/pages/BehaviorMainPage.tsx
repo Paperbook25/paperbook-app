@@ -92,37 +92,38 @@ import {
   Pie,
   Cell,
 } from 'recharts'
+import { chartColors, detentionStatusColors } from '@/lib/design-tokens'
 
 // Tab types
 type PrimaryTab = 'dashboard' | 'incidents' | 'detentions'
 
-// Chart colors
-const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
+// Chart colors from design tokens
+const COLORS = chartColors
 
-// Severity and status colors
-const severityColors: Record<IncidentSeverity, string> = {
-  minor: 'bg-blue-100 text-blue-800',
-  moderate: 'bg-yellow-100 text-yellow-800',
-  major: 'bg-orange-100 text-orange-800',
-  critical: 'bg-red-100 text-red-800',
+// Severity and status colors - standardized across all behavior pages
+const severityColors: Record<IncidentSeverity, { bg: string; text: string }> = {
+  minor: { bg: 'var(--color-status-info-light)', text: 'var(--color-status-info)' },
+  moderate: { bg: 'var(--color-status-warning-light)', text: 'var(--color-status-warning)' },
+  major: { bg: 'var(--color-module-behavior-light)', text: 'var(--color-module-behavior)' },
+  critical: { bg: 'var(--color-status-error-light)', text: 'var(--color-status-error)' },
 }
 
-const incidentStatusColors: Record<IncidentStatus, string> = {
-  reported: 'bg-yellow-100 text-yellow-800',
-  under_review: 'bg-blue-100 text-blue-800',
-  resolved: 'bg-green-100 text-green-800',
-  escalated: 'bg-red-100 text-red-800',
+const incidentStatusColors: Record<IncidentStatus, { bg: string; text: string }> = {
+  reported: { bg: 'var(--color-status-info-light)', text: 'var(--color-status-info)' },
+  under_review: { bg: 'var(--color-status-warning-light)', text: 'var(--color-status-warning)' },
+  resolved: { bg: 'var(--color-status-success-light)', text: 'var(--color-status-success)' },
+  escalated: { bg: 'var(--color-status-error-light)', text: 'var(--color-status-error)' },
 }
 
 const detentionStatusConfig: Record<
   DetentionStatus,
-  { label: string; icon: typeof Clock; className: string }
+  { label: string; icon: typeof Clock; style: { backgroundColor: string; color: string } }
 > = {
-  scheduled: { label: 'Scheduled', icon: Clock, className: 'bg-blue-100 text-blue-800' },
-  attended: { label: 'Attended', icon: CheckCircle, className: 'bg-green-100 text-green-800' },
-  missed: { label: 'Missed', icon: XCircle, className: 'bg-red-100 text-red-800' },
-  excused: { label: 'Excused', icon: AlertCircle, className: 'bg-yellow-100 text-yellow-800' },
-  cancelled: { label: 'Cancelled', icon: XCircle, className: 'bg-gray-100 text-gray-800' },
+  scheduled: { label: 'Scheduled', icon: Clock, style: { ...detentionStatusColors.scheduled } },
+  attended: { label: 'Attended', icon: CheckCircle, style: { ...detentionStatusColors.attended } },
+  missed: { label: 'Missed', icon: XCircle, style: { ...detentionStatusColors.missed } },
+  excused: { label: 'Excused', icon: AlertCircle, style: { ...detentionStatusColors.excused } },
+  cancelled: { label: 'Cancelled', icon: XCircle, style: { ...detentionStatusColors.cancelled } },
 }
 
 const categories: { value: IncidentCategory; label: string }[] = [
@@ -157,25 +158,25 @@ function DashboardTab() {
       label: 'Report Incident',
       icon: FileWarning,
       href: '/behavior/incidents/new',
-      color: 'bg-red-500',
+      style: { backgroundColor: 'var(--color-module-behavior)' },
     },
     {
       label: 'Award Points',
       icon: Award,
       href: '/behavior/points/new',
-      color: 'bg-green-500',
+      style: { backgroundColor: 'var(--color-module-behavior)' },
     },
     {
       label: 'Schedule Detention',
       icon: Clock,
       href: '/behavior/detentions/new',
-      color: 'bg-orange-500',
+      style: { backgroundColor: 'var(--color-module-behavior)' },
     },
     {
       label: 'View Analytics',
       icon: TrendingUp,
       href: '/behavior/analytics',
-      color: 'bg-blue-500',
+      style: { backgroundColor: 'var(--color-module-behavior)' },
     },
   ]
 
@@ -190,7 +191,7 @@ function DashboardTab() {
             className="h-auto py-4 flex flex-col items-center gap-2"
             onClick={() => navigate(action.href)}
           >
-            <div className={`p-2 rounded-lg ${action.color} text-white`}>
+            <div className="p-2 rounded-lg text-white" style={action.style}>
               <action.icon className="h-5 w-5" />
             </div>
             <span className="text-sm font-medium">{action.label}</span>
@@ -397,10 +398,10 @@ function DashboardTab() {
                         {incident.studentName} - {incident.studentClass}
                       </p>
                       <div className="flex items-center gap-2">
-                        <Badge className={severityColors[incident.severity]}>
+                        <Badge style={{ backgroundColor: severityColors[incident.severity].bg, color: severityColors[incident.severity].text }}>
                           {incident.severity}
                         </Badge>
-                        <Badge className={incidentStatusColors[incident.status]}>
+                        <Badge style={{ backgroundColor: incidentStatusColors[incident.status].bg, color: incidentStatusColors[incident.status].text }}>
                           {incident.status.replace('_', ' ')}
                         </Badge>
                       </div>
@@ -474,7 +475,7 @@ function DashboardTab() {
 
       {/* At-Risk Students */}
       {stats?.studentsAtRisk && stats.studentsAtRisk.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
+        <Card className="border-orange-200" style={{ backgroundColor: 'var(--color-module-behavior-light)' }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-800">
               <AlertTriangle className="h-5 w-5" />
@@ -759,12 +760,12 @@ function IncidentsTab() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={severityColors[incident.severity]}>
+                    <Badge style={{ backgroundColor: severityColors[incident.severity].bg, color: severityColors[incident.severity].text }}>
                       {incident.severity}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge className={incidentStatusColors[incident.status]}>
+                    <Badge style={{ backgroundColor: incidentStatusColors[incident.status].bg, color: incidentStatusColors[incident.status].text }}>
                       {incident.status.replace('_', ' ')}
                     </Badge>
                   </TableCell>
@@ -1036,7 +1037,7 @@ function DetentionsTab() {
                     <TableCell>{detention.location}</TableCell>
                     <TableCell>{detention.supervisorName}</TableCell>
                     <TableCell>
-                      <Badge className={statusInfo.className}>
+                      <Badge style={statusInfo.style}>
                         {statusInfo.label}
                       </Badge>
                     </TableCell>
@@ -1184,6 +1185,7 @@ export function BehaviorMainPage() {
         description="Track student behavior, incidents, and rewards"
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Behavior' }]}
         actions={getHeaderActions()}
+        moduleColor="behavior"
       />
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>

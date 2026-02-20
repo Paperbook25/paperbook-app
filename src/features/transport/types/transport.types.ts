@@ -259,3 +259,605 @@ export interface TransportStats {
   totalStudentsUsing: number
   upcomingMaintenance: number
 }
+
+// ==================== ROUTE OPTIMIZATION ====================
+
+export type OptimizationStrategy = 'shortest_distance' | 'shortest_time' | 'fewest_stops' | 'balanced'
+export type OptimizationStatus = 'pending' | 'processing' | 'completed' | 'failed'
+
+export interface OptimizedStop {
+  stopId: string
+  stopName: string
+  originalOrder: number
+  optimizedOrder: number
+  lat: number
+  lng: number
+  estimatedArrivalTime: string // HH:mm
+  distanceFromPrevious: number // km
+  timeFromPrevious: number // minutes
+  studentCount: number
+}
+
+export interface RouteOptimization {
+  id: string
+  routeId: string
+  routeName: string
+  strategy: OptimizationStrategy
+  status: OptimizationStatus
+  originalDistance: number // km
+  optimizedDistance: number // km
+  distanceSaved: number // km
+  originalDuration: number // minutes
+  optimizedDuration: number // minutes
+  timeSaved: number // minutes
+  optimizedStops: OptimizedStop[]
+  fuelSavingEstimate: number // liters
+  costSavingEstimate: number // currency
+  appliedAt: string | null
+  createdAt: string
+  createdBy: string
+}
+
+export const OPTIMIZATION_STRATEGY_LABELS: Record<OptimizationStrategy, string> = {
+  shortest_distance: 'Shortest Distance',
+  shortest_time: 'Shortest Time',
+  fewest_stops: 'Fewest Stops',
+  balanced: 'Balanced (Distance + Time)',
+}
+
+export const OPTIMIZATION_STATUS_LABELS: Record<OptimizationStatus, string> = {
+  pending: 'Pending',
+  processing: 'Processing',
+  completed: 'Completed',
+  failed: 'Failed',
+}
+
+export interface CreateRouteOptimizationRequest {
+  routeId: string
+  strategy: OptimizationStrategy
+}
+
+export interface ApplyOptimizationRequest {
+  optimizationId: string
+  routeId: string
+}
+
+// ==================== FUEL CONSUMPTION TRACKING ====================
+
+export type FuelLogType = 'refuel' | 'consumption_record'
+
+export interface FuelLog {
+  id: string
+  vehicleId: string
+  vehicleNumber: string
+  driverId: string
+  driverName: string
+  type: FuelLogType
+  date: string
+  odometerReading: number
+  quantity: number // liters
+  pricePerLiter: number
+  totalCost: number
+  fuelStation: string
+  receiptNumber: string | null
+  notes: string | null
+  createdAt: string
+  createdBy: string
+}
+
+export interface FuelConsumption {
+  vehicleId: string
+  vehicleNumber: string
+  period: string // YYYY-MM
+  totalFuelConsumed: number // liters
+  totalDistanceTraveled: number // km
+  totalCost: number
+  averageMileage: number // km/liter
+  tripCount: number
+  refuelCount: number
+}
+
+export interface FuelEfficiency {
+  vehicleId: string
+  vehicleNumber: string
+  vehicleType: Vehicle['type']
+  currentMileage: number // km/liter
+  expectedMileage: number // km/liter based on vehicle type
+  efficiencyRating: 'excellent' | 'good' | 'average' | 'poor'
+  trend: 'improving' | 'stable' | 'declining'
+  lastMonthMileage: number
+  thisMonthMileage: number
+  recommendations: string[]
+}
+
+export const FUEL_LOG_TYPE_LABELS: Record<FuelLogType, string> = {
+  refuel: 'Refuel',
+  consumption_record: 'Consumption Record',
+}
+
+export const EFFICIENCY_RATING_LABELS: Record<FuelEfficiency['efficiencyRating'], string> = {
+  excellent: 'Excellent',
+  good: 'Good',
+  average: 'Average',
+  poor: 'Poor',
+}
+
+export interface CreateFuelLogRequest {
+  vehicleId: string
+  driverId: string
+  type: FuelLogType
+  date: string
+  odometerReading: number
+  quantity: number
+  pricePerLiter: number
+  fuelStation: string
+  receiptNumber?: string
+  notes?: string
+}
+
+// ==================== DRIVER BEHAVIOR MONITORING ====================
+
+export type DrivingEventType =
+  | 'harsh_braking'
+  | 'rapid_acceleration'
+  | 'over_speeding'
+  | 'sharp_turn'
+  | 'idle_engine'
+  | 'seatbelt_violation'
+  | 'phone_usage'
+  | 'fatigue_detected'
+  | 'lane_departure'
+  | 'tailgating'
+
+export type EventSeverity = 'low' | 'medium' | 'high' | 'critical'
+
+export interface DrivingEvent {
+  id: string
+  driverId: string
+  driverName: string
+  vehicleId: string
+  vehicleNumber: string
+  routeId: string | null
+  eventType: DrivingEventType
+  severity: EventSeverity
+  description: string
+  location: {
+    lat: number
+    lng: number
+    address: string
+  }
+  speed: number | null // km/h at time of event
+  timestamp: string
+  acknowledged: boolean
+  acknowledgedAt: string | null
+  acknowledgedBy: string | null
+  notes: string | null
+}
+
+export interface BehaviorScore {
+  driverId: string
+  driverName: string
+  overallScore: number // 0-100
+  safetyScore: number // 0-100
+  efficiencyScore: number // 0-100
+  complianceScore: number // 0-100
+  scoreGrade: 'A' | 'B' | 'C' | 'D' | 'F'
+  trend: 'improving' | 'stable' | 'declining'
+  totalTrips: number
+  totalEvents: number
+  eventsByType: Record<DrivingEventType, number>
+  lastUpdated: string
+}
+
+export interface DriverBehavior {
+  driverId: string
+  driverName: string
+  photoUrl: string
+  assignedVehicle: string | null
+  assignedRoute: string | null
+  behaviorScore: BehaviorScore
+  recentEvents: DrivingEvent[]
+  monthlyScores: Array<{
+    month: string
+    score: number
+  }>
+  achievements: string[]
+  warnings: string[]
+}
+
+export const DRIVING_EVENT_TYPE_LABELS: Record<DrivingEventType, string> = {
+  harsh_braking: 'Harsh Braking',
+  rapid_acceleration: 'Rapid Acceleration',
+  over_speeding: 'Over Speeding',
+  sharp_turn: 'Sharp Turn',
+  idle_engine: 'Idle Engine',
+  seatbelt_violation: 'Seatbelt Violation',
+  phone_usage: 'Phone Usage',
+  fatigue_detected: 'Fatigue Detected',
+  lane_departure: 'Lane Departure',
+  tailgating: 'Tailgating',
+}
+
+export const EVENT_SEVERITY_LABELS: Record<EventSeverity, string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  critical: 'Critical',
+}
+
+export const SCORE_GRADE_LABELS: Record<BehaviorScore['scoreGrade'], string> = {
+  A: 'Excellent (90-100)',
+  B: 'Good (80-89)',
+  C: 'Average (70-79)',
+  D: 'Below Average (60-69)',
+  F: 'Poor (Below 60)',
+}
+
+export interface AcknowledgeEventRequest {
+  eventId: string
+  notes?: string
+}
+
+// ==================== PARENT REAL-TIME NOTIFICATIONS (ETA) ====================
+
+export type ParentNotificationType =
+  | 'trip_started'
+  | 'approaching_stop'
+  | 'arrived_at_stop'
+  | 'student_boarded'
+  | 'student_dropped'
+  | 'eta_update'
+  | 'delay_alert'
+  | 'route_deviation'
+  | 'emergency_alert'
+
+export interface ETAUpdate {
+  id: string
+  routeId: string
+  routeName: string
+  vehicleId: string
+  stopId: string
+  stopName: string
+  studentId: string
+  studentName: string
+  parentId: string
+  parentPhone: string
+  tripType: TripType
+  estimatedArrival: string // ISO datetime
+  currentETA: number // minutes
+  previousETA: number | null // minutes
+  etaChange: number | null // minutes (positive = delayed, negative = early)
+  distanceAway: number // km
+  trafficCondition: 'light' | 'moderate' | 'heavy'
+  lastUpdated: string
+}
+
+export interface ParentNotification {
+  id: string
+  parentId: string
+  parentName: string
+  parentPhone: string
+  parentEmail: string | null
+  studentId: string
+  studentName: string
+  routeId: string
+  routeName: string
+  stopId: string
+  stopName: string
+  notificationType: ParentNotificationType
+  title: string
+  message: string
+  eta: number | null // minutes
+  vehicleLocation: {
+    lat: number
+    lng: number
+  } | null
+  priority: 'low' | 'normal' | 'high' | 'urgent'
+  channel: 'sms' | 'whatsapp' | 'push' | 'email'
+  status: 'pending' | 'sent' | 'delivered' | 'failed' | 'read'
+  sentAt: string | null
+  deliveredAt: string | null
+  readAt: string | null
+  createdAt: string
+}
+
+export const PARENT_NOTIFICATION_TYPE_LABELS: Record<ParentNotificationType, string> = {
+  trip_started: 'Trip Started',
+  approaching_stop: 'Bus Approaching',
+  arrived_at_stop: 'Bus Arrived',
+  student_boarded: 'Student Boarded',
+  student_dropped: 'Student Dropped Off',
+  eta_update: 'ETA Update',
+  delay_alert: 'Delay Alert',
+  route_deviation: 'Route Deviation',
+  emergency_alert: 'Emergency Alert',
+}
+
+export interface SendParentNotificationRequest {
+  studentIds: string[]
+  notificationType: ParentNotificationType
+  title: string
+  message: string
+  channel: ParentNotification['channel']
+  priority?: ParentNotification['priority']
+}
+
+export interface ETASubscription {
+  id: string
+  parentId: string
+  studentId: string
+  stopId: string
+  notifyOnApproaching: boolean
+  approachingThreshold: number // minutes before arrival
+  notifyOnArrival: boolean
+  notifyOnDelay: boolean
+  delayThreshold: number // minutes of delay to trigger notification
+  channels: ParentNotification['channel'][]
+  isActive: boolean
+}
+
+// ==================== EMERGENCY SOS INTEGRATION ====================
+
+export type SOSType =
+  | 'medical_emergency'
+  | 'accident'
+  | 'breakdown'
+  | 'security_threat'
+  | 'fire'
+  | 'student_missing'
+  | 'other'
+
+export type SOSStatus = 'active' | 'responding' | 'resolved' | 'false_alarm'
+export type SOSPriority = 'low' | 'medium' | 'high' | 'critical'
+
+export interface EmergencySOS {
+  id: string
+  vehicleId: string
+  vehicleNumber: string
+  routeId: string
+  routeName: string
+  driverId: string
+  driverName: string
+  driverPhone: string
+  sosType: SOSType
+  priority: SOSPriority
+  status: SOSStatus
+  description: string
+  location: {
+    lat: number
+    lng: number
+    address: string
+  }
+  studentsOnBoard: number
+  studentIds: string[]
+  triggeredAt: string
+  triggeredBy: 'driver' | 'system' | 'admin'
+  respondedAt: string | null
+  resolvedAt: string | null
+  resolvedBy: string | null
+  resolutionNotes: string | null
+  responders: SOSResponder[]
+  timeline: SOSTimelineEvent[]
+  notificationsSent: number
+  parentsNotified: boolean
+  schoolNotified: boolean
+  emergencyServicesContacted: boolean
+}
+
+export interface SOSResponder {
+  id: string
+  name: string
+  role: string
+  phone: string
+  assignedAt: string
+  arrivedAt: string | null
+  status: 'assigned' | 'en_route' | 'on_scene' | 'completed'
+}
+
+export interface SOSTimelineEvent {
+  id: string
+  timestamp: string
+  event: string
+  description: string
+  performedBy: string | null
+}
+
+export interface SOSResponse {
+  id: string
+  sosId: string
+  responderId: string
+  responderName: string
+  responderRole: string
+  action: string
+  notes: string | null
+  timestamp: string
+}
+
+export const SOS_TYPE_LABELS: Record<SOSType, string> = {
+  medical_emergency: 'Medical Emergency',
+  accident: 'Accident',
+  breakdown: 'Vehicle Breakdown',
+  security_threat: 'Security Threat',
+  fire: 'Fire',
+  student_missing: 'Student Missing',
+  other: 'Other Emergency',
+}
+
+export const SOS_STATUS_LABELS: Record<SOSStatus, string> = {
+  active: 'Active',
+  responding: 'Responding',
+  resolved: 'Resolved',
+  false_alarm: 'False Alarm',
+}
+
+export const SOS_PRIORITY_LABELS: Record<SOSPriority, string> = {
+  low: 'Low',
+  medium: 'Medium',
+  high: 'High',
+  critical: 'Critical',
+}
+
+export interface TriggerSOSRequest {
+  vehicleId: string
+  sosType: SOSType
+  description: string
+  priority?: SOSPriority
+}
+
+export interface UpdateSOSRequest {
+  sosId: string
+  status?: SOSStatus
+  resolutionNotes?: string
+  addResponder?: {
+    name: string
+    role: string
+    phone: string
+  }
+}
+
+export interface SOSResponseRequest {
+  sosId: string
+  action: string
+  notes?: string
+}
+
+// ==================== MULTI-TRIP MANAGEMENT ====================
+
+export type TripDirection = 'to_school' | 'from_school'
+export type TripPeriod = 'morning' | 'afternoon' | 'evening' | 'special'
+
+export interface Trip {
+  id: string
+  routeId: string
+  routeName: string
+  vehicleId: string
+  vehicleNumber: string
+  driverId: string
+  driverName: string
+  tripType: TripType // pickup or drop
+  tripDirection: TripDirection
+  tripPeriod: TripPeriod
+  status: TripStatus
+  scheduledStartTime: string // HH:mm
+  scheduledEndTime: string // HH:mm
+  actualStartTime: string | null
+  actualEndTime: string | null
+  startOdometer: number | null
+  endOdometer: number | null
+  totalStudentsExpected: number
+  totalStudentsBoarded: number
+  totalStudentsDropped: number
+  currentStop: string | null
+  nextStop: string | null
+  stopsCompleted: number
+  totalStops: number
+  delayMinutes: number
+  notes: string | null
+  date: string
+  createdAt: string
+}
+
+export interface TripSchedule {
+  id: string
+  routeId: string
+  routeName: string
+  dayOfWeek: number // 0 = Sunday, 6 = Saturday
+  trips: Array<{
+    tripPeriod: TripPeriod
+    tripType: TripType
+    startTime: string // HH:mm
+    endTime: string // HH:mm
+    isActive: boolean
+  }>
+  effectiveFrom: string
+  effectiveTo: string | null
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MultiTrip {
+  id: string
+  date: string
+  routeId: string
+  routeName: string
+  vehicleId: string
+  vehicleNumber: string
+  driverId: string
+  driverName: string
+  trips: Trip[]
+  totalTripsScheduled: number
+  totalTripsCompleted: number
+  totalDistanceCovered: number // km
+  totalStudentsTransported: number
+  totalDelayMinutes: number
+  status: 'scheduled' | 'in_progress' | 'completed' | 'partially_completed'
+  notes: string | null
+}
+
+export const TRIP_DIRECTION_LABELS: Record<TripDirection, string> = {
+  to_school: 'To School',
+  from_school: 'From School',
+}
+
+export const TRIP_PERIOD_LABELS: Record<TripPeriod, string> = {
+  morning: 'Morning',
+  afternoon: 'Afternoon',
+  evening: 'Evening',
+  special: 'Special',
+}
+
+export const MULTI_TRIP_STATUS_LABELS: Record<MultiTrip['status'], string> = {
+  scheduled: 'Scheduled',
+  in_progress: 'In Progress',
+  completed: 'Completed',
+  partially_completed: 'Partially Completed',
+}
+
+export interface CreateTripRequest {
+  routeId: string
+  vehicleId: string
+  driverId: string
+  tripType: TripType
+  tripDirection: TripDirection
+  tripPeriod: TripPeriod
+  scheduledStartTime: string
+  scheduledEndTime: string
+  date: string
+}
+
+export interface UpdateTripRequest {
+  tripId: string
+  status?: TripStatus
+  actualStartTime?: string
+  actualEndTime?: string
+  startOdometer?: number
+  endOdometer?: number
+  notes?: string
+}
+
+export interface CreateTripScheduleRequest {
+  routeId: string
+  dayOfWeek: number
+  trips: Array<{
+    tripPeriod: TripPeriod
+    tripType: TripType
+    startTime: string
+    endTime: string
+  }>
+  effectiveFrom: string
+  effectiveTo?: string
+}
+
+export interface TripBoardingRecord {
+  id: string
+  tripId: string
+  studentId: string
+  studentName: string
+  stopId: string
+  stopName: string
+  action: 'boarded' | 'dropped'
+  timestamp: string
+  verifiedBy: 'rfid' | 'manual' | 'facial_recognition'
+  parentNotified: boolean
+}

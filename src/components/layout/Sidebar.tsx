@@ -3,8 +3,7 @@ import { createPortal } from 'react-dom'
 import {
   LayoutDashboard,
   UserPlus,
-  GraduationCap,
-  Users,
+  UsersRound,
   ClipboardCheck,
   ClipboardList,
   BookOpen,
@@ -12,12 +11,11 @@ import {
   MonitorPlay,
   IndianRupee,
   Settings,
-  Plug,
-  Building2,
-  UserCheck,
-  Package,
-  Users2,
+  BarChart3,
   X,
+  Cog,
+  MessageCircle,
+  Briefcase,
   type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -28,13 +26,20 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import type { Role } from '@/types/common.types'
 import { useState, useRef, useEffect, useCallback } from 'react'
 
+interface NavChildItem {
+  name: string
+  href: string
+  roles?: Role[]
+}
+
 interface NavItem {
   name: string
   shortName?: string
   href: string
   icon: LucideIcon
   roles: Role[]
-  children?: { name: string; href: string }[]
+  children?: NavChildItem[]
+  moduleColor?: string
 }
 
 const navigation: NavItem[] = [
@@ -43,6 +48,7 @@ const navigation: NavItem[] = [
     href: '/',
     icon: LayoutDashboard,
     roles: ['admin', 'principal', 'teacher', 'accountant', 'librarian', 'transport_manager', 'student', 'parent'],
+    moduleColor: 'var(--color-module-academic)',
   },
   {
     name: 'Admissions',
@@ -50,131 +56,75 @@ const navigation: NavItem[] = [
     href: '/admissions',
     icon: UserPlus,
     roles: ['admin', 'principal'],
-    children: [
-      { name: 'All Applications', href: '/admissions' },
-      { name: 'Pipeline', href: '/admissions/pipeline' },
-      { name: 'New Application', href: '/admissions/new' },
-      { name: 'Entrance Exams', href: '/admissions/entrance-exams' },
-      { name: 'Waitlist', href: '/admissions/waitlist' },
-      { name: 'Communications', href: '/admissions/communications' },
-      { name: 'Payments', href: '/admissions/payments' },
-      { name: 'Analytics', href: '/admissions/analytics' },
-    ],
+    moduleColor: 'var(--color-module-admissions)',
   },
+  // People module (consolidated Students, Staff, Attendance, Behavior) for admin/principal/teacher
   {
-    name: 'Students',
-    href: '/students',
-    icon: GraduationCap,
+    name: 'People',
+    href: '/people',
+    icon: UsersRound,
     roles: ['admin', 'principal', 'teacher'],
-  },
-  {
-    name: 'Staff',
-    href: '/staff',
-    icon: Users,
-    roles: ['admin', 'principal'],
+    moduleColor: 'var(--color-module-students)',
     children: [
-      { name: 'All Staff', href: '/staff' },
-      { name: 'Add Staff', href: '/staff/new' },
-      { name: 'Attendance', href: '/staff/attendance' },
-      { name: 'Leave Management', href: '/staff/leave' },
-      { name: 'Salary & Payroll', href: '/staff/salary' },
-      { name: 'Timetable', href: '/staff/timetable' },
-      { name: 'Substitutions', href: '/staff/substitutions' },
+      { name: 'Students', href: '/people?tab=students' },
+      { name: 'Staff', href: '/people?tab=staff', roles: ['admin', 'principal'] },
+      { name: 'Attendance', href: '/people?tab=attendance' },
+      { name: 'Behavior', href: '/people?tab=behavior' },
     ],
   },
-  {
-    name: 'Attendance',
-    shortName: 'Attend',
-    href: '/attendance',
-    icon: ClipboardCheck,
-    roles: ['admin', 'principal', 'teacher'],
-    children: [
-      { name: 'Mark Attendance', href: '/attendance' },
-      { name: 'Period-wise', href: '/attendance/periods' },
-      { name: 'Reports', href: '/attendance?tab=reports' },
-      { name: 'Leave Management', href: '/attendance?tab=leave' },
-      { name: 'Shortage Alerts', href: '/attendance/alerts' },
-      { name: 'Late Detection', href: '/attendance/late' },
-      { name: 'Notifications', href: '/attendance/notifications' },
-      { name: 'Biometric Devices', href: '/attendance/biometric' },
-    ],
-  },
-  // Student/Parent specific attendance view
+  // Student/Parent specific attendance view (shows My Attendance)
   {
     name: 'My Attendance',
     shortName: 'Attend',
-    href: '/attendance',
+    href: '/people',
     icon: ClipboardCheck,
     roles: ['student', 'parent'],
+    moduleColor: 'var(--color-module-attendance)',
   },
   {
     name: 'Library',
     href: '/library',
     icon: BookOpen,
     roles: ['admin', 'principal', 'librarian', 'teacher', 'student', 'parent'],
-    children: [
-      { name: 'Catalog', href: '/library' },
-      { name: 'Issued Books', href: '/library?tab=issued' },
-      { name: 'Reservations', href: '/library/reservations' },
-      { name: 'Scanner', href: '/library/scanner' },
-      { name: 'Digital Library', href: '/library/digital' },
-      { name: 'Reading History', href: '/library/reading' },
-      { name: 'Notifications', href: '/library/notifications' },
-      { name: 'Fines', href: '/library?tab=fines' },
-    ],
+    moduleColor: 'var(--color-module-library)',
   },
   {
     name: 'LMS',
     href: '/lms',
     icon: MonitorPlay,
     roles: ['admin', 'principal', 'teacher', 'student', 'parent'],
-    children: [
-      { name: 'Dashboard', href: '/lms' },
-      { name: 'Courses', href: '/lms/courses' },
-      { name: 'Live Classes', href: '/lms/live-classes' },
-      { name: 'Enrollments', href: '/lms/enrollments' },
-      { name: 'Assignments', href: '/lms/assignments' },
-    ],
+    moduleColor: 'var(--color-module-lms)',
   },
+  // Operations module (consolidated Transport, Hostel, Assets, Visitors)
   {
-    name: 'Transport',
-    href: '/transport',
-    icon: Bus,
-    roles: ['admin', 'principal', 'transport_manager'],
+    name: 'Operations',
+    shortName: 'Ops',
+    href: '/operations',
+    icon: Cog,
+    roles: ['admin', 'principal', 'transport_manager', 'accountant'],
+    moduleColor: 'var(--color-module-operations)',
     children: [
-      { name: 'Routes', href: '/transport' },
-      { name: 'Vehicles', href: '/transport/vehicles' },
-      { name: 'Drivers', href: '/transport/drivers' },
-      { name: 'Stop Assignments', href: '/transport/stops' },
-      { name: 'Live Tracking', href: '/transport/tracking' },
-      { name: 'Maintenance', href: '/transport/maintenance' },
-      { name: 'Notifications', href: '/transport/notifications' },
+      { name: 'Transport', href: '/operations?tab=transport', roles: ['admin', 'principal', 'transport_manager'] },
+      { name: 'Hostel', href: '/operations?tab=hostel', roles: ['admin', 'principal'] },
+      { name: 'Assets', href: '/operations?tab=assets', roles: ['admin', 'principal', 'accountant'] },
+      { name: 'Visitors', href: '/visitors', roles: ['admin', 'principal'] },
     ],
   },
-  // Parent/Student transport tracking view
+  // Parent/Student transport tracking view - keep as separate item
   {
     name: 'Bus Tracking',
     shortName: 'Bus',
     href: '/transport/tracking',
     icon: Bus,
     roles: ['parent', 'student'],
+    moduleColor: 'var(--color-module-transport)',
   },
   {
     name: 'Exams',
     href: '/exams',
     icon: ClipboardList,
     roles: ['admin', 'principal', 'teacher'],
-    children: [
-      { name: 'All Exams', href: '/exams' },
-      { name: 'Timetable', href: '/exams/timetable' },
-      { name: 'Marks Entry', href: '/exams?tab=marks' },
-      { name: 'Analytics', href: '/exams/analytics' },
-      { name: 'Progress', href: '/exams/progress' },
-      { name: 'Co-Scholastic', href: '/exams/co-scholastic' },
-      { name: 'Question Papers', href: '/exams/question-papers' },
-      { name: 'Report Cards', href: '/exams?tab=reports' },
-      { name: 'Grade Settings', href: '/exams?tab=grades' },
-    ],
+    moduleColor: 'var(--color-module-exams)',
   },
   // Student/Parent exam results view
   {
@@ -183,23 +133,14 @@ const navigation: NavItem[] = [
     href: '/exams?tab=reports',
     icon: ClipboardList,
     roles: ['student', 'parent'],
+    moduleColor: 'var(--color-module-exams)',
   },
   {
     name: 'Finance',
     href: '/finance',
     icon: IndianRupee,
     roles: ['admin', 'principal', 'accountant'],
-    children: [
-      { name: 'Fee Structure', href: '/finance' },
-      { name: 'Collection', href: '/finance?tab=collection' },
-      { name: 'Payments', href: '/finance?tab=payments' },
-      { name: 'Installments', href: '/finance/installments' },
-      { name: 'Discounts', href: '/finance/discounts' },
-      { name: 'Concessions', href: '/finance/concessions' },
-      { name: 'Online Payments', href: '/finance/online-payments' },
-      { name: 'Escalation', href: '/finance/escalation' },
-      { name: 'Reports', href: '/finance?tab=reports' },
-    ],
+    moduleColor: 'var(--color-module-finance)',
   },
   // Parent/Student fees view
   {
@@ -207,87 +148,49 @@ const navigation: NavItem[] = [
     href: '/finance/my-fees',
     icon: IndianRupee,
     roles: ['parent', 'student'],
+    moduleColor: 'var(--color-module-finance)',
   },
+  // Parent Portal for parent-teacher communication
   {
-    name: 'Hostel',
-    href: '/hostel',
-    icon: Building2,
-    roles: ['admin', 'principal'],
+    name: 'Parent Portal',
+    shortName: 'Connect',
+    href: '/parent-portal',
+    icon: MessageCircle,
+    roles: ['parent'],
+    moduleColor: 'var(--color-module-parent-portal)',
+  },
+  // Management module (consolidated Schedule, Docs, Alumni)
+  {
+    name: 'Management',
+    shortName: 'Mgmt',
+    href: '/management',
+    icon: Briefcase,
+    roles: ['admin', 'principal', 'teacher', 'accountant'],
+    moduleColor: 'var(--color-module-management)',
     children: [
-      { name: 'Dashboard', href: '/hostel' },
-      { name: 'Rooms', href: '/hostel/rooms' },
-      { name: 'Allocations', href: '/hostel/allocations' },
-      { name: 'Fees', href: '/hostel/fees' },
-      { name: 'Mess Menu', href: '/hostel/mess' },
-      { name: 'Attendance', href: '/hostel/attendance' },
+      { name: 'Schedule', href: '/management?tab=schedule' },
+      { name: 'Docs', href: '/management?tab=docs', roles: ['admin', 'principal', 'teacher', 'accountant'] },
+      { name: 'Alumni', href: '/management?tab=alumni', roles: ['admin', 'principal'] },
     ],
   },
   {
-    name: 'Visitors',
-    href: '/visitors',
-    icon: UserCheck,
-    roles: ['admin', 'principal'],
-    children: [
-      { name: 'Check-In', href: '/visitors' },
-      { name: 'Logs', href: '/visitors/logs' },
-      { name: 'Reports', href: '/visitors/reports' },
-      { name: 'Pre-Approved', href: '/visitors/pre-approved' },
-    ],
-  },
-  {
-    name: 'Inventory',
-    href: '/inventory',
-    icon: Package,
+    name: 'Reports',
+    href: '/reports',
+    icon: BarChart3,
     roles: ['admin', 'principal', 'accountant'],
-    children: [
-      { name: 'Dashboard', href: '/inventory' },
-      { name: 'Assets', href: '/inventory/assets' },
-      { name: 'Stock', href: '/inventory/stock' },
-      { name: 'Purchase Orders', href: '/inventory/purchase-orders' },
-      { name: 'Vendors', href: '/inventory/vendors' },
-    ],
+    moduleColor: 'var(--color-module-reports)',
   },
-  {
-    name: 'Alumni',
-    href: '/alumni',
-    icon: Users2,
-    roles: ['admin', 'principal'],
-    children: [
-      { name: 'Directory', href: '/alumni' },
-      { name: 'Batches', href: '/alumni/batches' },
-      { name: 'Achievements', href: '/alumni/achievements' },
-      { name: 'Contributions', href: '/alumni/contributions' },
-      { name: 'Events', href: '/alumni/events' },
-    ],
-  },
-  {
-    name: 'Integrations',
-    shortName: 'Integrate',
-    href: '/integrations',
-    icon: Plug,
-    roles: ['admin', 'principal'],
-    children: [
-      { name: 'SMS Gateway', href: '/integrations?tab=sms' },
-      { name: 'Email Service', href: '/integrations?tab=email' },
-      { name: 'Payment Gateway', href: '/integrations?tab=payment' },
-      { name: 'Biometric Devices', href: '/integrations?tab=biometric' },
-      { name: 'Webhooks', href: '/integrations?tab=webhooks' },
-      { name: 'API Keys', href: '/integrations?tab=api-keys' },
-    ],
-  },
+  // Settings module (includes General, Communication, Integrations)
   {
     name: 'Settings',
     href: '/settings',
     icon: Settings,
-    roles: ['admin', 'principal'],
+    roles: ['admin', 'principal', 'teacher'],
+    moduleColor: 'var(--color-module-settings)',
     children: [
-      { name: 'School Profile', href: '/settings' },
-      { name: 'Academic Year', href: '/settings?tab=academic' },
-      { name: 'Calendar', href: '/settings?tab=calendar' },
-      { name: 'Classes', href: '/settings?tab=classes' },
-      { name: 'Users', href: '/settings?tab=users' },
-      { name: 'Email Templates', href: '/settings?tab=templates' },
-      { name: 'Audit Log', href: '/settings?tab=audit' },
+      { name: 'General', href: '/settings', roles: ['admin', 'principal'] },
+      { name: 'Communication', href: '/settings?tab=communication', roles: ['admin', 'principal', 'teacher'] },
+      { name: 'Integrations', href: '/settings?tab=integrations', roles: ['admin', 'principal'] },
     ],
   },
 ]
@@ -297,9 +200,10 @@ interface FlyoutPanelProps {
   isOpen: boolean
   onNavigate: () => void
   triggerRect: DOMRect | null
+  hasRole: (roles: Role[]) => boolean
 }
 
-function FlyoutPanel({ item, isOpen, onNavigate, triggerRect }: FlyoutPanelProps) {
+function FlyoutPanel({ item, isOpen, onNavigate, triggerRect, hasRole }: FlyoutPanelProps) {
   const location = useLocation()
 
   if (!triggerRect) return null
@@ -349,7 +253,7 @@ function FlyoutPanel({ item, isOpen, onNavigate, triggerRect }: FlyoutPanelProps
 
           {/* Menu items */}
           <div className="space-y-0.5 max-h-80 overflow-y-auto">
-            {item.children?.map((child) => {
+            {item.children?.filter((child) => !child.roles || hasRole(child.roles)).map((child) => {
               const isChildActive = location.pathname === child.href ||
                 (location.pathname + location.search) === child.href
               return (
@@ -380,6 +284,7 @@ function FlyoutPanel({ item, isOpen, onNavigate, triggerRect }: FlyoutPanelProps
 
 function SidebarNavItem({ item }: { item: NavItem }) {
   const location = useLocation()
+  const { hasRole } = useAuthStore()
   const [isOpen, setIsOpen] = useState(false)
   const [triggerRect, setTriggerRect] = useState<DOMRect | null>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -439,14 +344,23 @@ function SidebarNavItem({ item }: { item: NavItem }) {
         aria-haspopup={hasChildren ? 'menu' : undefined}
         aria-expanded={hasChildren ? isOpen : undefined}
         className={cn(
-          'flex flex-col items-center gap-1 rounded-md px-2 py-1.5 text-center transition-all',
+          'relative flex flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-3 text-center transition-all w-full',
           isActive
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+            ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm'
             : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
         )}
+        style={isActive && item.moduleColor ? {
+          boxShadow: `inset 3px 0 0 ${item.moduleColor}`,
+          borderTopLeftRadius: '0.75rem',
+          borderBottomLeftRadius: '0.75rem',
+        } : undefined}
       >
-        <item.icon className="h-5 w-5 shrink-0" />
-        <span className="text-[8px] font-medium leading-none truncate w-full">
+        <item.icon
+          className="h-6 w-6 shrink-0 transition-colors"
+          strokeWidth={1.75}
+          style={isActive && item.moduleColor ? { color: item.moduleColor } : undefined}
+        />
+        <span className="text-[10px] font-medium leading-tight truncate w-full">
           {item.shortName || item.name}
         </span>
       </Link>
@@ -458,6 +372,7 @@ function SidebarNavItem({ item }: { item: NavItem }) {
           isOpen={isOpen}
           onNavigate={handleNavigate}
           triggerRect={triggerRect}
+          hasRole={hasRole}
         />
       )}
     </div>
@@ -467,6 +382,7 @@ function SidebarNavItem({ item }: { item: NavItem }) {
 // Mobile nav item with accordion-style expansion
 function MobileNavItem({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
   const location = useLocation()
+  const { hasRole } = useAuthStore()
   const [expanded, setExpanded] = useState(false)
 
   const isActive = location.pathname === item.href ||
@@ -491,6 +407,9 @@ function MobileNavItem({ item, onNavigate }: { item: NavItem; onNavigate: () => 
             ? 'bg-primary text-primary-foreground'
             : 'text-foreground hover:bg-muted'
         )}
+        style={isActive && item.moduleColor ? {
+          backgroundColor: item.moduleColor,
+        } : undefined}
       >
         <item.icon className="h-5 w-5 shrink-0" />
         <span className="flex-1">{item.name}</span>
@@ -508,7 +427,7 @@ function MobileNavItem({ item, onNavigate }: { item: NavItem; onNavigate: () => 
 
       {hasChildren && expanded && (
         <div className="ml-4 mt-1 space-y-1 border-l pl-4">
-          {item.children?.map((child) => (
+          {item.children?.filter((child) => !child.roles || hasRole(child.roles)).map((child) => (
             <Link
               key={child.href}
               to={child.href}
@@ -591,20 +510,22 @@ export function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-20 flex-col bg-sidebar border-r border-sidebar-border lg:flex">
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-[96px] flex-col bg-sidebar border-r border-sidebar-border shadow-sm lg:flex">
         {/* Logo */}
         <div className="flex h-16 items-center justify-center border-b border-sidebar-border">
           <Link to="/">
-            <img src="/logo.svg" alt="PaperBook" className="h-8 w-8" />
+            <img src="/logo.svg" alt="PaperBook" className="h-9 w-9" />
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 flex flex-col justify-between py-2 px-1.5 overflow-hidden">
-          {filteredNav.map((item) => (
-            <SidebarNavItem key={item.href + item.name} item={item} />
-          ))}
-        </nav>
+        <ScrollArea className="flex-1">
+          <nav className="flex flex-col gap-0.5 py-3 px-2.5">
+            {filteredNav.map((item) => (
+              <SidebarNavItem key={item.href + item.name} item={item} />
+            ))}
+          </nav>
+        </ScrollArea>
       </aside>
 
       {/* Mobile Drawer */}

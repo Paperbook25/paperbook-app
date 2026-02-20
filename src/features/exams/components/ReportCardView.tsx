@@ -1,4 +1,4 @@
-import { Printer, Download } from 'lucide-react'
+import { Printer, Download, FileDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate } from '@/lib/utils'
+import { downloadReportCardAsPDF } from '@/lib/pdf-export'
+import { getGradeColor } from '@/lib/design-tokens'
 import type { ReportCard } from '../types/exams.types'
 
 interface ReportCardViewProps {
@@ -25,13 +27,13 @@ export function ReportCardView({ reportCard, onClose }: ReportCardViewProps) {
     window.print()
   }
 
-  const getGradeColor = (grade: string) => {
-    if (grade.startsWith('A')) return 'text-green-600'
-    if (grade.startsWith('B')) return 'text-blue-600'
-    if (grade.startsWith('C')) return 'text-yellow-600'
-    if (grade === 'D') return 'text-orange-600'
-    return 'text-red-600'
+  const handleDownloadPDF = () => {
+    downloadReportCardAsPDF(reportCard)
   }
+
+  const getGradeStyle = (grade: string) => ({
+    color: getGradeColor(grade),
+  })
 
   return (
     <Card className="print:shadow-none print:border-none max-w-3xl mx-auto">
@@ -43,6 +45,10 @@ export function ReportCardView({ reportCard, onClose }: ReportCardViewProps) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleDownloadPDF}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Download PDF
+          </Button>
           <Button variant="outline" size="sm" onClick={handlePrint}>
             <Printer className="h-4 w-4 mr-2" />
             Print
@@ -123,7 +129,7 @@ export function ReportCardView({ reportCard, onClose }: ReportCardViewProps) {
                 <TableCell className="text-center">{subject.maxMarks}</TableCell>
                 <TableCell className="text-center font-medium">{subject.marksObtained}</TableCell>
                 <TableCell className="text-center">
-                  <span className={`font-bold ${getGradeColor(subject.grade)}`}>
+                  <span className="font-bold" style={getGradeStyle(subject.grade)}>
                     {subject.grade}
                   </span>
                 </TableCell>
@@ -138,7 +144,7 @@ export function ReportCardView({ reportCard, onClose }: ReportCardViewProps) {
               <TableCell className="text-center font-bold">{reportCard.totalMarks}</TableCell>
               <TableCell className="text-center font-bold">{reportCard.totalObtained}</TableCell>
               <TableCell className="text-center">
-                <span className={`font-bold ${getGradeColor(reportCard.grade)}`}>
+                <span className="font-bold" style={getGradeStyle(reportCard.grade)}>
                   {reportCard.grade}
                 </span>
               </TableCell>
@@ -154,7 +160,7 @@ export function ReportCardView({ reportCard, onClose }: ReportCardViewProps) {
           </div>
           <div className="bg-primary/5 p-4 rounded-lg text-center">
             <p className="text-sm text-muted-foreground">Grade</p>
-            <p className={`text-2xl font-bold ${getGradeColor(reportCard.grade)}`}>
+            <p className="text-2xl font-bold" style={getGradeStyle(reportCard.grade)}>
               {reportCard.grade}
             </p>
           </div>

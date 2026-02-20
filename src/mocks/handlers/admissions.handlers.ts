@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import {
   applications,
   filterApplications,
@@ -38,7 +39,7 @@ function generateApplicationNumber(): string {
 export const admissionsHandlers = [
   // Get all applications with filters and pagination
   http.get('/api/admissions', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const page = parseInt(url.searchParams.get('page') || '1')
     const limit = parseInt(url.searchParams.get('limit') || '10')
@@ -73,13 +74,13 @@ export const admissionsHandlers = [
 
   // Get application stats
   http.get('/api/admissions/stats', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: applicationStats })
   }),
 
   // Get single application by ID
   http.get('/api/admissions/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const application = applications.find((a) => a.id === params.id)
 
     if (!application) {
@@ -91,7 +92,7 @@ export const admissionsHandlers = [
 
   // Create new application
   http.post('/api/admissions', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateApplicationRequest
 
     const newApplication: Application = {
@@ -154,7 +155,7 @@ export const admissionsHandlers = [
 
   // Update application
   http.put('/api/admissions/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -175,7 +176,7 @@ export const admissionsHandlers = [
 
   // Update application status
   http.patch('/api/admissions/:id/status', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -208,7 +209,7 @@ export const admissionsHandlers = [
 
   // Add document to application
   http.post('/api/admissions/:id/documents', async ({ params, request }) => {
-    await delay(400)
+    await mockDelay('write')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -240,7 +241,7 @@ export const admissionsHandlers = [
 
   // Verify/reject document
   http.patch('/api/admissions/:id/documents/:docId', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -279,7 +280,7 @@ export const admissionsHandlers = [
 
   // Add note to application
   http.post('/api/admissions/:id/notes', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -310,7 +311,7 @@ export const admissionsHandlers = [
 
   // Schedule interview
   http.patch('/api/admissions/:id/interview', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -333,7 +334,7 @@ export const admissionsHandlers = [
 
   // Schedule entrance exam
   http.patch('/api/admissions/:id/entrance-exam', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -356,7 +357,7 @@ export const admissionsHandlers = [
 
   // Delete application
   http.delete('/api/admissions/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
 
     if (applicationIndex === -1) {
@@ -371,7 +372,7 @@ export const admissionsHandlers = [
   // ==================== WAITLIST HANDLERS ====================
 
   http.get('/api/admissions/waitlist', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const cls = url.searchParams.get('class')
     let entries = [...waitlistEntries]
@@ -383,19 +384,19 @@ export const admissionsHandlers = [
   }),
 
   http.get('/api/admissions/class-capacity', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: classCapacities })
   }),
 
   // ==================== ENTRANCE EXAM HANDLERS ====================
 
   http.get('/api/admissions/exam-schedules', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: examSchedules })
   }),
 
   http.post('/api/admissions/exam-schedules', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as Record<string, unknown>
     const newSchedule = {
       id: generateId(),
@@ -409,7 +410,7 @@ export const admissionsHandlers = [
   }),
 
   http.get('/api/admissions/exam-results', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const cls = url.searchParams.get('class')
     const scheduleId = url.searchParams.get('scheduleId')
@@ -428,7 +429,7 @@ export const admissionsHandlers = [
   }),
 
   http.post('/api/admissions/:id/exam-score', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const applicationIndex = applications.findIndex((a) => a.id === params.id)
     if (applicationIndex === -1) {
       return HttpResponse.json({ error: 'Application not found' }, { status: 404 })
@@ -443,7 +444,7 @@ export const admissionsHandlers = [
   // ==================== COMMUNICATION HANDLERS ====================
 
   http.get('/api/admissions/communications', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const applicationId = url.searchParams.get('applicationId')
     const type = url.searchParams.get('type')
@@ -458,12 +459,12 @@ export const admissionsHandlers = [
   }),
 
   http.get('/api/admissions/communication-templates', async () => {
-    await delay(200)
+    await mockDelay('read')
     return HttpResponse.json({ data: communicationTemplates })
   }),
 
   http.post('/api/admissions/send-communication', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = (await request.json()) as { applicationIds: string[]; type: string; subject: string; message: string }
     const newLogs = body.applicationIds.map((appId) => {
       const app = applications.find((a) => a.id === appId)
@@ -488,7 +489,7 @@ export const admissionsHandlers = [
   // ==================== PAYMENT HANDLERS ====================
 
   http.get('/api/admissions/payments', async ({ request }) => {
-    await delay(200)
+    await mockDelay('read')
     const url = new URL(request.url)
     const status = url.searchParams.get('status')
     let payments = [...admissionPayments]
@@ -499,7 +500,7 @@ export const admissionsHandlers = [
   }),
 
   http.get('/api/admissions/:id/payment', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const payment = admissionPayments.find((p) => p.applicationId === params.id)
     if (!payment) {
       return HttpResponse.json({ error: 'Payment not found' }, { status: 404 })
@@ -508,7 +509,7 @@ export const admissionsHandlers = [
   }),
 
   http.post('/api/admissions/:id/payment', async ({ params, request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as { amount: number; paymentMethod: string; transactionId?: string }
     const paymentIndex = admissionPayments.findIndex((p) => p.applicationId === params.id)
 
@@ -536,14 +537,14 @@ export const admissionsHandlers = [
   // ==================== ANALYTICS HANDLERS ====================
 
   http.get('/api/admissions/analytics', async () => {
-    await delay(300)
+    await mockDelay('read')
     return HttpResponse.json({ data: generateAnalytics() })
   }),
 
   // ==================== EXPORT HANDLER ====================
 
   http.get('/api/admissions/export', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const url = new URL(request.url)
     const statusFilter = url.searchParams.get('status') as ApplicationStatus | null
     const classFilter = url.searchParams.get('class')
@@ -583,7 +584,7 @@ export const admissionsHandlers = [
   // ==================== PUBLIC APPLICATION HANDLER ====================
 
   http.post('/api/public/admissions/apply', async ({ request }) => {
-    await delay(500)
+    await mockDelay('heavy')
     const body = (await request.json()) as CreateApplicationRequest & { source?: string }
 
     const newApplication: Application = {

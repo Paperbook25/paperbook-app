@@ -194,7 +194,7 @@ export function ShortageAlertManager() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
+                <AlertTriangle className="h-5 w-5 text-orange-500 dark:text-orange-400" />
                 <CardTitle className="text-base">Active Alerts</CardTitle>
               </div>
               <CardDescription>

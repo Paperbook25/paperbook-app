@@ -44,6 +44,7 @@ import {
 import { useAlumni, useAlumniStats, useCreateAlumni, useVerifyAlumni } from '../hooks/useAlumni'
 import { formatCurrency } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
+import { statusColors } from '@/lib/design-tokens'
 
 export function AlumniPage() {
   const [batchFilter, setBatchFilter] = useState<string>('')
@@ -499,12 +500,12 @@ export function AlumniPage() {
                         </TableCell>
                         <TableCell>
                           {alumnus.isVerified ? (
-                            <Badge className="bg-green-100 text-green-800">
+                            <Badge variant="success">
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Verified
                             </Badge>
                           ) : (
-                            <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>
+                            <Badge variant="warning">Pending</Badge>
                           )}
                         </TableCell>
                         <TableCell>

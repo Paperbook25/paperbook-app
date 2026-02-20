@@ -1,4 +1,5 @@
-import { http, HttpResponse, delay } from 'msw'
+import { http, HttpResponse } from 'msw'
+import { mockDelay } from '../utils/delay-config'
 import { faker } from '@faker-js/faker'
 import {
   integrations,
@@ -26,7 +27,7 @@ export const integrationsHandlers = [
 
   // Get all integrations
   http.get('/api/integrations', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
     const status = url.searchParams.get('status')
@@ -55,7 +56,7 @@ export const integrationsHandlers = [
 
   // Get single integration
   http.get('/api/integrations/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const integration = integrations.find((i) => i.id === params.id)
     if (!integration) {
       return HttpResponse.json({ error: 'Integration not found' }, { status: 404 })
@@ -65,7 +66,7 @@ export const integrationsHandlers = [
 
   // Create integration
   http.post('/api/integrations', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateIntegrationRequest
     const newIntegration: IntegrationConfig = {
       id: generateId('int'),
@@ -84,7 +85,7 @@ export const integrationsHandlers = [
 
   // Update integration
   http.put('/api/integrations/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as UpdateIntegrationRequest
     const index = integrations.findIndex((i) => i.id === params.id)
     if (index === -1) {
@@ -100,7 +101,7 @@ export const integrationsHandlers = [
 
   // Delete integration
   http.delete('/api/integrations/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = integrations.findIndex((i) => i.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Integration not found' }, { status: 404 })
@@ -111,7 +112,7 @@ export const integrationsHandlers = [
 
   // Test integration
   http.post('/api/integrations/:id/test', async ({ params }) => {
-    await delay(1500) // Simulate testing time
+    await mockDelay('heavy') // Simulate testing time
     const integration = integrations.find((i) => i.id === params.id)
     if (!integration) {
       return HttpResponse.json({ error: 'Integration not found' }, { status: 404 })
@@ -139,7 +140,7 @@ export const integrationsHandlers = [
 
   // Get all biometric devices
   http.get('/api/biometric-devices', async ({ request }) => {
-    await delay(300)
+    await mockDelay('read')
     const url = new URL(request.url)
     const provider = url.searchParams.get('provider')
     const status = url.searchParams.get('status')
@@ -174,7 +175,7 @@ export const integrationsHandlers = [
 
   // Get single biometric device
   http.get('/api/biometric-devices/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const device = biometricDevices.find((d) => d.id === params.id)
     if (!device) {
       return HttpResponse.json({ error: 'Device not found' }, { status: 404 })
@@ -184,7 +185,7 @@ export const integrationsHandlers = [
 
   // Create biometric device
   http.post('/api/biometric-devices', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateBiometricDeviceRequest
     const newDevice: BiometricDevice = {
       id: generateId('bio'),
@@ -206,7 +207,7 @@ export const integrationsHandlers = [
 
   // Update biometric device
   http.put('/api/biometric-devices/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as UpdateBiometricDeviceRequest
     const index = biometricDevices.findIndex((d) => d.id === params.id)
     if (index === -1) {
@@ -222,7 +223,7 @@ export const integrationsHandlers = [
 
   // Delete biometric device
   http.delete('/api/biometric-devices/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = biometricDevices.findIndex((d) => d.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Device not found' }, { status: 404 })
@@ -233,7 +234,7 @@ export const integrationsHandlers = [
 
   // Sync biometric device
   http.post('/api/biometric-devices/:id/sync', async ({ params }) => {
-    await delay(2000) // Simulate sync time
+    await mockDelay('heavy') // Simulate sync time
     const device = biometricDevices.find((d) => d.id === params.id)
     if (!device) {
       return HttpResponse.json({ error: 'Device not found' }, { status: 404 })
@@ -265,13 +266,13 @@ export const integrationsHandlers = [
 
   // Get all webhooks
   http.get('/api/webhooks', async () => {
-    await delay(300)
+    await mockDelay('read')
     return HttpResponse.json({ data: webhooks })
   }),
 
   // Get single webhook
   http.get('/api/webhooks/:id', async ({ params }) => {
-    await delay(200)
+    await mockDelay('read')
     const webhook = webhooks.find((w) => w.id === params.id)
     if (!webhook) {
       return HttpResponse.json({ error: 'Webhook not found' }, { status: 404 })
@@ -281,7 +282,7 @@ export const integrationsHandlers = [
 
   // Create webhook
   http.post('/api/webhooks', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateWebhookRequest
     const newWebhook: Webhook = {
       id: generateId('wh'),
@@ -301,7 +302,7 @@ export const integrationsHandlers = [
 
   // Update webhook
   http.put('/api/webhooks/:id', async ({ params, request }) => {
-    await delay(300)
+    await mockDelay('read')
     const body = (await request.json()) as UpdateWebhookRequest
     const index = webhooks.findIndex((w) => w.id === params.id)
     if (index === -1) {
@@ -317,7 +318,7 @@ export const integrationsHandlers = [
 
   // Delete webhook
   http.delete('/api/webhooks/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = webhooks.findIndex((w) => w.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'Webhook not found' }, { status: 404 })
@@ -328,7 +329,7 @@ export const integrationsHandlers = [
 
   // Test webhook
   http.post('/api/webhooks/:id/test', async ({ params }) => {
-    await delay(1000)
+    await mockDelay('heavy')
     const webhook = webhooks.find((w) => w.id === params.id)
     if (!webhook) {
       return HttpResponse.json({ error: 'Webhook not found' }, { status: 404 })
@@ -353,7 +354,7 @@ export const integrationsHandlers = [
 
   // Get all API keys
   http.get('/api/api-keys', async () => {
-    await delay(300)
+    await mockDelay('read')
     // Return keys with masked full key (security)
     const maskedKeys = apiKeys.map((key) => ({
       ...key,
@@ -364,7 +365,7 @@ export const integrationsHandlers = [
 
   // Create API key
   http.post('/api/api-keys', async ({ request }) => {
-    await delay(400)
+    await mockDelay('write')
     const body = (await request.json()) as CreateAPIKeyRequest
     const fullKey = `pk_live_${faker.string.alphanumeric(32)}`
     const newKey: APIKey = {
@@ -384,7 +385,7 @@ export const integrationsHandlers = [
 
   // Revoke API key
   http.delete('/api/api-keys/:id', async ({ params }) => {
-    await delay(300)
+    await mockDelay('read')
     const index = apiKeys.findIndex((k) => k.id === params.id)
     if (index === -1) {
       return HttpResponse.json({ error: 'API key not found' }, { status: 404 })

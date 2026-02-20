@@ -8,6 +8,7 @@ export * from './api/hostel.api'
 export * from './hooks/useHostel'
 
 // Pages
+export { HostelMainPage } from './pages/HostelMainPage'
 export { HostelPage } from './pages/HostelPage'
 export { RoomsPage } from './pages/RoomsPage'
 export { AllocationsPage } from './pages/AllocationsPage'

@@ -4,16 +4,17 @@ import { Star, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Course } from '../types/lms.types'
 import { COURSE_CATEGORY_LABELS, COURSE_LEVEL_LABELS } from '../types/lms.types'
+import { difficultyColors, ratingColors } from '@/lib/design-tokens'
 
 interface CourseCardProps {
   course: Course
   onClick?: () => void
 }
 
-const levelColorMap: Record<Course['level'], string> = {
-  beginner: 'bg-green-100 text-green-800 border-green-200',
-  intermediate: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  advanced: 'bg-red-100 text-red-800 border-red-200',
+const levelStyleMap: Record<Course['level'], { bg: string; text: string }> = {
+  beginner: difficultyColors.easy,
+  intermediate: difficultyColors.medium,
+  advanced: difficultyColors.hard,
 }
 
 const formatPrice = (price: number) =>
@@ -64,10 +65,11 @@ export function CourseCard({ course, onClick }: CourseCardProps) {
         {/* Level badge - top right */}
         <Badge
           variant="outline"
-          className={cn(
-            'absolute top-2 right-2 text-[10px] shadow-sm border',
-            levelColorMap[course.level]
-          )}
+          className="absolute top-2 right-2 text-[10px] shadow-sm border"
+          style={{
+            backgroundColor: levelStyleMap[course.level].bg,
+            color: levelStyleMap[course.level].text,
+          }}
         >
           {COURSE_LEVEL_LABELS[course.level]}
         </Badge>

@@ -94,6 +94,7 @@ export function EditStudentPage() {
           { label: student.name, href: `/students/${id}` },
           { label: 'Edit' },
         ]}
+        moduleColor="students"
       />
 
       <StudentForm

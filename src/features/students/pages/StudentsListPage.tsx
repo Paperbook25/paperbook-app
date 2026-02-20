@@ -39,6 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { PageHeader } from '@/components/layout/PageHeader'
+import { ErrorCard } from '@/components/ErrorBoundary'
 import { BulkImportDialog } from '../components/BulkImportDialog'
 import { ExportDialog } from '../components/ExportDialog'
 import { PromotionDialog } from '../components/PromotionDialog'
@@ -66,7 +67,7 @@ export function StudentsListPage() {
 
   const deleteMutation = useDeleteStudent()
 
-  const { data, isLoading } = useStudents({
+  const { data, isLoading, error, refetch } = useStudents({
     search: search || undefined,
     class: classFilter !== 'All Classes' ? classFilter : undefined,
     section: sectionFilter !== 'All Sections' ? sectionFilter : undefined,
@@ -119,6 +120,7 @@ export function StudentsListPage() {
         title="Students"
         description={`Manage all ${meta.total} students in your institution`}
         breadcrumbs={[{ label: 'Dashboard', href: '/' }, { label: 'Students' }]}
+        moduleColor="students"
         actions={
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setPromotionOpen(true)}>
@@ -218,6 +220,13 @@ export function StudentsListPage() {
           </div>
 
           {/* Table */}
+          {error ? (
+            <ErrorCard
+              title="Failed to load students"
+              message="An error occurred while loading the student list. Please try again."
+              onRetry={() => refetch()}
+            />
+          ) : (
           <div className="rounded-md border">
             <Table>
               <TableHeader>
@@ -319,9 +328,10 @@ export function StudentsListPage() {
               </TableBody>
             </Table>
           </div>
+          )}
 
           {/* Pagination */}
-          {meta.totalPages > 1 && (
+          {!error && meta.totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
               <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * limit + 1} to {Math.min(page * limit, meta.total)} of {meta.total} students
