@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AppShell } from '@/components/layout/AppShell'
@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { PageLoader } from '@/components/ui/lazy-loader'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { RoleProtectedRoute, ALL_ROLES } from '@/components/auth/RoleProtectedRoute'
+import { setQueryClient } from '@/lib/prefetch'
 
 // Eagerly load LoginPage for fast initial render
 import { LoginPage } from '@/features/auth/pages/LoginPage'
@@ -119,11 +120,16 @@ const DocumentsPage = lazy(() => import('@/features/documents').then(m => ({ def
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000,
+      staleTime: 15 * 60 * 1000,  // 15 minutes
+      gcTime: 30 * 60 * 1000,     // 30 minutes cache
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 })
+
+// Initialize prefetch utility with the query client
+setQueryClient(queryClient)
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore()

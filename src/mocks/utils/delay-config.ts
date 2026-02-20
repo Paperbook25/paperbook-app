@@ -19,7 +19,7 @@ const getDelayMode = (): DelayMode => {
   if (mode && mode in DELAY_PRESETS) {
     return mode
   }
-  return 'fast'
+  return 'realistic'
 }
 
 export const DELAYS = DELAY_PRESETS[getDelayMode()]

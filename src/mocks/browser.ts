@@ -568,25 +568,39 @@ const handlers = [
       return HttpResponse.json({ error: 'No children linked to account' }, { status: 404 })
     }
 
+    // Build a Map for O(1) student lookups instead of O(n) find() in a loop
+    const studentMap = new Map(students.map(s => [s.id, s]))
+    // Build Maps for O(1) fee and book lookups
+    const feesByStudent = new Map<string, typeof studentFees>()
+    studentFees.forEach(fee => {
+      const existing = feesByStudent.get(fee.studentId) || []
+      existing.push(fee)
+      feesByStudent.set(fee.studentId, existing)
+    })
+    const booksByStudent = new Map<string, number>()
+    issuedBooks.forEach(book => {
+      if (book.status !== 'returned') {
+        booksByStudent.set(book.studentId, (booksByStudent.get(book.studentId) || 0) + 1)
+      }
+    })
+
     // Build children data with aggregated stats
     const children = context.childIds.map((childId) => {
-      // Find student in students array or generate mock data
-      const student = students.find((s) => s.id === childId)
+      // O(1) lookup using Map instead of O(n) find()
+      const student = studentMap.get(childId)
 
       // Get attendance data
       const attendanceData = generateStudentAttendanceView(childId)
 
-      // Get fees data
-      const fees = studentFees.filter((sf) => sf.studentId === childId)
+      // Get fees data using O(1) Map lookup
+      const fees = feesByStudent.get(childId) || []
       const totalFees = fees.reduce((sum, f) => sum + f.totalAmount, 0)
       const totalPaid = fees.reduce((sum, f) => sum + f.paidAmount, 0)
       const totalDiscount = fees.reduce((sum, f) => sum + f.discountAmount, 0)
       const pendingFees = totalFees - totalPaid - totalDiscount
 
-      // Get library books count
-      const libraryBooks = issuedBooks.filter(
-        (ib) => ib.studentId === childId && ib.status !== 'returned'
-      ).length
+      // Get library books count using O(1) Map lookup
+      const libraryBooks = booksByStudent.get(childId) || 0
 
       return {
         id: childId,

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useShallow } from 'zustand/react/shallow'
 import type { User, Role } from '@/types/common.types'
 import { clearSessionTimeout } from '@/lib/security'
 
@@ -60,3 +61,16 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 )
+
+// Optimized selectors to prevent unnecessary re-renders
+export const useUser = () => useAuthStore((state) => state.user)
+export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated)
+export const useAuthActions = () =>
+  useAuthStore(
+    useShallow((state) => ({
+      login: state.login,
+      logout: state.logout,
+      hasPermission: state.hasPermission,
+      hasRole: state.hasRole,
+    }))
+  )

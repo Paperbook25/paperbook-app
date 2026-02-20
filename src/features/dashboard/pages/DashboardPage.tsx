@@ -1,3 +1,4 @@
+import { memo, useMemo, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   GraduationCap,
@@ -41,12 +42,41 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-// Sample sparkline data for trends
-const sparklineData = {
+// Sample sparkline data for trends - moved outside component to prevent recreation
+const SPARKLINE_DATA: Record<string, number[]> = {
   students: [45, 52, 49, 63, 58, 72, 68],
   staff: [22, 24, 23, 25, 24, 26, 27],
   fees: [150, 180, 165, 210, 195, 240, 220],
   attendance: [92, 88, 94, 91, 89, 93, 91],
+}
+
+// Quick actions config - moved outside component to prevent recreation
+const QUICK_ACTIONS = [
+  { label: 'Add Student', icon: UserPlus, href: '/students/new', color: 'var(--color-module-students)' },
+  { label: 'Mark Attendance', icon: ClipboardCheck, href: '/attendance', color: 'var(--color-module-attendance)' },
+  { label: 'Collect Fee', icon: IndianRupee, href: '/finance/collection', color: 'var(--color-module-finance)' },
+  { label: 'New Admission', icon: GraduationCap, href: '/admissions/new', color: 'var(--color-module-admissions)' },
+] as const
+
+// Format relative time - extracted as pure function
+function formatRelativeTime(timestamp: string): string {
+  const now = new Date()
+  const date = new Date(timestamp)
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins} min ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  return formatDate(timestamp, { month: 'short', day: 'numeric' })
+}
+
+// Format lakhs - extracted as pure function
+function formatLakhs(n: number): string {
+  if (n >= 100000) return `${(n / 100000).toFixed(2)}L`
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
+  return n.toLocaleString()
 }
 
 type StatCardVariant = 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'purple' | 'orange' | 'cyan'
@@ -127,17 +157,10 @@ function StatCard({
   return href ? <Link to={href} className="block">{content}</Link> : content
 }
 
-function QuickActions() {
-  const actions = [
-    { label: 'Add Student', icon: UserPlus, href: '/students/new', color: 'var(--color-module-students)' },
-    { label: 'Mark Attendance', icon: ClipboardCheck, href: '/attendance', color: 'var(--color-module-attendance)' },
-    { label: 'Collect Fee', icon: IndianRupee, href: '/finance/collection', color: 'var(--color-module-finance)' },
-    { label: 'New Admission', icon: GraduationCap, href: '/admissions/new', color: 'var(--color-module-admissions)' },
-  ]
-
+const QuickActions = memo(function QuickActions() {
   return (
     <div className="flex items-center gap-2">
-      {actions.map((action) => (
+      {QUICK_ACTIONS.map((action) => (
         <Link key={action.label} to={action.href}>
           <Button
             variant="outline"
@@ -156,10 +179,10 @@ function QuickActions() {
       ))}
     </div>
   )
-}
+})
 
-// Custom tooltip component for charts
-function ChartTooltip({ active, payload, label, formatter }: any) {
+// Custom tooltip component for charts - memoized
+const ChartTooltip = memo(function ChartTooltip({ active, payload, label, formatter }: any) {
   if (!active || !payload?.length) return null
 
   return (
@@ -172,33 +195,17 @@ function ChartTooltip({ active, payload, label, formatter }: any) {
       ))}
     </div>
   )
+})
+
+// Fee Collection Section Component - accepts stats as prop to avoid duplicate query
+interface FeeCollectionSectionProps {
+  stats: {
+    totalFeeCollected?: number
+    pendingFees?: number
+  } | undefined
 }
 
-// Format relative time
-function formatRelativeTime(timestamp: string): string {
-  const now = new Date()
-  const date = new Date(timestamp)
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-
-  if (diffMins < 1) return 'Just now'
-  if (diffMins < 60) return `${diffMins} min ago`
-  if (diffHours < 24) return `${diffHours}h ago`
-  return formatDate(timestamp, { month: 'short', day: 'numeric' })
-}
-
-// Fee Collection Section Component
-function FeeCollectionSection() {
-  const { data: stats } = useQuery({
-    queryKey: ['dashboard', 'stats'],
-    queryFn: async () => {
-      const res = await fetch('/api/dashboard/stats')
-      const json = await res.json()
-      return json.data
-    },
-  })
-
+const FeeCollectionSection = memo(function FeeCollectionSection({ stats }: FeeCollectionSectionProps) {
   const { data: feeData, isLoading: feeLoading } = useQuery({
     queryKey: ['dashboard', 'fee-collection'],
     queryFn: async () => {
@@ -230,12 +237,6 @@ function FeeCollectionSection() {
   const pendingFees = stats?.pendingFees || 0
   const targetAmount = 5400000 // 54L target
   const collectionProgress = Math.round((totalCollected / targetAmount) * 100)
-
-  const formatLakhs = (n: number) => {
-    if (n >= 100000) return `${(n / 100000).toFixed(2)}L`
-    if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
-    return n.toLocaleString()
-  }
 
   return (
     <>
@@ -393,10 +394,10 @@ function FeeCollectionSection() {
       </div>
     </>
   )
-}
+})
 
-// Quick Stats Section
-function QuickStatsSection() {
+// Quick Stats Section - memoized
+const QuickStatsSection = memo(function QuickStatsSection() {
   const { data: quickStats, isLoading } = useQuery({
     queryKey: ['dashboard', 'quick-stats'],
     queryFn: async () => {
@@ -456,7 +457,7 @@ function QuickStatsSection() {
       ))}
     </div>
   )
-}
+})
 
 export function DashboardPage() {
   const { data: stats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useQuery({
@@ -547,7 +548,7 @@ export function DashboardPage() {
               href="/students"
               variant="primary"
               iconColor="var(--color-module-students)"
-              sparklineData={sparklineData.students}
+              sparklineData={SPARKLINE_DATA.students}
             />
             <StatCard
               title="Total Staff"
@@ -557,7 +558,7 @@ export function DashboardPage() {
               href="/staff"
               variant="success"
               iconColor="var(--color-module-staff)"
-              sparklineData={sparklineData.staff}
+              sparklineData={SPARKLINE_DATA.staff}
             />
             <StatCard
               title="Fee Collected"
@@ -573,7 +574,7 @@ export function DashboardPage() {
                 if (n >= 1000) return `${(n / 1000).toFixed(1)}K`
                 return n.toFixed(0)
               }}
-              sparklineData={sparklineData.fees}
+              sparklineData={SPARKLINE_DATA.fees}
             />
             <StatCard
               title="Today's Attendance"
@@ -584,14 +585,14 @@ export function DashboardPage() {
               variant="orange"
               iconColor="var(--color-module-attendance)"
               suffix="%"
-              sparklineData={sparklineData.attendance}
+              sparklineData={SPARKLINE_DATA.attendance}
             />
           </>
         )}
       </div>
 
       {/* Fee Collection Section - Redesigned */}
-      <FeeCollectionSection />
+      <FeeCollectionSection stats={stats} />
 
       {/* Attendance & Events */}
       <div className="section-header">

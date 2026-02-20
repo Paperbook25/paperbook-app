@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Download, Upload, MoreHorizontal, Eye, Pencil, Trash2, ArrowUpCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -47,9 +47,80 @@ import { useStudents, useDeleteStudent } from '../hooks/useStudents'
 import { useToast } from '@/hooks/use-toast'
 import { getInitials, formatDate } from '@/lib/utils'
 
-const CLASSES = ['All Classes', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12']
-const SECTIONS = ['All Sections', 'A', 'B', 'C', 'D']
-const STATUSES = ['All Status', 'active', 'inactive', 'graduated', 'transferred']
+const CLASSES = ['All Classes', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'] as const
+const SECTIONS = ['All Sections', 'A', 'B', 'C', 'D'] as const
+const STATUSES = ['All Status', 'active', 'inactive', 'graduated', 'transferred'] as const
+
+// Memoized table row component to prevent unnecessary re-renders
+const StudentRow = memo(function StudentRow({
+  student,
+  onNavigate,
+  onDelete,
+  getStatusBadge,
+}: {
+  student: any
+  onNavigate: (id: string) => void
+  onDelete: (id: string) => void
+  getStatusBadge: (status: string) => React.ReactNode
+}) {
+  return (
+    <TableRow
+      className="cursor-pointer"
+      onClick={() => onNavigate(student.id)}
+    >
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <Avatar>
+            <AvatarImage src={student.photoUrl} />
+            <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-medium">{student.name}</p>
+            <p className="text-sm text-muted-foreground">{student.email}</p>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell className="font-mono text-sm">{student.admissionNumber}</TableCell>
+      <TableCell>
+        {student.class} - {student.section}
+      </TableCell>
+      <TableCell>
+        <p className="text-sm">{student.parent.fatherName}</p>
+        <p className="text-xs text-muted-foreground">{student.parent.guardianPhone}</p>
+      </TableCell>
+      <TableCell>{getStatusBadge(student.status)}</TableCell>
+      <TableCell>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onNavigate(student.id)}>
+              <Eye className="h-4 w-4 mr-2" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onNavigate(`${student.id}/edit`)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete(student.id)
+              }}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  )
+})
 
 export function StudentsListPage() {
   const navigate = useNavigate()
@@ -81,6 +152,35 @@ export function StudentsListPage() {
 
   const studentToDelete = students.find((s: any) => s.id === deleteId)
 
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleClassChange = useCallback((v: string) => {
+    setClassFilter(v)
+    setPage(1)
+  }, [])
+
+  const handleSectionChange = useCallback((v: string) => {
+    setSectionFilter(v)
+    setPage(1)
+  }, [])
+
+  const handleStatusChange = useCallback((v: string) => {
+    setStatusFilter(v)
+    setPage(1)
+  }, [])
+
+  const handleNavigate = useCallback((path: string) => {
+    navigate(`/students/${path}`)
+  }, [navigate])
+
+  const handleSetDeleteId = useCallback((id: string) => {
+    setDeleteId(id)
+  }, [])
+
   const handleDelete = async () => {
     if (!deleteId) return
     try {
@@ -99,7 +199,7 @@ export function StudentsListPage() {
     }
   }
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = useCallback((status: string) => {
     switch (status) {
       case 'active':
         return <Badge variant="success">Active</Badge>
@@ -112,7 +212,7 @@ export function StudentsListPage() {
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
-  }
+  }, [])
 
   return (
     <div>
@@ -152,20 +252,14 @@ export function StudentsListPage() {
               <Input
                 placeholder="Search by name, admission no, or email..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
+                onChange={handleSearchChange}
                 className="pl-9"
               />
             </div>
             <div className="flex gap-2">
               <Select
                 value={classFilter}
-                onValueChange={(v) => {
-                  setClassFilter(v)
-                  setPage(1)
-                }}
+                onValueChange={handleClassChange}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue />
@@ -181,10 +275,7 @@ export function StudentsListPage() {
 
               <Select
                 value={sectionFilter}
-                onValueChange={(v) => {
-                  setSectionFilter(v)
-                  setPage(1)
-                }}
+                onValueChange={handleSectionChange}
               >
                 <SelectTrigger className="w-[130px]">
                   <SelectValue />
@@ -200,10 +291,7 @@ export function StudentsListPage() {
 
               <Select
                 value={statusFilter}
-                onValueChange={(v) => {
-                  setStatusFilter(v)
-                  setPage(1)
-                }}
+                onValueChange={handleStatusChange}
               >
                 <SelectTrigger className="w-[130px]">
                   <SelectValue />
@@ -267,62 +355,13 @@ export function StudentsListPage() {
                   </TableRow>
                 ) : (
                   students.map((student: any) => (
-                    <TableRow
+                    <StudentRow
                       key={student.id}
-                      className="cursor-pointer"
-                      onClick={() => navigate(`/students/${student.id}`)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src={student.photoUrl} />
-                            <AvatarFallback>{getInitials(student.name)}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium">{student.name}</p>
-                            <p className="text-sm text-muted-foreground">{student.email}</p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">{student.admissionNumber}</TableCell>
-                      <TableCell>
-                        {student.class} - {student.section}
-                      </TableCell>
-                      <TableCell>
-                        <p className="text-sm">{student.parent.fatherName}</p>
-                        <p className="text-xs text-muted-foreground">{student.parent.guardianPhone}</p>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(student.status)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => navigate(`/students/${student.id}`)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => navigate(`/students/${student.id}/edit`)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setDeleteId(student.id)
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      student={student}
+                      onNavigate={handleNavigate}
+                      onDelete={handleSetDeleteId}
+                      getStatusBadge={getStatusBadge}
+                    />
                   ))
                 )}
               </TableBody>

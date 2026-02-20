@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { useShallow } from 'zustand/react/shallow'
 
 type Theme = 'light' | 'dark' | 'system'
 
@@ -53,3 +54,21 @@ export const useUIStore = create<UIState>()(
     }
   )
 )
+
+// Optimized selectors to prevent unnecessary re-renders
+export const useSidebarCollapsed = () => useUIStore((state) => state.sidebarCollapsed)
+export const useSidebarMobileOpen = () => useUIStore((state) => state.sidebarMobileOpen)
+export const useTheme = () => useUIStore((state) => state.theme)
+export const useCommandPaletteOpen = () => useUIStore((state) => state.commandPaletteOpen)
+export const useUIActions = () =>
+  useUIStore(
+    useShallow((state) => ({
+      toggleSidebar: state.toggleSidebar,
+      setSidebarCollapsed: state.setSidebarCollapsed,
+      setSidebarMobileOpen: state.setSidebarMobileOpen,
+      setTheme: state.setTheme,
+      openCommandPalette: state.openCommandPalette,
+      closeCommandPalette: state.closeCommandPalette,
+      toggleCommandPalette: state.toggleCommandPalette,
+    }))
+  )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Plus,
@@ -111,12 +111,12 @@ type LeaveSubTab = 'pending' | 'all'
 type PayrollSubTab = 'process' | 'structure' | 'history'
 type TimetableSubTab = 'class' | 'teacher'
 
-// Constants
-const DEPARTMENTS = ['All Departments', 'Mathematics', 'Science', 'English', 'Social Studies', 'Hindi', 'Computer Science', 'Physical Education', 'Art', 'Music', 'Administration']
-const STATUSES = ['All Status', 'active', 'on_leave', 'resigned']
-const CLASSES = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12']
-const SECTIONS = ['A', 'B', 'C']
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+// Constants - moved outside components to prevent recreation
+const DEPARTMENTS = ['All Departments', 'Mathematics', 'Science', 'English', 'Social Studies', 'Hindi', 'Computer Science', 'Physical Education', 'Art', 'Music', 'Administration'] as const
+const STATUSES = ['All Status', 'active', 'on_leave', 'resigned'] as const
+const CLASSES = ['Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'] as const
+const SECTIONS = ['A', 'B', 'C'] as const
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const
 
 const STATUS_CONFIG: Record<LeaveStatus, { label: string; bgColor: string; textColor: string; icon: React.ReactNode }> = {
   pending: { label: 'Pending', bgColor: 'var(--color-module-finance-light)', textColor: 'var(--color-module-finance)', icon: <Clock className="h-3 w-3" /> },
@@ -172,6 +172,22 @@ function StaffListTab() {
   const meta = data?.meta || { total: 0, totalPages: 1 }
 
   const staffToDelete = staffList.find((s: any) => s.id === deleteId)
+
+  // Memoized handlers to prevent unnecessary re-renders
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value)
+    setPage(1)
+  }, [])
+
+  const handleDepartmentChange = useCallback((v: string) => {
+    setDepartmentFilter(v)
+    setPage(1)
+  }, [])
+
+  const handleStatusChange = useCallback((v: string) => {
+    setStatusFilter(v as StaffStatus | 'All Status')
+    setPage(1)
+  }, [])
 
   const handleExport = async () => {
     setIsExporting(true)
@@ -272,20 +288,14 @@ function StaffListTab() {
               <Input
                 placeholder="Search by name, employee ID, or email..."
                 value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value)
-                  setPage(1)
-                }}
+                onChange={handleSearchChange}
                 className="pl-9"
               />
             </div>
             <div className="flex gap-2">
               <Select
                 value={departmentFilter}
-                onValueChange={(v) => {
-                  setDepartmentFilter(v)
-                  setPage(1)
-                }}
+                onValueChange={handleDepartmentChange}
               >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue />
@@ -301,10 +311,7 @@ function StaffListTab() {
 
               <Select
                 value={statusFilter}
-                onValueChange={(v) => {
-                  setStatusFilter(v as StaffStatus | 'All Status')
-                  setPage(1)
-                }}
+                onValueChange={handleStatusChange}
               >
                 <SelectTrigger className="w-[130px]">
                   <SelectValue />
