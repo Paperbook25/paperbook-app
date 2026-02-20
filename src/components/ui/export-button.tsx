@@ -31,7 +31,8 @@ export function ExportButton<T extends Record<string, unknown>>({
 }: ExportButtonProps<T>) {
   const [isExporting, setIsExporting] = useState(false)
   const { toast } = useToast()
-  const audit = module ? useAudit(module) : null
+  // Always call hook unconditionally, pass a default module when not provided
+  const audit = useAudit(module ?? 'students')
 
   const handleExport = async () => {
     setIsExporting(true)
@@ -56,7 +57,7 @@ export function ExportButton<T extends Record<string, unknown>>({
       exportToCSV(exportData, columns, exportFilename)
 
       // Log audit event if module is specified
-      if (audit && entityType) {
+      if (module && entityType) {
         audit.exportData(entityType, `Exported ${exportData.length} ${entityType} records to CSV`)
       }
 

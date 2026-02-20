@@ -24,6 +24,9 @@ const Sparkline = React.forwardRef<SVGSVGElement, SparklineProps>(
     },
     ref
   ) => {
+    // useId must be called before any early returns
+    const gradientId = React.useId()
+
     if (!data || data.length < 2) {
       return null
     }
@@ -47,8 +50,6 @@ const Sparkline = React.forwardRef<SVGSVGElement, SparklineProps>(
       .join(' ')
 
     const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padding} L ${padding} ${height - padding} Z`
-
-    const gradientId = React.useId()
 
     return (
       <svg
